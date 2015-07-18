@@ -1,0 +1,36 @@
+front_matter	Front Matter
+introduction	Introduction
+introduction_3e	Introduction to Third Edition
+chapter_01		Getting Started
+chapter_02		Views and URLconfs
+chapter_03		Templates
+chapter_04		Models
+chapter_05		The Django Admin Site
+chapter_06		Django Forms
+chapter_07		Advanced Views and URLconfs
+chapter_08		Advanced Templates
+chapter_09		Advanced Models
+chapter_10		Generic Views
+chapter_11		Managing Users
+chapter_12		Testing Django
+chapter_13		Deploying Django
+chapter_14		Writing Reuseable Apps
+chapter_15		Generating Non-HTML Content
+chapter_16		Django Sessions
+chapter_17		Caching
+chapter_18		Other Core Django Functionalities
+chapter_19		Django Middleware
+chapter_20		Internationalization
+chapter_21		Security
+chapter_22		Complete Installation Guide
+chapter_23		Advanced Database Management
+appendix_A		Appendix A: Model Definition Reference
+appendix_B		Appendix B: Database API Reference
+appendix_C		Appendix C: Class Based Views
+appendix_D		Appendix D: Settings
+appendix_E		Appendix E: Built-in Template Tags and Filters
+appendix_F		Appendix F: The django-admin Utility
+appendix_G		Appendix G: Request and Response Objects
+appendix_H		Appendix H: Django Web app tools
+licence	Lice	nse & Copyright
+
