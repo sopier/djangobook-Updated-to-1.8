@@ -196,14 +196,14 @@ successful, you should be able to import the module ``django``:
     Multiline statements in the interactive interpreter are padded with three
     dots (``...``). For example::
 
-        >>> print """This is a
+        >>> print ("""This is a
         ... string that spans
-        ... three lines."""
+        ... three lines.""")
         This is a
         string that spans
         three lines.
         >>> def my_function(value):
-        ...     print value
+        ...     print (value)
         >>> my_function('hello')
         hello
 
