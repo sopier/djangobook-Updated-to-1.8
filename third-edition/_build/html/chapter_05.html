@@ -1,0 +1,860 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Chapter 5: The Django Admin Site &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Chapter 6: Forms" href="chapter_06.html" />
+    <link rel="prev" title="Chapter 4: Models" href="chapter_04.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="chapter-5-the-django-admin-site">
+<h1>Chapter 5: The Django Admin Site<a class="headerlink" href="#chapter-5-the-django-admin-site" title="Permalink to this headline">¶</a></h1>
+<p>For a certain class of Web sites, an <em>admin interface</em> is an essential part of
+the infrastructure. This is a Web-based interface, limited to trusted site
+administrators, that enables the adding, editing and deletion of site content.
+Some common examples: the interface you use to post to your blog, the backend
+site managers use to moderate user-generated comments, the tool your clients
+use to update the press releases on the Web site you built for them.</p>
+<p>There&#8217;s a problem with admin interfaces, though: it&#8217;s boring to build them.
+Web development is fun when you&#8217;re developing public-facing functionality, but
+building admin interfaces is always the same. You have to authenticate users,
+display and handle forms, validate input, and so on. It&#8217;s boring, and it&#8217;s
+repetitive.</p>
+<p>So what&#8217;s Django&#8217;s approach to these boring, repetitive tasks? It does it all
+for you &#8211; in just a couple of lines of code, no less. With Django, building an
+admin interface is a solved problem.</p>
+<p>This chapter is about Django&#8217;s automatic admin interface. The feature works by
+reading metadata in your model to provide a powerful and production-ready
+interface that site administrators can start using immediately. Here, we discuss
+how to activate, use, and customize this feature.</p>
+<p>Note that we recommend reading this chapter even if you don&#8217;t intend to use the
+Django admin site, because we introduce a few concepts that apply to all of
+Django, regardless of admin-site usage.</p>
+<div class="section" id="using-the-admin-site">
+<h2>Using the Admin Site<a class="headerlink" href="#using-the-admin-site" title="Permalink to this headline">¶</a></h2>
+<p>When you ran <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">startproject</span> <span class="pre">mysite</span></code> in Chapter 1, Django created
+and configured the default admin site for you. All that you need to do is
+create an admin user (superuser) and then you can log into the admin site.</p>
+<p>To create an admin user, run the following command:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py createsuperuser
+</pre></div>
+</div>
+<p>Enter your desired username and press enter.</p>
+<div class="highlight-text"><div class="highlight"><pre>Username: admin
+</pre></div>
+</div>
+<p>You will then be prompted for your desired email address:</p>
+<div class="highlight-text"><div class="highlight"><pre>Email address: admin@example.com
+</pre></div>
+</div>
+<p>The final step is to enter your password. You will be asked to enter your
+password twice, the second time as a confirmation of the first.</p>
+<div class="highlight-text"><div class="highlight"><pre>Password: **********
+Password (again): *********
+Superuser created successfully.
+</pre></div>
+</div>
+</div>
+<div class="section" id="start-the-development-server">
+<h2>Start the development server<a class="headerlink" href="#start-the-development-server" title="Permalink to this headline">¶</a></h2>
+<p>The Django admin site is activated by default. Let&#8217;s start the development
+server and explore it.</p>
+<p>Recall from Tutorial 1 that you start the development server like so:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py runserver
+</pre></div>
+</div>
+<p>Now, open a Web browser and go to &#8220;/admin/&#8221; on your local domain &#8211; e.g.,
+<a class="reference external" href="http://127.0.0.1:8000/admin/">http://127.0.0.1:8000/admin/</a>. You should see the admin&#8217;s login screen:</p>
+<div class="figure" id="id1">
+<img alt="_images/admin01.png" src="_images/admin01.png" />
+<p class="caption"><span class="caption-text">Figure 5-1: Django admin login screen</span></p>
+</div>
+<p>Since translation is turned on by default, the login screen may be displayed
+in your own language, depending on your browser&#8217;s settings and on whether
+Django has a translation for this language.</p>
+</div>
+<div class="section" id="enter-the-admin-site">
+<h2>Enter the admin site<a class="headerlink" href="#enter-the-admin-site" title="Permalink to this headline">¶</a></h2>
+<p>Now, try logging in with the superuser account you created in the previous step.
+You should see the Django admin index page:</p>
+<div class="figure" id="id2">
+<img alt="_images/admin02.png" src="_images/admin02.png" />
+<p class="caption"><span class="caption-text">Figure 5-2: Django admin home page</span></p>
+</div>
+<p>You should see a few types of editable content: groups and users. They are
+provided by <code class="docutils literal"><span class="pre">django.contrib.auth</span></code>, the authentication framework shipped
+by Django.</p>
+<p>The admin site is designed to be used by nontechnical users, and as such it
+should be pretty self-explanatory. Nevertheless, we&#8217;ll give you a quick
+walkthrough of the basic features.</p>
+<p>Each type of data in the Django admin site has a <em>change list</em> and an
+<em>edit form</em>. Change lists show you all the available objects in the database,
+and edit forms let you add, change or delete particular records in your
+database.</p>
+<p>Click the &#8220;Change&#8221; link in the &#8220;Users&#8221; row to load the change list page for
+users.</p>
+<div class="figure" id="id3">
+<img alt="Screenshot of the user change list page." src="_images/user_changelist.png" />
+<p class="caption"><span class="caption-text">Figure 5-3. The user change list page</span></p>
+</div>
+<p>This page displays all users in the database; you can think of it as a
+prettied-up Web version of a <code class="docutils literal"><span class="pre">SELECT</span> <span class="pre">*</span> <span class="pre">FROM</span> <span class="pre">auth_user;</span></code> SQL query. If you&#8217;re
+following along with our ongoing example, you&#8217;ll only see one user here,
+assuming you&#8217;ve added only one, but once you have more users, you&#8217;ll probably
+find the filtering, sorting and searching options useful. Filtering options are
+at right, sorting is available by clicking a column header, and the search box
+at the top lets you search by username.</p>
+<p>Click the username of the user you created, and you&#8217;ll see the edit form for
+that user.</p>
+<div class="figure" id="id4">
+<img alt="Screenshot of the user edit form" src="_images/user_editform.png" />
+<p class="caption"><span class="caption-text">Figure 5-4. The user edit form</span></p>
+</div>
+<p>This page lets you change the attributes of the user, like the
+first/last names and various permissions. (Note that to change a user&#8217;s
+password, you should click &#8220;change password form&#8221; under the password field
+rather than editing the hashed code.) Another thing to note here is that fields
+of different types get different widgets &#8211; for example, date/time fields have
+calendar controls, boolean fields have checkboxes, character fields have simple
+text input fields.</p>
+<p>You can delete a record by clicking the delete button at the bottom left of its
+edit form. That&#8217;ll take you to a confirmation page, which, in some cases, will
+display any dependent objects that will be deleted, too. (For example, if you
+delete a publisher, any book with that publisher will be deleted, too!)</p>
+<p>You can add a record by clicking &#8220;Add&#8221; in the appropriate column of the admin
+home page. This will give you an empty version of the edit page, ready for you
+to fill out.</p>
+<p>You&#8217;ll also notice that the admin interface also handles input validation for
+you. Try leaving a required field blank or putting an invalid date into a date
+field, and you&#8217;ll see those errors when you try to save, as shown in Figure 5-5.</p>
+<div class="figure" id="id5">
+<img alt="Screenshot of an edit form displaying errors." src="_images/user_editform_errors.png" />
+<p class="caption"><span class="caption-text">Figure 5-5. An edit form displaying errors</span></p>
+</div>
+<p>When you edit an existing object, you&#8217;ll notice a History link in the
+upper-right corner of the window. Every change made through the admin interface
+is logged, and you can examine this log by clicking the History link (see
+Figure 5-6).</p>
+<div class="figure" id="id6">
+<img alt="Screenshot of an object history page." src="_images/user_history.png" />
+<p class="caption"><span class="caption-text">Figure 5-6. An object history page</span></p>
+</div>
+</div>
+<div class="section" id="adding-your-models-to-the-admin-site">
+<h2>Adding Your Models to the Admin Site<a class="headerlink" href="#adding-your-models-to-the-admin-site" title="Permalink to this headline">¶</a></h2>
+<p>There&#8217;s one crucial part we haven&#8217;t done yet. Let&#8217;s add our own models to the
+admin site, so we can add, change and delete objects in our custom database
+tables using this nice interface. We&#8217;ll continue the <code class="docutils literal"><span class="pre">books</span></code> example from
+Chapter 4, where we defined three models: <code class="docutils literal"><span class="pre">Publisher</span></code>, <code class="docutils literal"><span class="pre">Author</span></code> and
+<code class="docutils literal"><span class="pre">Book</span></code>.</p>
+<p>Within the <code class="docutils literal"><span class="pre">books</span></code> directory (<code class="docutils literal"><span class="pre">mysite/books</span></code>), <code class="docutils literal"><span class="pre">startapp</span></code> should have created a file called
+<code class="docutils literal"><span class="pre">admin.py</span></code>, if not, simply create one yourself and type in the following lines of code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">Publisher</span><span class="p">,</span> <span class="n">Author</span><span class="p">,</span> <span class="n">Book</span>
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Publisher</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Author</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Book</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This code tells the Django admin site to offer an interface for each of these
+models.</p>
+<p>Once you&#8217;ve done this, go to your admin home page in your Web browser
+(<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/admin/</span></code>), and you should see a &#8220;Books&#8221; section with
+links for Authors, Books and Publishers. (You might have to stop and start the
+<code class="docutils literal"><span class="pre">runserver</span></code> for the changes to take effect.)</p>
+<p>You now have a fully functional admin interface for each of those three models.
+That was easy!</p>
+<p>Take some time to add and change records, to populate your database with some
+data. If you followed Chapter 5&#8217;s examples of creating <code class="docutils literal"><span class="pre">Publisher</span></code> objects
+(and you didn&#8217;t delete them), you&#8217;ll already see those records on the publisher
+change list page.</p>
+<p>One feature worth mentioning here is the admin site&#8217;s handling of foreign keys
+and many-to-many relationships, both of which appear in the <code class="docutils literal"><span class="pre">Book</span></code> model. As
+a reminder, here&#8217;s what the <code class="docutils literal"><span class="pre">Book</span></code> model looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Book</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">authors</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">Author</span><span class="p">)</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Publisher</span><span class="p">)</span>
+    <span class="n">publication_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span>
+</pre></div>
+</div>
+<p>On the Django admin site&#8217;s &#8220;Add book&#8221; page
+(<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/admin/books/book/add/</span></code>), the publisher (a
+<code class="docutils literal"><span class="pre">ForeignKey</span></code>) is represented by a select box, and the authors field
+(a <code class="docutils literal"><span class="pre">ManyToManyField</span></code>) is represented by a multiple-select box. Both fields
+sit next to a green plus sign icon that lets you add related records of that
+type. For example, if you click the green plus sign next to the &#8220;Publisher&#8221;
+field, you&#8217;ll get a pop-up window that lets you add a publisher. After you
+successfully create the publisher in the pop-up, the &#8220;Add book&#8221; form will be
+updated with the newly created publisher. Slick.</p>
+</div>
+<div class="section" id="how-the-admin-site-works">
+<h2>How the Admin Site Works<a class="headerlink" href="#how-the-admin-site-works" title="Permalink to this headline">¶</a></h2>
+<p>Behind the scenes, how does the admin site work? It&#8217;s pretty straightforward.</p>
+<p>When Django loads your URLconf from <code class="docutils literal"><span class="pre">urls.py</span></code> at server startup, it executes
+the <code class="docutils literal"><span class="pre">admin.autodiscover()</span></code> statement that we added as part of activating the
+admin. This function iterates over your <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code> setting and looks
+for a file called <code class="docutils literal"><span class="pre">admin.py</span></code> in each installed app. If an <code class="docutils literal"><span class="pre">admin.py</span></code>
+exists in a given app, it executes the code in that file.</p>
+<p>In the <code class="docutils literal"><span class="pre">admin.py</span></code> in our <code class="docutils literal"><span class="pre">books</span></code> app, each call to
+<code class="docutils literal"><span class="pre">admin.site.register()</span></code> simply registers the given model with the admin. The
+admin site will only display an edit/change interface for models that have been
+explicitly registered.</p>
+<p>The app <code class="docutils literal"><span class="pre">django.contrib.auth</span></code> includes its own <code class="docutils literal"><span class="pre">admin.py</span></code>, which is why
+Users and Groups showed up automatically in the admin. Other <code class="docutils literal"><span class="pre">django.contrib</span></code>
+apps, such as <code class="docutils literal"><span class="pre">django.contrib.redirects</span></code>, also add themselves to the admin,
+as do many third-party Django applications you might download from the Web.</p>
+<p>Beyond that, the Django admin site is just a Django application, with its own
+models, templates, views and URLpatterns. You add it to your application by
+hooking it into your URLconf, just as you hook in your own views. You can
+inspect its templates, views and URLpatterns by poking around in
+<code class="docutils literal"><span class="pre">django/contrib/admin</span></code> in your copy of the Django codebase &#8211; but don&#8217;t be
+tempted to change anything directly in there, as there are plenty of hooks for
+you to customize the way the admin site works. (If you do decide to poke around
+the Django admin application, keep in mind it does some rather complicated
+things in reading metadata about models, so it would probably take a good
+amount of time to read and understand the code.)</p>
+</div>
+<div class="section" id="making-fields-optional">
+<h2>Making Fields Optional<a class="headerlink" href="#making-fields-optional" title="Permalink to this headline">¶</a></h2>
+<p>After you play around with the admin site for a while, you&#8217;ll probably notice a
+limitation &#8211; the edit forms require every field to be filled out, whereas in
+many cases you&#8217;d want certain fields to be optional. Let&#8217;s say, for example,
+that we want our <code class="docutils literal"><span class="pre">Author</span></code> model&#8217;s <code class="docutils literal"><span class="pre">email</span></code> field to be optional &#8211; that is,
+a blank string should be allowed. In the real world, you might not have an
+e-mail address on file for every author.</p>
+<p>To specify that the <code class="docutils literal"><span class="pre">email</span></code> field is optional, edit the <code class="docutils literal"><span class="pre">Author</span></code> model
+(which, as you&#8217;ll recall from Chapter 5, lives in <code class="docutils literal"><span class="pre">mysite/books/models.py</span></code>).
+Simply add <code class="docutils literal"><span class="pre">blank=True</span></code> to the <code class="docutils literal"><span class="pre">email</span></code> field, like so:</p>
+<pre class="literal-block">
+class Author(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=40)
+    email = models.EmailField(<strong>blank=True</strong>)
+</pre>
+<p>This tells Django that a blank value is indeed allowed for authors&#8217; e-mail
+addresses. By default, all fields have <code class="docutils literal"><span class="pre">blank=False</span></code>, which means blank
+values are not allowed.</p>
+<p>There&#8217;s something interesting happening here. Until now, with the exception of
+the <code class="docutils literal"><span class="pre">__str__()</span></code> method, our models have served as definitions of our
+database tables &#8211; Pythonic expressions of SQL <code class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></code> statements,
+essentially. In adding <code class="docutils literal"><span class="pre">blank=True</span></code>, we have begun expanding our model beyond
+a simple definition of what the database table looks like. Now, our model class
+is starting to become a richer collection of knowledge about what <code class="docutils literal"><span class="pre">Author</span></code>
+objects are and what they can do. Not only is the <code class="docutils literal"><span class="pre">email</span></code> field represented
+by a <code class="docutils literal"><span class="pre">VARCHAR</span></code> column in the database; it&#8217;s also an optional field in
+contexts such as the Django admin site.</p>
+<p>Once you&#8217;ve added that <code class="docutils literal"><span class="pre">blank=True</span></code>, reload the &#8220;Add author&#8221; edit form
+(<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/admin/books/author/add/</span></code>), and you&#8217;ll notice the
+field&#8217;s label &#8211; &#8220;Email&#8221; &#8211; is no longer bolded. This signifies it&#8217;s not a
+required field. You can now add authors without needing to provide
+e-mail addresses; you won&#8217;t get the loud red &#8220;This field is required&#8221; message
+anymore, if the field is submitted empty.</p>
+<div class="section" id="making-date-and-numeric-fields-optional">
+<h3>Making Date and Numeric Fields Optional<a class="headerlink" href="#making-date-and-numeric-fields-optional" title="Permalink to this headline">¶</a></h3>
+<p>A common gotcha related to <code class="docutils literal"><span class="pre">blank=True</span></code> has to do with date and numeric
+fields, but it requires a fair amount of background explanation.</p>
+<p>SQL has its own way of specifying blank values &#8211; a special value called
+<code class="docutils literal"><span class="pre">NULL</span></code>. <code class="docutils literal"><span class="pre">NULL</span></code> could mean &#8220;unknown,&#8221; or &#8220;invalid,&#8221; or some other
+application-specific meaning.</p>
+<p>In SQL, a value of <code class="docutils literal"><span class="pre">NULL</span></code> is different than an empty string, just as the
+special Python object <code class="docutils literal"><span class="pre">None</span></code> is different than an empty Python string
+(<code class="docutils literal"><span class="pre">&quot;&quot;</span></code>). This means it&#8217;s possible for a particular character field (e.g., a
+<code class="docutils literal"><span class="pre">VARCHAR</span></code> column) to contain both <code class="docutils literal"><span class="pre">NULL</span></code> values and empty string values.</p>
+<p>This can cause unwanted ambiguity and confusion: &#8220;Why does this record have a
+<code class="docutils literal"><span class="pre">NULL</span></code> but this other one has an empty string? Is there a difference, or was
+the data just entered inconsistently?&#8221; And: &#8220;How do I get all the records that
+have a blank value &#8211; should I look for both <code class="docutils literal"><span class="pre">NULL</span></code> records and empty
+strings, or do I only select the ones with empty strings?&#8221;</p>
+<p>To help avoid such ambiguity, Django&#8217;s automatically generated <code class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></code>
+statements (which were covered in Chapter 4) add an explicit <code class="docutils literal"><span class="pre">NOT</span> <span class="pre">NULL</span></code> to
+each column definition. For example, here&#8217;s the generated statement for our
+<code class="docutils literal"><span class="pre">Author</span></code> model, from Chapter 4:</p>
+<div class="highlight-python"><div class="highlight"><pre>CREATE TABLE &quot;books_author&quot; (
+    &quot;id&quot; serial NOT NULL PRIMARY KEY,
+    &quot;first_name&quot; varchar(30) NOT NULL,
+    &quot;last_name&quot; varchar(40) NOT NULL,
+    &quot;email&quot; varchar(75) NOT NULL
+)
+;
+</pre></div>
+</div>
+<p>In most cases, this default behavior is optimal for your application and will
+save you from data-inconsistency headaches. And it works nicely with the rest
+of Django, such as the Django admin site, which inserts an empty string (<em>not</em>
+a <code class="docutils literal"><span class="pre">NULL</span></code> value) when you leave a character field blank.</p>
+<p>But there&#8217;s an exception with database column types that do not accept empty
+strings as valid values &#8211; such as dates, times and numbers. If you try to
+insert an empty string into a date or integer column, you&#8217;ll likely get a
+database error, depending on which database you&#8217;re using. (PostgreSQL, which is
+strict, will raise an exception here; MySQL might accept it or might not,
+depending on the version you&#8217;re using, the time of day and the phase of the
+moon.) In this case, <code class="docutils literal"><span class="pre">NULL</span></code> is the only way to specify an empty
+value. In Django models, you can specify that <code class="docutils literal"><span class="pre">NULL</span></code> is allowed by adding
+<code class="docutils literal"><span class="pre">null=True</span></code> to a field.</p>
+<p>So that&#8217;s a long way of saying this: if you want to allow blank values in a
+date field (e.g., <code class="docutils literal"><span class="pre">DateField</span></code>, <code class="docutils literal"><span class="pre">TimeField</span></code>, <code class="docutils literal"><span class="pre">DateTimeField</span></code>) or numeric
+field (e.g., <code class="docutils literal"><span class="pre">IntegerField</span></code>, <code class="docutils literal"><span class="pre">DecimalField</span></code>, <code class="docutils literal"><span class="pre">FloatField</span></code>), you&#8217;ll need
+to use both <code class="docutils literal"><span class="pre">null=True</span></code> <em>and</em> <code class="docutils literal"><span class="pre">blank=True</span></code>.</p>
+<p>For sake of example, let&#8217;s change our <code class="docutils literal"><span class="pre">Book</span></code> model to allow a blank
+<code class="docutils literal"><span class="pre">publication_date</span></code>. Here&#8217;s the revised code:</p>
+<pre class="literal-block">
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+    authors = models.ManyToManyField(Author)
+    publisher = models.ForeignKey(Publisher)
+    publication_date = models.DateField(<strong>blank=True, null=True</strong>)
+</pre>
+<p>Adding <code class="docutils literal"><span class="pre">null=True</span></code> is more complicated than adding <code class="docutils literal"><span class="pre">blank=True</span></code>, because
+<code class="docutils literal"><span class="pre">null=True</span></code> changes the semantics of the database &#8211; that is, it changes the
+<code class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></code> statement to remove the <code class="docutils literal"><span class="pre">NOT</span> <span class="pre">NULL</span></code> from the
+<code class="docutils literal"><span class="pre">publication_date</span></code> field. To complete this change, we&#8217;ll need to update the
+database.</p>
+<p>For a number of reasons, Django does not attempt to automate changes to
+database schemas, so it&#8217;s your own responsibility to execute the
+<code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">migrate</span></code> command whenever you make such a change to a model.</p>
+<p>Bringing this back to the admin site, now the &#8220;Add book&#8221; edit form should allow
+for empty publication date values.</p>
+</div>
+</div>
+<div class="section" id="customizing-field-labels">
+<h2>Customizing Field Labels<a class="headerlink" href="#customizing-field-labels" title="Permalink to this headline">¶</a></h2>
+<p>On the admin site&#8217;s edit forms, each field&#8217;s label is generated from its model
+field name. The algorithm is simple: Django just replaces underscores with
+spaces and capitalizes the first character, so, for example, the <code class="docutils literal"><span class="pre">Book</span></code>
+model&#8217;s <code class="docutils literal"><span class="pre">publication_date</span></code> field has the label &#8220;Publication date.&#8221;</p>
+<p>However, field names don&#8217;t always lend themselves to nice admin field labels,
+so in some cases you might want to customize a label. You can do this by
+specifying <code class="docutils literal"><span class="pre">verbose_name</span></code> in the appropriate model field.</p>
+<p>For example, here&#8217;s how we can change the label of the <code class="docutils literal"><span class="pre">Author.email</span></code> field
+to &#8220;e-mail,&#8221; with a hyphen:</p>
+<pre class="literal-block">
+class Author(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=40)
+    email = models.EmailField(blank=True, <strong>verbose_name='e-mail'</strong>)
+</pre>
+<p>Make that change and reload the server, and you should see the field&#8217;s new
+label on the author edit form.</p>
+<p>Note that you shouldn&#8217;t capitalize the first letter of a <code class="docutils literal"><span class="pre">verbose_name</span></code>
+unless it should <em>always</em> be capitalized (e.g., <code class="docutils literal"><span class="pre">&quot;USA</span> <span class="pre">state&quot;</span></code>). Django will
+automatically capitalize it when it needs to, and it will use the exact
+<code class="docutils literal"><span class="pre">verbose_name</span></code> value in other places that don&#8217;t require capitalization.</p>
+<p>Finally, note that you can pass the <code class="docutils literal"><span class="pre">verbose_name</span></code> as a positional argument,
+for a slightly more compact syntax. This example is equivalent to the previous
+one:</p>
+<pre class="literal-block">
+class Author(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=40)
+    email = models.EmailField(<strong>'e-mail',</strong> blank=True)
+</pre>
+<p>This won&#8217;t work with <code class="docutils literal"><span class="pre">ManyToManyField</span></code> or <code class="docutils literal"><span class="pre">ForeignKey</span></code> fields, though,
+because they require the first argument to be a model class. In those cases,
+specifying <code class="docutils literal"><span class="pre">verbose_name</span></code> explicitly is the way to go.</p>
+</div>
+<div class="section" id="custom-modeladmin-classes">
+<h2>Custom ModelAdmin classes<a class="headerlink" href="#custom-modeladmin-classes" title="Permalink to this headline">¶</a></h2>
+<p>The changes we&#8217;ve made so far &#8211; <code class="docutils literal"><span class="pre">blank=True</span></code>, <code class="docutils literal"><span class="pre">null=True</span></code> and
+<code class="docutils literal"><span class="pre">verbose_name</span></code> &#8211; are really model-level changes, not admin-level changes.
+That is, these changes are fundamentally a part of the model and just so happen
+to be used by the admin site; there&#8217;s nothing admin-specific about them.</p>
+<p>Beyond these, the Django admin site offers a wealth of options that let you
+customize how the admin site works for a particular model. Such options live in
+<em>ModelAdmin classes</em>, which are classes that contain configuration for a
+specific model in a specific admin site instance.</p>
+<div class="section" id="customizing-change-lists">
+<h3>Customizing change lists<a class="headerlink" href="#customizing-change-lists" title="Permalink to this headline">¶</a></h3>
+<p>Let&#8217;s dive into admin customization by specifying the fields that are
+displayed on the change list for our <code class="docutils literal"><span class="pre">Author</span></code> model. By default, the change
+list displays the result of <code class="docutils literal"><span class="pre">__str__()</span></code> for each object. In Chapter 4, we
+defined the <code class="docutils literal"><span class="pre">__str__()</span></code> method for <code class="docutils literal"><span class="pre">Author</span></code> objects to display the
+first name and last name together:</p>
+<pre class="literal-block">
+class Author(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=40)
+    email = models.EmailField(blank=True, verbose_name='e-mail')
+
+    <strong>def __str__(self):</strong>
+        <strong>return u'%s %s' % (self.first_name, self.last_name)</strong>
+</pre>
+<p>As a result, the change list for <code class="docutils literal"><span class="pre">Author</span></code> objects displays each other&#8217;s
+first name and last name together, as you can see in Figure 6-7.</p>
+<div class="figure" id="id7">
+<img alt="Screenshot of the author change list page." src="_images/author_changelist1.png" />
+<p class="caption"><span class="caption-text">Figure 5-7. The author change list page</span></p>
+</div>
+<p>We can improve on this default behavior by adding a few other fields to the
+change list display. It&#8217;d be handy, for example, to see each author&#8217;s e-mail
+address in this list, and it&#8217;d be nice to be able to sort by first and last
+name.</p>
+<p>To make this happen, we&#8217;ll define a <code class="docutils literal"><span class="pre">ModelAdmin</span></code> class for the <code class="docutils literal"><span class="pre">Author</span></code>
+model. This class is the key to customizing the admin, and one of the most
+basic things it lets you do is specify the list of fields to display on change
+list pages. Edit <code class="docutils literal"><span class="pre">admin.py</span></code> to make these changes:</p>
+<pre class="literal-block">
+from django.contrib import admin
+from mysite.books.models import Publisher, Author, Book
+
+<strong>class AuthorAdmin(admin.ModelAdmin):</strong>
+    <strong>list_display = ('first_name', 'last_name', 'email')</strong>
+
+admin.site.register(Publisher)
+<strong>admin.site.register(Author, AuthorAdmin)</strong>
+admin.site.register(Book)
+</pre>
+<p>Here&#8217;s what we&#8217;ve done:</p>
+<ul>
+<li><p class="first">We created the class <code class="docutils literal"><span class="pre">AuthorAdmin</span></code>. This class, which subclasses
+<code class="docutils literal"><span class="pre">django.contrib.admin.ModelAdmin</span></code>, holds custom configuration
+for a specific admin model. We&#8217;ve only specified one customization &#8211;
+<code class="docutils literal"><span class="pre">list_display</span></code>, which is set to a tuple of field names to display on
+the change list page. These field names must exist in the model, of
+course.</p>
+</li>
+<li><p class="first">We altered the <code class="docutils literal"><span class="pre">admin.site.register()</span></code> call to add <code class="docutils literal"><span class="pre">AuthorAdmin</span></code> after
+<code class="docutils literal"><span class="pre">Author</span></code>. You can read this as: &#8220;Register the <code class="docutils literal"><span class="pre">Author</span></code> model with the
+<code class="docutils literal"><span class="pre">AuthorAdmin</span></code> options.&#8221;</p>
+<p>The <code class="docutils literal"><span class="pre">admin.site.register()</span></code> function takes a <code class="docutils literal"><span class="pre">ModelAdmin</span></code> subclass as
+an optional second argument. If you don&#8217;t specify a second argument (as
+is the case for <code class="docutils literal"><span class="pre">Publisher</span></code> and <code class="docutils literal"><span class="pre">Book</span></code>), Django will use the default
+admin options for that model.</p>
+</li>
+</ul>
+<p>With that tweak made, reload the author change list page, and you&#8217;ll see it&#8217;s
+now displaying three columns &#8211; the first name, last name and e-mail address.
+In addition, each of those columns is sortable by clicking on the column
+header. (See Figure 6-8.)</p>
+<div class="figure" id="id8">
+<img alt="Screenshot of the author change list page after list_display." src="_images/author_changelist2.png" />
+<p class="caption"><span class="caption-text">Figure 5-8. The author change list page after list_display</span></p>
+</div>
+<p>Next, let&#8217;s add a simple search bar. Add <code class="docutils literal"><span class="pre">search_fields</span></code> to the
+<code class="docutils literal"><span class="pre">AuthorAdmin</span></code>, like so:</p>
+<pre class="literal-block">
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email')
+    <strong>search_fields = ('first_name', 'last_name')</strong>
+</pre>
+<p>Reload the page in your browser, and you should see a search bar at the top.
+(See Figure 5-9.) We&#8217;ve just told the admin change list page to include a
+search bar that searches against the <code class="docutils literal"><span class="pre">first_name</span></code> and <code class="docutils literal"><span class="pre">last_name</span></code> fields.
+As a user might expect, this is case-insensitive and searches both fields, so
+searching for the string <code class="docutils literal"><span class="pre">&quot;bar&quot;</span></code> would find both an author with the first
+name Barney and an author with the last name Hobarson.</p>
+<div class="figure" id="id9">
+<img alt="Screenshot of the author change list page after search_fields." src="_images/author_changelist3.png" />
+<p class="caption"><span class="caption-text">Figure 5-9. The author change list page after search_fields</span></p>
+</div>
+<p>Next, let&#8217;s add some date filters to our <code class="docutils literal"><span class="pre">Book</span></code> model&#8217;s change list page:</p>
+<pre class="literal-block">
+from django.contrib import admin
+from mysite.books.models import Publisher, Author, Book
+
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email')
+    search_fields = ('first_name', 'last_name')
+
+<strong>class BookAdmin(admin.ModelAdmin):</strong>
+    <strong>list_display = ('title', 'publisher', 'publication_date')</strong>
+    <strong>list_filter = ('publication_date',)</strong>
+
+admin.site.register(Publisher)
+admin.site.register(Author, AuthorAdmin)
+<strong>admin.site.register(Book, BookAdmin)</strong>
+</pre>
+<p>Here, because we&#8217;re dealing with a different set of options, we created a
+separate <code class="docutils literal"><span class="pre">ModelAdmin</span></code> class &#8211; <code class="docutils literal"><span class="pre">BookAdmin</span></code>. First, we defined a
+<code class="docutils literal"><span class="pre">list_display</span></code> just to make the change list look a bit nicer. Then, we
+used <code class="docutils literal"><span class="pre">list_filter</span></code>, which is set to a tuple of fields to use to create
+filters along the right side of the change list page. For date fields, Django
+provides shortcuts to filter the list to &#8220;Today,&#8221; &#8220;Past 7 days,&#8221; &#8220;This month&#8221;
+and &#8220;This year&#8221; &#8211; shortcuts that Django&#8217;s developers have found hit the
+common cases for filtering by date. Figure 5-10 shows what that looks like.</p>
+<div class="figure" id="id10">
+<img alt="Screenshot of the book change list page after list_filter." src="_images/book_changelist1.png" />
+<p class="caption"><span class="caption-text">Figure 5-10. The book change list page after list_filter</span></p>
+</div>
+<p><code class="docutils literal"><span class="pre">list_filter</span></code> also works on fields of other types, not just <code class="docutils literal"><span class="pre">DateField</span></code>.
+(Try it with <code class="docutils literal"><span class="pre">BooleanField</span></code> and <code class="docutils literal"><span class="pre">ForeignKey</span></code> fields, for example.) The
+filters show up as long as there are at least 2 values to choose from.</p>
+<p>Another way to offer date filters is to use the <code class="docutils literal"><span class="pre">date_hierarchy</span></code> admin
+option, like this:</p>
+<pre class="literal-block">
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher', 'publication_date')
+    list_filter = ('publication_date',)
+    <strong>date_hierarchy = 'publication_date'</strong>
+</pre>
+<p>With this in place, the change list page gets a date drill-down navigation bar
+at the top of the list, as shown in Figure 5-11. It starts with a list of
+available years, then drills down into months and individual days.</p>
+<div class="figure" id="id11">
+<img alt="Screenshot of the book change list page after date_hierarchy." src="_images/book_changelist2.png" />
+<p class="caption"><span class="caption-text">Figure 5-11. The book change list page after date_hierarchy</span></p>
+</div>
+<p>Note that <code class="docutils literal"><span class="pre">date_hierarchy</span></code> takes a <em>string</em>, not a tuple, because only one
+date field can be used to make the hierarchy.</p>
+<p>Finally, let&#8217;s change the default ordering so that books on the change list
+page are always ordered descending by their publication date. By default,
+the change list orders objects according to their model&#8217;s <code class="docutils literal"><span class="pre">ordering</span></code> within
+<code class="docutils literal"><span class="pre">class</span> <span class="pre">Meta</span></code> (which we covered in Chapter 5) &#8211; but you haven&#8217;t specified
+this <code class="docutils literal"><span class="pre">ordering</span></code> value, then the ordering is undefined.</p>
+<pre class="literal-block">
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher', 'publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    <strong>ordering = ('-publication_date',)</strong>
+</pre>
+<p>This admin <code class="docutils literal"><span class="pre">ordering</span></code> option works exactly as the <code class="docutils literal"><span class="pre">ordering</span></code> in models&#8217;
+<code class="docutils literal"><span class="pre">class</span> <span class="pre">Meta</span></code>, except that it only uses the first field name in the list. Just
+pass a list or tuple of field names, and add a minus sign to a field to use
+descending sort order.</p>
+<p>Reload the book change list to see this in action. Note that the
+&#8220;Publication date&#8221; header now includes a small arrow that indicates which way
+the records are sorted. (See Figure 5-12.)</p>
+<div class="figure" id="id12">
+<img alt="Screenshot of the book change list page after ordering." src="_images/book_changelist3.png" />
+<p class="caption"><span class="caption-text">Figure 5-12. The book change list page after ordering</span></p>
+</div>
+<p>We&#8217;ve covered the main change list options here. Using these options, you can
+make a very powerful, production-ready data-editing interface with only a few
+lines of code.</p>
+</div>
+<div class="section" id="customizing-edit-forms">
+<h3>Customizing edit forms<a class="headerlink" href="#customizing-edit-forms" title="Permalink to this headline">¶</a></h3>
+<p>Just as the change list can be customized, edit forms can be customized in many
+ways.</p>
+<p>First, let&#8217;s customize the way fields are ordered. By default, the order of
+fields in an edit form corresponds to the order they&#8217;re defined in the model.
+We can change that using the <code class="docutils literal"><span class="pre">fields</span></code> option in our <code class="docutils literal"><span class="pre">ModelAdmin</span></code> subclass:</p>
+<pre class="literal-block">
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher', 'publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+    <strong>fields = ('title', 'authors', 'publisher', 'publication_date')</strong>
+</pre>
+<p>After this change, the edit form for books will use the given ordering for
+fields. It&#8217;s slightly more natural to have the authors after the book title.
+Of course, the field order should depend on your data-entry workflow. Every
+form is different.</p>
+<p>Another useful thing the <code class="docutils literal"><span class="pre">fields</span></code> option lets you do is to <em>exclude</em> certain
+fields from being edited entirely. Just leave out the field(s) you want to
+exclude. You might use this if your admin users are only trusted to edit a
+certain segment of your data, or if part of your fields are changed by some
+outside, automated process. For example, in our book database, we could
+hide the <code class="docutils literal"><span class="pre">publication_date</span></code> field from being editable:</p>
+<pre class="literal-block">
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher', 'publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+    <strong>fields = ('title', 'authors', 'publisher')</strong>
+</pre>
+<p>As a result, the edit form for books doesn&#8217;t offer a way to specify the
+publication date. This could be useful, say, if you&#8217;re an editor who prefers
+that his authors not push back publication dates. (This is purely a
+hypothetical example, of course.)</p>
+<p>When a user uses this incomplete form to add a new book, Django will simply set
+the <code class="docutils literal"><span class="pre">publication_date</span></code> to <code class="docutils literal"><span class="pre">None</span></code> &#8211; so make sure that field has
+<code class="docutils literal"><span class="pre">null=True</span></code>.</p>
+<p>Another commonly used edit-form customization has to do with many-to-many
+fields. As we&#8217;ve seen on the edit form for books, the admin site represents each
+<code class="docutils literal"><span class="pre">ManyToManyField</span></code> as a multiple-select boxes, which is the most logical
+HTML input widget to use &#8211; but multiple-select boxes can be difficult to use.
+If you want to select multiple items, you have to hold down the control key,
+or command on a Mac, to do so. The admin site helpfully inserts a bit of text
+that explains this, but, still, it gets unwieldy when your field contains
+hundreds of options.</p>
+<p>The admin site&#8217;s solution is <code class="docutils literal"><span class="pre">filter_horizontal</span></code>. Let&#8217;s add that to
+<code class="docutils literal"><span class="pre">BookAdmin</span></code> and see what it does.</p>
+<pre class="literal-block">
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher', 'publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+    <strong>filter_horizontal = ('authors',)</strong>
+</pre>
+<p>(If you&#8217;re following along, note that we&#8217;ve also removed the <code class="docutils literal"><span class="pre">fields</span></code> option
+to restore all the fields in the edit form.)</p>
+<p>Reload the edit form for books, and you&#8217;ll see that the &#8220;Authors&#8221; section now
+uses a fancy JavaScript filter interface that lets you search through the
+options dynamically and move specific authors from &#8220;Available authors&#8221; to
+the &#8220;Chosen authors&#8221; box, and vice versa.</p>
+<div class="figure" id="id13">
+<img alt="Screenshot of the book edit form after adding filter_horizontal." src="_images/book_editform1.png" />
+<p class="caption"><span class="caption-text">Figure 5-13. The book edit form after adding filter_horizontal</span></p>
+</div>
+<p>We&#8217;d highly recommend using <code class="docutils literal"><span class="pre">filter_horizontal</span></code> for any <code class="docutils literal"><span class="pre">ManyToManyField</span></code>
+that has more than 10 items. It&#8217;s far easier to use than a simple
+multiple-select widget. Also, note you can use <code class="docutils literal"><span class="pre">filter_horizontal</span></code>
+for multiple fields &#8211; just specify each name in the tuple.</p>
+<p><code class="docutils literal"><span class="pre">ModelAdmin</span></code> classes also support a <code class="docutils literal"><span class="pre">filter_vertical</span></code> option. This works
+exactly as <code class="docutils literal"><span class="pre">filter_horizontal</span></code>, but the resulting JavaScript interface stacks
+the two boxes vertically instead of horizontally. It&#8217;s a matter of personal
+taste.</p>
+<p><code class="docutils literal"><span class="pre">filter_horizontal</span></code> and <code class="docutils literal"><span class="pre">filter_vertical</span></code> only work on <code class="docutils literal"><span class="pre">ManyToManyField</span></code>
+fields, not <code class="docutils literal"><span class="pre">ForeignKey</span></code> fields. By default, the admin site uses simple
+<code class="docutils literal"><span class="pre">&lt;select&gt;</span></code> boxes for <code class="docutils literal"><span class="pre">ForeignKey</span></code> fields, but, as for <code class="docutils literal"><span class="pre">ManyToManyField</span></code>,
+sometimes you don&#8217;t want to incur the overhead of having to select all the
+related objects to display in the drop-down. For example, if our book database
+grows to include thousands of publishers, the &#8220;Add book&#8221; form could take a
+while to load, because it would have to load every publisher for display in the
+<code class="docutils literal"><span class="pre">&lt;select&gt;</span></code> box.</p>
+<p>The way to fix this is to use an option called <code class="docutils literal"><span class="pre">raw_id_fields</span></code>. Set this to
+a tuple of <code class="docutils literal"><span class="pre">ForeignKey</span></code> field names, and those fields will be displayed in
+the admin with a simple text input box (<code class="docutils literal"><span class="pre">&lt;input</span> <span class="pre">type=&quot;text&quot;&gt;</span></code>) instead of a
+<code class="docutils literal"><span class="pre">&lt;select&gt;</span></code>. See Figure 5-14.</p>
+<pre class="literal-block">
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'publisher', 'publication_date')
+    list_filter = ('publication_date',)
+    date_hierarchy = 'publication_date'
+    ordering = ('-publication_date',)
+    filter_horizontal = ('authors',)
+    <strong>raw_id_fields = ('publisher',)</strong>
+</pre>
+<div class="figure" id="id14">
+<img alt="Screenshot of edit form after raw_id_fields." src="_images/book_editform2.png" />
+<p class="caption"><span class="caption-text">Figure 5-14. The book edit form after adding raw_id_fields</span></p>
+</div>
+<p>What do you enter in this input box? The database ID of the publisher. Given
+that humans don&#8217;t normally memorize database IDs, there&#8217;s also a
+magnifying-glass icon that you can click to pull up a pop-up window, from which
+you can select the publisher to add.</p>
+</div>
+</div>
+<div class="section" id="users-groups-and-permissions">
+<h2>Users, Groups, and Permissions<a class="headerlink" href="#users-groups-and-permissions" title="Permalink to this headline">¶</a></h2>
+<p>Because you&#8217;re logged in as a superuser, you have access to create, edit, and
+delete any object. Naturally, different environments require different
+permission systems &#8211; not everybody can or should be a superuser. Django&#8217;s
+admin site uses a permissions system that you can use to give specific users
+access only to the portions of the interface that they need.</p>
+<p>These user accounts are meant to be generic enough to be used outside of the
+admin interface, but we&#8217;ll just treat them as admin user accounts for now. In
+Chapter 11, we&#8217;ll cover how to manage users site-wide (i.e., not just the admin site) with Django&#8217;s
+authentication system.</p>
+<p>You can edit users and permissions through the admin interface just like any
+other object. We saw this earlier in this chapter, when we played around with
+the User and Group sections of the admin. User objects have the standard
+username, password, e-mail and real name fields you might expect, along with a
+set of fields that define what the user is allowed to do in the admin
+interface. First, there&#8217;s a set of three boolean flags:</p>
+<ul class="simple">
+<li>The &#8220;active&#8221; flag controls whether the user is active at all.
+If this flag is off and the user tries to log in, he won&#8217;t be allowed in,
+even with a valid password.</li>
+<li>The &#8220;staff&#8221; flag controls whether the user is allowed to log in to the
+admin interface (i.e., whether that user is considered a &#8220;staff member&#8221; in
+your organization). Since this same user system can be used to control
+access to public (i.e., non-admin) sites (see Chapter 11), this flag
+differentiates between public users and administrators.</li>
+<li>The &#8220;superuser&#8221; flag gives the user full access to add, create and
+delete any item in the admin interface. If a user has this flag set, then
+all regular permissions (or lack thereof) are ignored for that user.</li>
+</ul>
+<p>&#8220;Normal&#8221; admin users &#8211; that is, active, non-superuser staff members &#8211; are
+granted admin access through assigned permissions. Each object editable through
+the admin interface (e.g., books, authors, publishers) has three permissions: a
+<em>create</em> permission, an <em>edit</em> permission and a <em>delete</em> permission. Assigning
+permissions to a user grants the user access to do what is described by those
+permissions.</p>
+<p>When you create a user, that user has no permissions, and it&#8217;s up to you to
+give the user specific permissions. For example, you can give a user permission
+to add and change publishers, but not permission to delete them. Note that
+these permissions are defined per-model, not per-object &#8211; so they let you say
+&#8220;John can make changes to any book,&#8221; but they don&#8217;t let you say &#8220;John can make
+changes to any book published by Apress.&#8221; The latter functionality, per-object
+permissions, is a bit more complicated and is outside the scope of this book
+but is covered in the Django documentation.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Access to edit users and permissions is also controlled by this permission
+system. If you give someone permission to edit users, she will be able to
+edit her own permissions, which might not be what you want! Giving a user
+permission to edit users is essentially turning a user into a superuser.</p>
+</div>
+<p>You can also assign users to groups. A <em>group</em> is simply a set of permissions to
+apply to all members of that group. Groups are useful for granting identical
+permissions to a subset of users.</p>
+</div>
+<div class="section" id="when-and-why-to-use-the-admin-interface-and-when-not-to">
+<h2>When and Why to Use the Admin Interface &#8211; And When Not to<a class="headerlink" href="#when-and-why-to-use-the-admin-interface-and-when-not-to" title="Permalink to this headline">¶</a></h2>
+<p>After having worked through this chapter, you should have a good idea of how to
+use Django&#8217;s admin site. But we want to make a point of covering <em>when</em> and
+<em>why</em> you might want to use it &#8211; and when <em>not</em> to use it.</p>
+<p>Django&#8217;s admin site especially shines when nontechnical users need to be able
+to enter data; that&#8217;s the purpose behind the feature, after all. At the
+newspaper where Django was first developed, development of a typical online
+feature &#8211; say, a special report on water quality in the municipal supply &#8211;
+would go something like this:</p>
+<ul class="simple">
+<li>The reporter responsible for the project meets with one of the developers
+and describes the available data.</li>
+<li>The developer designs Django models to fit this data and then opens up
+the admin site to the reporter.</li>
+<li>The reporter inspects the admin site to point out any missing or
+extraneous fields &#8211; better now than later. The developer changes the
+models iteratively.</li>
+<li>When the models are agreed upon, the reporter begins entering data using
+the admin site. At the same time, the programmer can focus on developing
+the publicly accessible views/templates (the fun part!).</li>
+</ul>
+<p>In other words, the raison d&#8217;être of Django&#8217;s admin interface is facilitating
+the simultaneous work of content producers and programmers.</p>
+<p>However, beyond these obvious data entry tasks, the admin site is useful in a
+few other cases:</p>
+<ul class="simple">
+<li><em>Inspecting data models</em>: Once you&#8217;ve defined a few models, it can be
+quite useful to call them up in the admin interface and enter some dummy
+data. In some cases, this might reveal data-modeling mistakes or other
+problems with your models.</li>
+<li><em>Managing acquired data</em>: For applications that rely on data coming from
+external sources (e.g., users or Web crawlers), the admin site gives you
+an easy way to inspect or edit this data. You can think of it as a less
+powerful, but more convenient, version of your database&#8217;s command-line
+utility.</li>
+<li><em>Quick and dirty data-management apps</em>: You can use the admin site to
+build yourself a very lightweight data management app &#8211; say, to keep
+track of expenses. If you&#8217;re just building something for your own needs,
+not for public consumption, the admin site can take you a long way. In
+this sense, you can think of it as a beefed up, relational version of a
+spreadsheet.</li>
+</ul>
+<p>One final point we want to make clear is: the admin site is not a
+be-all and end-all. It&#8217;s not intended to be a
+<em>public</em> interface to data, nor is it intended to allow for sophisticated
+sorting and searching of your data. As we said early in this chapter, it&#8217;s for
+trusted site administrators. Keeping this sweet spot in mind is the key to
+effective admin-site usage.</p>
+</div>
+<div class="section" id="what-s-next">
+<h2>What&#8217;s Next?<a class="headerlink" href="#what-s-next" title="Permalink to this headline">¶</a></h2>
+<p>So far we&#8217;ve created a few models and configured a top-notch interface for
+editing data. In the next chapter we&#8217;ll move on to the real &#8220;meat and potatoes&#8221;
+of Web development: form creation and processing.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Chapter 5: The Django Admin Site</a><ul>
+<li><a class="reference internal" href="#using-the-admin-site">Using the Admin Site</a></li>
+<li><a class="reference internal" href="#start-the-development-server">Start the development server</a></li>
+<li><a class="reference internal" href="#enter-the-admin-site">Enter the admin site</a></li>
+<li><a class="reference internal" href="#adding-your-models-to-the-admin-site">Adding Your Models to the Admin Site</a></li>
+<li><a class="reference internal" href="#how-the-admin-site-works">How the Admin Site Works</a></li>
+<li><a class="reference internal" href="#making-fields-optional">Making Fields Optional</a><ul>
+<li><a class="reference internal" href="#making-date-and-numeric-fields-optional">Making Date and Numeric Fields Optional</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#customizing-field-labels">Customizing Field Labels</a></li>
+<li><a class="reference internal" href="#custom-modeladmin-classes">Custom ModelAdmin classes</a><ul>
+<li><a class="reference internal" href="#customizing-change-lists">Customizing change lists</a></li>
+<li><a class="reference internal" href="#customizing-edit-forms">Customizing edit forms</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#users-groups-and-permissions">Users, Groups, and Permissions</a></li>
+<li><a class="reference internal" href="#when-and-why-to-use-the-admin-interface-and-when-not-to">When and Why to Use the Admin Interface &#8211; And When Not to</a></li>
+<li><a class="reference internal" href="#what-s-next">What&#8217;s Next?</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="chapter_04.html" title="previous chapter">Chapter 4: Models</a></li>
+      <li>Next: <a href="chapter_06.html" title="next chapter">Chapter 6: Forms</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chapter_05.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/chapter_05.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

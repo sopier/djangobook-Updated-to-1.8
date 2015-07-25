@@ -1,0 +1,1003 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Chapter 13: Deploying Django &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Chapter 14 - How to write reusable apps" href="chapter_14.html" />
+    <link rel="prev" title="Chapter 12 - testing in Django" href="chapter_12.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="chapter-13-deploying-django">
+<h1>Chapter 13: Deploying Django<a class="headerlink" href="#chapter-13-deploying-django" title="Permalink to this headline">¶</a></h1>
+<p>This chapter covers the last essential step of building a Django application:
+deploying it to a production server.</p>
+<p>If you&#8217;ve been following along with our ongoing examples, you&#8217;ve likely been
+using the <code class="docutils literal"><span class="pre">runserver</span></code>, which makes things very easy &#8211; with <code class="docutils literal"><span class="pre">runserver</span></code>,
+you don&#8217;t have to worry about Web server setup. But <code class="docutils literal"><span class="pre">runserver</span></code> is intended
+only for development on your local machine, not for exposure on the public Web.
+To deploy your Django application, you&#8217;ll need to hook it into an
+industrial-strength Web server such as Apache. In this chapter, we&#8217;ll show you
+how to do that &#8211; but, first, we&#8217;ll give you a checklist of things to do in
+your codebase before you go live.</p>
+<div class="section" id="preparing-your-codebase-for-production">
+<h2>Preparing Your Codebase for Production<a class="headerlink" href="#preparing-your-codebase-for-production" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="deployment-checklist">
+<h3>Deployment checklist<a class="headerlink" href="#deployment-checklist" title="Permalink to this headline">¶</a></h3>
+<p>The Internet is a hostile environment. Before deploying your Django project,
+you should take some time to review your settings, with security, performance,
+and operations in mind.</p>
+<p>Django includes many security features . Some are
+built-in and always enabled. Others are optional because they aren&#8217;t always
+appropriate, or because they&#8217;re inconvenient for development. For example,
+forcing HTTPS may not be suitable for all websites, and it&#8217;s impractical for
+local development.</p>
+<p>Performance optimizations are another category of trade-offs with convenience.
+For instance, caching is useful in production, less so for local development.
+Error reporting needs are also widely different.</p>
+<p>The following checklist includes settings that:</p>
+<ul class="simple">
+<li>must be set properly for Django to provide the expected level of security;</li>
+<li>are expected to be different in each environment;</li>
+<li>enable optional security features;</li>
+<li>enable performance optimizations;</li>
+<li>provide error reporting.</li>
+</ul>
+<p>Many of these settings are sensitive and should be treated as confidential. If
+you&#8217;re releasing the source code for your project, a common practice is to
+publish suitable settings for development, and to use a private settings
+module for production.</p>
+<p>Some of the checks described below can be automated using the
+<code class="docutils literal"><span class="pre">--deploy</span></code> option of the <code class="docutils literal"><span class="pre">check</span></code> command. Be sure to run it
+against your production settings file as described in the option&#8217;s
+documentation.</p>
+</div>
+</div>
+<div class="section" id="critical-settings">
+<h2>Critical settings<a class="headerlink" href="#critical-settings" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="secret-key">
+<h3>SECRET_KEY<a class="headerlink" href="#secret-key" title="Permalink to this headline">¶</a></h3>
+<p><strong>The secret key must be a large random value and it must be kept secret.</strong></p>
+<p>Make sure that the key used in production isn&#8217;t used anywhere else and avoid
+committing it to source control. This reduces the number of vectors from which
+an attacker may acquire the key.</p>
+<p>Instead of hardcoding the secret key in your settings module, consider loading
+it from an environment variable:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">os</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&#39;SECRET_KEY&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>or from a file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/etc/secret_key.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="debug">
+<h3>DEBUG<a class="headerlink" href="#debug" title="Permalink to this headline">¶</a></h3>
+<p><strong>You must never enable debug in production.</strong></p>
+<p>When we created a project in Chapter 1, the command
+<code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">startproject</span></code> created a <code class="docutils literal"><span class="pre">settings.py</span></code> file with <code class="docutils literal"><span class="pre">DEBUG</span></code>
+set to <code class="docutils literal"><span class="pre">True</span></code>. Many internal parts of Django check this setting and change
+their behavior if <code class="docutils literal"><span class="pre">DEBUG</span></code> mode is on. For example, if <code class="docutils literal"><span class="pre">DEBUG</span></code> is set to
+<code class="docutils literal"><span class="pre">True</span></code>, then:</p>
+<ul class="simple">
+<li>All database queries will be saved in memory as the object
+<code class="docutils literal"><span class="pre">django.db.connection.queries</span></code>. As you can imagine, this eats up
+memory!</li>
+<li>Any 404 error will be rendered by Django&#8217;s special 404 error page
+(covered in Chapter 3) rather than returning a proper 404 response. This
+page contains potentially sensitive information and should <em>not</em> be
+exposed to the public Internet.</li>
+<li>Any uncaught exception in your Django application &#8211; from basic Python
+syntax errors to database errors to template syntax errors &#8211; will be
+rendered by the Django pretty error page that you&#8217;ve likely come to know
+and love. This page contains even <em>more</em> sensitive information than the
+404 page and should <em>never</em> be exposed to the public.</li>
+</ul>
+<p>In short, setting <code class="docutils literal"><span class="pre">DEBUG</span></code> to <code class="docutils literal"><span class="pre">True</span></code> tells Django to assume only trusted
+developers are using your site. The Internet is full of untrustworthy
+hooligans, and the first thing you should do when you&#8217;re preparing your
+application for deployment is set <code class="docutils literal"><span class="pre">DEBUG</span></code> to <code class="docutils literal"><span class="pre">False</span></code>.</p>
+</div>
+</div>
+<div class="section" id="environment-specific-settings">
+<h2>Environment-specific settings<a class="headerlink" href="#environment-specific-settings" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="allowed-hosts">
+<h3>ALLOWED_HOSTS<a class="headerlink" href="#allowed-hosts" title="Permalink to this headline">¶</a></h3>
+<p>When <code class="docutils literal"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">False</span> <span class="pre">&lt;DEBUG&gt;</span></code>, Django doesn&#8217;t work at all without a
+suitable value for <code class="docutils literal"><span class="pre">ALLOWED_HOSTS</span></code>.</p>
+<p>This setting is required to protect your site against some CSRF attacks. If
+you use a wildcard, you must perform your own validation of the <code class="docutils literal"><span class="pre">Host</span></code> HTTP
+header, or otherwise ensure that you aren&#8217;t vulnerable to this category of
+attacks.</p>
+</div>
+<div class="section" id="caches">
+<h3>CACHES<a class="headerlink" href="#caches" title="Permalink to this headline">¶</a></h3>
+<p>If you&#8217;re using a cache, connection parameters may be different in development
+and in production.</p>
+<p>Cache servers often have weak authentication. Make sure they only accept
+connections from your application servers.</p>
+<p>If you&#8217;re using Memcached, consider using cached sessions
+to improve performance.</p>
+</div>
+<div class="section" id="databases">
+<h3>DATABASES<a class="headerlink" href="#databases" title="Permalink to this headline">¶</a></h3>
+<p>Database connection parameters are probably different in development and in
+production.</p>
+<p>Database passwords are very sensitive. You should protect them exactly like
+<code class="docutils literal"><span class="pre">SECRET_KEY</span></code>.</p>
+<p>For maximum security, make sure database servers only accept connections from
+your application servers.</p>
+<p>If you haven&#8217;t set up backups for your database, do it right now!</p>
+</div>
+<div class="section" id="email-backend-and-related-settings">
+<h3>EMAIL_BACKEND and related settings<a class="headerlink" href="#email-backend-and-related-settings" title="Permalink to this headline">¶</a></h3>
+<p>If your site sends emails, these values need to be set correctly.</p>
+</div>
+<div class="section" id="static-root-and-static-url">
+<h3>STATIC_ROOT and STATIC_URL<a class="headerlink" href="#static-root-and-static-url" title="Permalink to this headline">¶</a></h3>
+<p>Static files are automatically served by the development server. In
+production, you must define a <code class="docutils literal"><span class="pre">STATIC_ROOT</span></code> directory where
+<code class="docutils literal"><span class="pre">collectstatic</span></code> will copy them.</p>
+</div>
+<div class="section" id="media-root-and-media-url">
+<h3>MEDIA_ROOT and MEDIA_URL<a class="headerlink" href="#media-root-and-media-url" title="Permalink to this headline">¶</a></h3>
+<p>Media files are uploaded by your users. They&#8217;re untrusted! Make sure your web
+server never attempt to interpret them. For instance, if a user uploads a
+<code class="docutils literal"><span class="pre">.php</span></code> file , the web server shouldn&#8217;t execute it.</p>
+<p>Now is a good time to check your backup strategy for these files.</p>
+</div>
+</div>
+<div class="section" id="https">
+<h2>HTTPS<a class="headerlink" href="#https" title="Permalink to this headline">¶</a></h2>
+<p>Any website which allows users to log in should enforce site-wide HTTPS to
+avoid transmitting access tokens in clear. In Django, access tokens include
+the login/password, the session cookie, and password reset tokens. (You can&#8217;t
+do much to protect password reset tokens if you&#8217;re sending them by email.)</p>
+<p>Protecting sensitive areas such as the user account or the admin isn&#8217;t
+sufficient, because the same session cookie is used for HTTP and HTTPS. Your
+web server must redirect all HTTP traffic to HTTPS, and only transmit HTTPS
+requests to Django.</p>
+<p>Once you&#8217;ve set up HTTPS, enable the following settings.</p>
+<div class="section" id="csrf-cookie-secure">
+<h3><code class="docutils literal"><span class="pre">CSRF_COOKIE_SECURE</span></code><a class="headerlink" href="#csrf-cookie-secure" title="Permalink to this headline">¶</a></h3>
+<p>Set this to <code class="docutils literal"><span class="pre">True</span></code> to avoid transmitting the CSRF cookie over HTTP
+accidentally.</p>
+</div>
+<div class="section" id="session-cookie-secure">
+<h3><code class="docutils literal"><span class="pre">SESSION_COOKIE_SECURE</span></code><a class="headerlink" href="#session-cookie-secure" title="Permalink to this headline">¶</a></h3>
+<p>Set this to <code class="docutils literal"><span class="pre">True</span></code> to avoid transmitting the session cookie over HTTP
+accidentally.</p>
+</div>
+</div>
+<div class="section" id="performance-optimizations">
+<h2>Performance optimizations<a class="headerlink" href="#performance-optimizations" title="Permalink to this headline">¶</a></h2>
+<p>Setting <code class="docutils literal"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">False</span> <span class="pre">&lt;DEBUG&gt;</span></code> disables several features that are
+only useful in development. In addition, you can tune the following settings.</p>
+<div class="section" id="conn-max-age">
+<h3><code class="docutils literal"><span class="pre">CONN_MAX_AGE</span></code><a class="headerlink" href="#conn-max-age" title="Permalink to this headline">¶</a></h3>
+<p>Enabling persistent database connections
+can result in a nice speed-up when
+connecting to the database accounts for a significant part of the request
+processing time.</p>
+<p>This helps a lot on virtualized hosts with limited network performance.</p>
+</div>
+<div class="section" id="templates">
+<h3><code class="docutils literal"><span class="pre">TEMPLATES</span></code><a class="headerlink" href="#templates" title="Permalink to this headline">¶</a></h3>
+<p>Enabling the cached template loader often improves performance drastically, as
+it avoids compiling each template every time it needs to be rendered. See the
+template loaders docs  for more information.</p>
+</div>
+</div>
+<div class="section" id="error-reporting">
+<h2>Error reporting<a class="headerlink" href="#error-reporting" title="Permalink to this headline">¶</a></h2>
+<p>By the time you push your code to production, it&#8217;s hopefully robust, but you
+can&#8217;t rule out unexpected errors. Thankfully, Django can capture errors and
+notify you accordingly.</p>
+<div class="section" id="logging">
+<h3><code class="docutils literal"><span class="pre">LOGGING</span></code><a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h3>
+<p>Review your logging configuration before putting your website in production,
+and check that it works as expected as soon as you have received some traffic.</p>
+</div>
+<div class="section" id="admins-and-managers">
+<h3><code class="docutils literal"><span class="pre">ADMINS</span></code> and <code class="docutils literal"><span class="pre">MANAGERS</span></code><a class="headerlink" href="#admins-and-managers" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">ADMINS</span></code> will be notified of 500 errors by email.</p>
+<p><code class="docutils literal"><span class="pre">MANAGERS</span></code> will be notified of 404 errors.
+<code class="docutils literal"><span class="pre">IGNORABLE_404_URLS</span></code> can help filter out spurious reports.</p>
+<div class="admonition-error-reporting-by-email-doesn-t-scale-very-well admonition">
+<p class="first admonition-title">Error reporting by email doesn&#8217;t scale very well</p>
+<p class="last">Consider using an error monitoring system such as <a class="reference external" href="http://sentry.readthedocs.org/en/latest/">Sentry</a> before your
+inbox is flooded by reports. Sentry can also aggregate logs.</p>
+</div>
+</div>
+<div class="section" id="customize-the-default-error-views">
+<h3>Customize the default error views<a class="headerlink" href="#customize-the-default-error-views" title="Permalink to this headline">¶</a></h3>
+<p>Django includes default views and templates for several HTTP error codes. You
+may want to override the default templates by creating the following templates
+in your root template directory: <code class="docutils literal"><span class="pre">404.html</span></code>, <code class="docutils literal"><span class="pre">500.html</span></code>, <code class="docutils literal"><span class="pre">403.html</span></code>, and
+<code class="docutils literal"><span class="pre">400.html</span></code>. The default views should suffice for 99% of Web applications, but
+if you desire to customize them, see these instructions which also contain
+details about the default templates:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">http_not_found_view</span></code></li>
+<li><code class="docutils literal"><span class="pre">http_internal_server_error_view</span></code></li>
+<li><code class="docutils literal"><span class="pre">http_forbidden_view</span></code></li>
+<li><code class="docutils literal"><span class="pre">http_bad_request_view</span></code></li>
+</ul>
+</div>
+</div>
+<div class="section" id="python-options">
+<h2>Python Options<a class="headerlink" href="#python-options" title="Permalink to this headline">¶</a></h2>
+<p>It&#8217;s strongly recommended that you invoke the Python process running your
+Django application using the <a class="reference external" href="https://docs.python.org/using/cmdline.html#cmdoption-R">-R</a> option or with the
+<span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONHASHSEED</span></code> environment variable set to <code class="docutils literal"><span class="pre">random</span></code>.</p>
+<p>These options help protect your site from denial-of-service (DoS)
+attacks triggered by carefully crafted inputs. Such an attack can
+drastically increase CPU usage by causing worst-case performance when
+creating <code class="docutils literal"><span class="pre">dict</span></code> instances. See <a class="reference external" href="http://www.ocert.org/advisories/ocert-2011-003.html">oCERT advisory #2011-003</a> for more information.</p>
+</div>
+<div class="section" id="using-different-settings-for-production">
+<h2>Using Different Settings for Production<a class="headerlink" href="#using-different-settings-for-production" title="Permalink to this headline">¶</a></h2>
+<p>So far in this book, we&#8217;ve dealt with only a single settings file: the
+<code class="docutils literal"><span class="pre">settings.py</span></code> generated by <code class="docutils literal"><span class="pre">django-admin.py</span> <span class="pre">startproject</span></code>. But as you get
+ready to deploy, you&#8217;ll likely find yourself needing multiple settings files to
+keep your development environment isolated from your production environment.
+(For example, you probably won&#8217;t want to change <code class="docutils literal"><span class="pre">DEBUG</span></code> from <code class="docutils literal"><span class="pre">False</span></code> to
+<code class="docutils literal"><span class="pre">True</span></code> whenever you want to test code changes on your local machine.) Django
+makes this very easy by allowing you to use multiple settings files.</p>
+<p>If you&#8217;d like to organize your settings files into &#8220;production&#8221; and
+&#8220;development&#8221; settings, you can accomplish this in one of three ways:</p>
+<ul class="simple">
+<li>Set up two full-blown, independent settings files.</li>
+<li>Set up a &#8220;base&#8221; settings file (say, for development) and a second (say,
+production) settings file that merely imports from the first one and
+defines whatever overrides it needs to define.</li>
+<li>Use only a single settings file that has Python logic to change the
+settings based on context.</li>
+</ul>
+<p>We&#8217;ll take these one at a time.</p>
+<p>First, the most basic approach is to define two separate settings files. If
+you&#8217;re following along, you&#8217;ve already got <code class="docutils literal"><span class="pre">settings.py</span></code>. Now, just make a
+copy of it called <code class="docutils literal"><span class="pre">settings_production.py</span></code>. (We made this name up; you can
+call it whatever you want.) In this new file, change <code class="docutils literal"><span class="pre">DEBUG</span></code>, etc.</p>
+<p>The second approach is similar but cuts down on redundancy. Instead of having
+two settings files whose contents are mostly similar, you can treat one as the
+&#8220;base&#8221; file and create another file that imports from it. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># settings.py</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">TEMPLATE_DEBUG</span> <span class="o">=</span> <span class="n">DEBUG</span>
+
+<span class="n">DATABASE_ENGINE</span> <span class="o">=</span> <span class="s">&#39;postgresql_psycopg2&#39;</span>
+<span class="n">DATABASE_NAME</span> <span class="o">=</span> <span class="s">&#39;devdb&#39;</span>
+<span class="n">DATABASE_USER</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="n">DATABASE_PASSWORD</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+<span class="n">DATABASE_PORT</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+<span class="c"># ...</span>
+
+<span class="c"># settings_production.py</span>
+
+<span class="kn">from</span> <span class="nn">settings</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">DEBUG</span> <span class="o">=</span> <span class="n">TEMPLATE_DEBUG</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">DATABASE_NAME</span> <span class="o">=</span> <span class="s">&#39;production&#39;</span>
+<span class="n">DATABASE_USER</span> <span class="o">=</span> <span class="s">&#39;app&#39;</span>
+<span class="n">DATABASE_PASSWORD</span> <span class="o">=</span> <span class="s">&#39;letmein&#39;</span>
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal"><span class="pre">settings_production.py</span></code> imports everything from <code class="docutils literal"><span class="pre">settings.py</span></code> and
+just redefines the settings that are particular to production. In this case,
+<code class="docutils literal"><span class="pre">DEBUG</span></code> is set to <code class="docutils literal"><span class="pre">False</span></code>, but we&#8217;ve also set different database access
+parameters for the production setting. (The latter goes to show that you can
+redefine <em>any</em> setting, not just the basic ones like <code class="docutils literal"><span class="pre">DEBUG</span></code>.)</p>
+<p>Finally, the most concise way of accomplishing two settings environments is to
+use a single settings file that branches based on the environment. One way to
+do this is to check the current hostname. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># settings.py</span>
+
+<span class="kn">import</span> <span class="nn">socket</span>
+
+<span class="k">if</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;my-laptop&#39;</span><span class="p">:</span>
+    <span class="n">DEBUG</span> <span class="o">=</span> <span class="n">TEMPLATE_DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">DEBUG</span> <span class="o">=</span> <span class="n">TEMPLATE_DEBUG</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="c"># ...</span>
+</pre></div>
+</div>
+<p>Here, we import the <code class="docutils literal"><span class="pre">socket</span></code> module from Python&#8217;s standard library and use it
+to check the current system&#8217;s hostname. We can check the hostname to determine
+whether the code is being run on the production server.</p>
+<p>A core lesson here is that settings files are <em>just Python code</em>. They can
+import from other files, they can execute arbitrary logic, etc. Just make sure
+that, if you go down this road, the Python code in your settings files is
+bulletproof. If it raises any exceptions, Django will likely crash badly.</p>
+<div class="admonition-renaming-settings-py admonition">
+<p class="first admonition-title">Renaming settings.py</p>
+<p>Feel free to rename your <code class="docutils literal"><span class="pre">settings.py</span></code> to <code class="docutils literal"><span class="pre">settings_dev.py</span></code> or
+<code class="docutils literal"><span class="pre">settings/dev.py</span></code> or <code class="docutils literal"><span class="pre">foobar.py</span></code> &#8211; Django doesn&#8217;t care, as long as
+you tell it what settings file you&#8217;re using.</p>
+<p class="last">But if you <em>do</em> rename the <code class="docutils literal"><span class="pre">settings.py</span></code> file that is generated by
+<code class="docutils literal"><span class="pre">django-admin.py</span> <span class="pre">startproject</span></code>, you&#8217;ll find that <code class="docutils literal"><span class="pre">manage.py</span></code> will give
+you an error message saying that it can&#8217;t find the settings. That&#8217;s because
+it tries to import a module called <code class="docutils literal"><span class="pre">settings</span></code>. You can fix this either by
+editing <code class="docutils literal"><span class="pre">manage.py</span></code> to change <code class="docutils literal"><span class="pre">settings</span></code> to the name of your module, or
+by using <code class="docutils literal"><span class="pre">django-admin.py</span></code> instead of <code class="docutils literal"><span class="pre">manage.py</span></code>. In the latter case,
+you&#8217;ll need to set the <code class="docutils literal"><span class="pre">DJANGO_SETTINGS_MODULE</span></code> environment variable to
+the Python path to your settings file (e.g., <code class="docutils literal"><span class="pre">'mysite.settings'</span></code>).</p>
+</div>
+</div>
+<div class="section" id="deploying-django-with-apache-and-mod-wsgi">
+<h2>Deploying Django with Apache and mod_wsgi<a class="headerlink" href="#deploying-django-with-apache-and-mod-wsgi" title="Permalink to this headline">¶</a></h2>
+<p>Deploying Django with <a class="reference external" href="http://httpd.apache.org/">Apache</a> and <a class="reference external" href="http://code.google.com/p/modwsgi/">mod_wsgi</a> is a tried and tested way to get
+Django into production.</p>
+<p>mod_wsgi is an Apache module which can host any Python <a class="reference external" href="http://www.wsgi.org">WSGI</a> application,
+including Django. Django will work with any version of Apache which supports
+mod_wsgi.</p>
+<p>The <a class="reference external" href="http://code.google.com/p/modwsgi/">official mod_wsgi documentation</a> is fantastic; it&#8217;s your source for all
+the details about how to use mod_wsgi. You&#8217;ll probably want to start with the
+<a class="reference external" href="http://code.google.com/p/modwsgi/wiki/InstallationInstructions">installation and configuration documentation</a>.</p>
+</div>
+<div class="section" id="basic-configuration">
+<h2>Basic configuration<a class="headerlink" href="#basic-configuration" title="Permalink to this headline">¶</a></h2>
+<p>Once you&#8217;ve got mod_wsgi installed and activated, edit your Apache server&#8217;s
+<code class="docutils literal"><span class="pre">httpd.conf</span></code> file and add the following. If you are using a version of Apache
+older than 2.4, replace <code class="docutils literal"><span class="pre">Require</span> <span class="pre">all</span> <span class="pre">granted</span></code> with <code class="docutils literal"><span class="pre">Allow</span> <span class="pre">from</span> <span class="pre">all</span></code> and
+also add the line <code class="docutils literal"><span class="pre">Order</span> <span class="pre">deny,allow</span></code> above it.</p>
+<div class="highlight-apache"><div class="highlight"><pre><span class="nb">WSGIScriptAlias</span> / <span class="sx">/path/to/mysite.com/mysite/wsgi.py</span>
+<span class="nb">WSGIPythonPath</span> <span class="sx">/path/to/mysite.com</span>
+
+<span class="nt">&lt;Directory</span> <span class="s">/path/to/mysite.com/mysite</span><span class="nt">&gt;</span>
+<span class="nt">&lt;Files</span> <span class="s">wsgi.py</span><span class="nt">&gt;</span>
+<span class="nb">Require</span> <span class="k">all</span> granted
+<span class="nt">&lt;/Files&gt;</span>
+<span class="nt">&lt;/Directory&gt;</span>
+</pre></div>
+</div>
+<p>The first bit in the <code class="docutils literal"><span class="pre">WSGIScriptAlias</span></code> line is the base URL path you want to
+serve your application at (<code class="docutils literal"><span class="pre">/</span></code> indicates the root url), and the second is the
+location of a &#8220;WSGI file&#8221; &#8211; see below &#8211; on your system, usually inside of
+your project package (<code class="docutils literal"><span class="pre">mysite</span></code> in this example). This tells Apache to serve
+any request below the given URL using the WSGI application defined in that
+file.</p>
+<p>The <code class="docutils literal"><span class="pre">WSGIPythonPath</span></code> line ensures that your project package is available for
+import on the Python path; in other words, that <code class="docutils literal"><span class="pre">import</span> <span class="pre">mysite</span></code> works.</p>
+<p>The <code class="docutils literal"><span class="pre">&lt;Directory&gt;</span></code> piece just ensures that Apache can access your
+<code class="file docutils literal"><span class="pre">wsgi.py</span></code> file.</p>
+<p>Next we&#8217;ll need to ensure this <code class="file docutils literal"><span class="pre">wsgi.py</span></code> with a WSGI application object
+exists. As of Django version 1.4, <code class="docutils literal"><span class="pre">startproject</span></code> will have created one
+for you; otherwise, you&#8217;ll need to create it. See the WSGI overview
+for the default contents you
+should put in this file, and what else you can add to it.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>If multiple Django sites are run in a single mod_wsgi process, all of them
+will use the settings of whichever one happens to run first. This can be
+solved by changing:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s">&quot;DJANGO_SETTINGS_MODULE&quot;</span><span class="p">,</span> <span class="s">&quot;{{ project_name }}.settings&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>in <code class="docutils literal"><span class="pre">wsgi.py</span></code>, to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">&quot;DJANGO_SETTINGS_MODULE&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;{{ project_name }}.settings&quot;</span>
+</pre></div>
+</div>
+<p class="last">or by using mod_wsgi daemon mode and ensuring that each
+site runs in its own daemon process.</p>
+</div>
+</div>
+<div class="section" id="using-a-virtualenv">
+<h2>Using a virtualenv<a class="headerlink" href="#using-a-virtualenv" title="Permalink to this headline">¶</a></h2>
+<p>If you install your project&#8217;s Python dependencies inside a <a class="reference external" href="http://www.virtualenv.org">virtualenv</a>,
+you&#8217;ll need to add the path to this virtualenv&#8217;s <code class="docutils literal"><span class="pre">site-packages</span></code> directory to
+your Python path as well. To do this, add an additional path to your
+<code class="docutils literal"><span class="pre">WSGIPythonPath</span></code> directive, with multiple paths separated by a colon (<code class="docutils literal"><span class="pre">:</span></code>)
+if using a UNIX-like system, or a semicolon (<code class="docutils literal"><span class="pre">;</span></code>) if using Windows. If any
+part of a directory path contains a space character, the complete argument
+string to <code class="docutils literal"><span class="pre">WSGIPythonPath</span></code> must be quoted:</p>
+<div class="highlight-python"><div class="highlight"><pre>WSGIPythonPath /path/to/mysite.com:/path/to/your/venv/lib/python3.X/site-packages
+</pre></div>
+</div>
+<p>Make sure you give the correct path to your virtualenv, and replace
+<code class="docutils literal"><span class="pre">python3.X</span></code> with the correct Python version (e.g. <code class="docutils literal"><span class="pre">python3.4</span></code>).</p>
+</div>
+<div class="section" id="using-mod-wsgi-daemon-mode">
+<span id="daemon-mode"></span><h2>Using mod_wsgi daemon mode<a class="headerlink" href="#using-mod-wsgi-daemon-mode" title="Permalink to this headline">¶</a></h2>
+<p>&#8220;Daemon mode&#8221; is the recommended mode for running mod_wsgi (on non-Windows
+platforms). To create the required daemon process group and delegate the
+Django instance to run in it, you will need to add appropriate
+<code class="docutils literal"><span class="pre">WSGIDaemonProcess</span></code> and <code class="docutils literal"><span class="pre">WSGIProcessGroup</span></code> directives. A further change
+required to the above configuration if you use daemon mode is that you can&#8217;t
+use <code class="docutils literal"><span class="pre">WSGIPythonPath</span></code>; instead you should use the <code class="docutils literal"><span class="pre">python-path</span></code> option to
+<code class="docutils literal"><span class="pre">WSGIDaemonProcess</span></code>, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre>WSGIDaemonProcess example.com python-path=/path/to/mysite.com:/path/to/venv/lib/python2.7/site-packages
+WSGIProcessGroup example.com
+</pre></div>
+</div>
+<p>See the official mod_wsgi documentation for <a class="reference external" href="http://code.google.com/p/modwsgi/wiki/QuickConfigurationGuide#Delegation_To_Daemon_Process">details on setting up daemon
+mode</a>.</p>
+</div>
+<div class="section" id="serving-files">
+<span id="id1"></span><h2>Serving files<a class="headerlink" href="#serving-files" title="Permalink to this headline">¶</a></h2>
+<p>Django doesn&#8217;t serve files itself; it leaves that job to whichever Web
+server you choose.</p>
+<p>We recommend using a separate Web server &#8211; i.e., one that&#8217;s not also running
+Django &#8211; for serving media. Here are some good choices:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://wiki.nginx.org/Main">Nginx</a></li>
+<li>A stripped-down version of <a class="reference external" href="http://httpd.apache.org/">Apache</a></li>
+</ul>
+<p>If, however, you have no option but to serve media files on the same Apache
+<code class="docutils literal"><span class="pre">VirtualHost</span></code> as Django, you can set up Apache to serve some URLs as
+static media, and others using the mod_wsgi interface to Django.</p>
+<p>This example sets up Django at the site root, but explicitly serves
+<code class="docutils literal"><span class="pre">robots.txt</span></code>, <code class="docutils literal"><span class="pre">favicon.ico</span></code>, any CSS file, and anything in the
+<code class="docutils literal"><span class="pre">/static/</span></code> and <code class="docutils literal"><span class="pre">/media/</span></code> URL space as a static file. All other URLs
+will be served using mod_wsgi:</p>
+<div class="highlight-python"><div class="highlight"><pre>Alias /robots.txt /path/to/mysite.com/static/robots.txt
+Alias /favicon.ico /path/to/mysite.com/static/favicon.ico
+
+Alias /media/ /path/to/mysite.com/media/
+Alias /static/ /path/to/mysite.com/static/
+
+&lt;Directory /path/to/mysite.com/static&gt;
+Require all granted
+&lt;/Directory&gt;
+
+&lt;Directory /path/to/mysite.com/media&gt;
+Require all granted
+&lt;/Directory&gt;
+
+WSGIScriptAlias / /path/to/mysite.com/mysite/wsgi.py
+
+&lt;Directory /path/to/mysite.com/mysite&gt;
+&lt;Files wsgi.py&gt;
+Require all granted
+&lt;/Files&gt;
+&lt;/Directory&gt;
+</pre></div>
+</div>
+<p>If you are using a version of Apache older than 2.4, replace
+<code class="docutils literal"><span class="pre">Require</span> <span class="pre">all</span> <span class="pre">granted</span></code> with <code class="docutils literal"><span class="pre">Allow</span> <span class="pre">from</span> <span class="pre">all</span></code> and also add the line
+<code class="docutils literal"><span class="pre">Order</span> <span class="pre">deny,allow</span></code> above it.</p>
+</div>
+<div class="section" id="serving-the-admin-files">
+<span id="id3"></span><h2>Serving the admin files<a class="headerlink" href="#serving-the-admin-files" title="Permalink to this headline">¶</a></h2>
+<p>When <code class="xref py py-mod docutils literal"><span class="pre">django.contrib.staticfiles</span></code> is in <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>, the
+Django development server automatically serves the static files of the
+admin app (and any other installed apps). This is however not the case when you
+use any other server arrangement. You&#8217;re responsible for setting up Apache, or
+whichever Web server you&#8217;re using, to serve the admin files.</p>
+<p>The admin files live in (<code class="file docutils literal"><span class="pre">django/contrib/admin/static/admin</span></code>) of the
+Django distribution.</p>
+<p>We <strong>strongly</strong> recommend using <code class="xref py py-mod docutils literal"><span class="pre">django.contrib.staticfiles</span></code> to handle the
+admin files (along with a Web server as outlined in the previous section; this
+means using the <code class="docutils literal"><span class="pre">collectstatic</span></code> management command to collect the
+static files in <code class="docutils literal"><span class="pre">STATIC_ROOT</span></code>, and then configuring your Web server to
+serve <code class="docutils literal"><span class="pre">STATIC_ROOT</span></code> at <code class="docutils literal"><span class="pre">STATIC_URL</span></code>), but here are three
+other approaches:</p>
+<ol class="arabic simple">
+<li>Create a symbolic link to the admin static files from within your
+document root (this may require <code class="docutils literal"><span class="pre">+FollowSymLinks</span></code> in your Apache
+configuration).</li>
+<li>Use an <code class="docutils literal"><span class="pre">Alias</span></code> directive, as demonstrated above, to alias the appropriate
+URL (probably <code class="docutils literal"><span class="pre">STATIC_URL</span></code> + <code class="docutils literal"><span class="pre">admin/</span></code>) to the actual location of
+the admin files.</li>
+<li>Copy the admin static files so that they live within your Apache
+document root.</li>
+</ol>
+</div>
+<div class="section" id="authenticating-against-django-s-user-database-from-apache">
+<h2>Authenticating against Django&#8217;s user database from Apache<a class="headerlink" href="#authenticating-against-django-s-user-database-from-apache" title="Permalink to this headline">¶</a></h2>
+<p>Django provides a handler to allow Apache to authenticate users directly
+against Django&#8217;s authentication backends. See the mod_wsgi authentication
+documentation.</p>
+</div>
+<div class="section" id="if-you-get-a-unicodeencodeerror">
+<h2>If you get a UnicodeEncodeError<a class="headerlink" href="#if-you-get-a-unicodeencodeerror" title="Permalink to this headline">¶</a></h2>
+<p>If you&#8217;re taking advantage of the internationalization features of Django and you intend to allow users to upload files, you must
+ensure that the environment used to start Apache is configured to accept
+non-ASCII file names. If your environment is not correctly configured, you
+will trigger <code class="docutils literal"><span class="pre">UnicodeEncodeError</span></code> exceptions when calling functions like
+the ones in <code class="xref py py-mod docutils literal"><span class="pre">os.path</span></code> on filenames that contain non-ASCII characters.</p>
+<p>To avoid these problems, the environment used to start Apache should contain
+settings analogous to the following:</p>
+<div class="highlight-python"><div class="highlight"><pre>export LANG=&#39;en_US.UTF-8&#39;
+export LC_ALL=&#39;en_US.UTF-8&#39;
+</pre></div>
+</div>
+<p>Consult the documentation for your operating system for the appropriate syntax
+and location to put these configuration items; <code class="docutils literal"><span class="pre">/etc/apache2/envvars</span></code> is a
+common location on Unix platforms. Once you have added these statements
+to your environment, restart Apache.</p>
+</div>
+<div class="section" id="serving-static-files-in-production">
+<span id="staticfiles-production"></span><h2>Serving static files in production<a class="headerlink" href="#serving-static-files-in-production" title="Permalink to this headline">¶</a></h2>
+<p>The basic outline of putting static files into production is simple: run the
+<code class="docutils literal"><span class="pre">collectstatic</span></code> command when static files change, then arrange for
+the collected static files directory (<code class="docutils literal"><span class="pre">STATIC_ROOT</span></code>) to be moved to
+the static file server and served. Depending on <code class="docutils literal"><span class="pre">STATICFILES_STORAGE</span></code>,
+files may need to be moved to a new location manually or the <code class="xref py py-func docutils literal"><span class="pre">post_process</span></code> method
+of the <code class="docutils literal"><span class="pre">Storage</span></code> class might take care of that.</p>
+<p>Of course, as with all deployment tasks, the devil&#8217;s in the details. Every
+production setup will be a bit different, so you&#8217;ll need to adapt the basic
+outline to fit your needs. Below are a few common patterns that might help.</p>
+<div class="section" id="serving-the-site-and-your-static-files-from-the-same-server">
+<h3>Serving the site and your static files from the same server<a class="headerlink" href="#serving-the-site-and-your-static-files-from-the-same-server" title="Permalink to this headline">¶</a></h3>
+<p>If you want to serve your static files from the same server that&#8217;s already
+serving your site, the process may look something like:</p>
+<ul class="simple">
+<li>Push your code up to the deployment server.</li>
+<li>On the server, run <code class="docutils literal"><span class="pre">collectstatic</span></code> to copy all the static files
+into <code class="docutils literal"><span class="pre">STATIC_ROOT</span></code>.</li>
+<li>Configure your web server to serve the files in <code class="docutils literal"><span class="pre">STATIC_ROOT</span></code>
+under the URL <code class="docutils literal"><span class="pre">STATIC_URL</span></code>. For example, here&#8217;s
+how to do this with Apache and mod_wsgi .</li>
+</ul>
+<p>You&#8217;ll probably want to automate this process, especially if you&#8217;ve got
+multiple web servers. There&#8217;s any number of ways to do this automation, but
+one option that many Django developers enjoy is <a class="reference external" href="http://fabfile.org/">Fabric</a>.</p>
+<p>Below, and in the following sections, we&#8217;ll show off a few example fabfiles
+(i.e. Fabric scripts) that automate these file deployment options. The syntax
+of a fabfile is fairly straightforward but won&#8217;t be covered here; consult
+<a class="reference external" href="http://docs.fabfile.org/">Fabric&#8217;s documentation</a>, for a complete
+explanation of the syntax.</p>
+<p>So, a fabfile to deploy static files to a couple of web servers might look
+something like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c"># Hosts to deploy onto</span>
+<span class="n">env</span><span class="o">.</span><span class="n">hosts</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;www1.example.com&#39;</span><span class="p">,</span> <span class="s">&#39;www2.example.com&#39;</span><span class="p">]</span>
+
+<span class="c"># Where your project code lives on the server</span>
+<span class="n">env</span><span class="o">.</span><span class="n">project_root</span> <span class="o">=</span> <span class="s">&#39;/home/www/myproject&#39;</span>
+
+<span class="k">def</span> <span class="nf">deploy_static</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">cd</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">project_root</span><span class="p">):</span>
+        <span class="n">run</span><span class="p">(</span><span class="s">&#39;./manage.py collectstatic -v0 --noinput&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="serving-static-files-from-a-dedicated-server">
+<h3>Serving static files from a dedicated server<a class="headerlink" href="#serving-static-files-from-a-dedicated-server" title="Permalink to this headline">¶</a></h3>
+<p>Most larger Django sites use a separate Web server &#8211; i.e., one that&#8217;s not also
+running Django &#8211; for serving static files. This server often runs a different
+type of web server &#8211; faster but less full-featured. Some common choices are:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://wiki.nginx.org/Main">Nginx</a></li>
+<li>A stripped-down version of <a class="reference external" href="http://httpd.apache.org/">Apache</a></li>
+</ul>
+<p>Configuring these servers is out of scope of this document; check each
+server&#8217;s respective documentation for instructions.</p>
+<p>Since your static file server won&#8217;t be running Django, you&#8217;ll need to modify
+the deployment strategy to look something like:</p>
+<ul class="simple">
+<li>When your static files change, run <code class="docutils literal"><span class="pre">collectstatic</span></code> locally.</li>
+<li>Push your local <code class="docutils literal"><span class="pre">STATIC_ROOT</span></code> up to the static file server into the
+directory that&#8217;s being served. <a class="reference external" href="https://rsync.samba.org/">rsync</a> is a
+common choice for this step since it only needs to transfer the bits of
+static files that have changed.</li>
+</ul>
+<p>Here&#8217;s how this might look in a fabfile:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fabric.contrib</span> <span class="kn">import</span> <span class="n">project</span>
+
+<span class="c"># Where the static files get collected locally. Your STATIC_ROOT setting.</span>
+<span class="n">env</span><span class="o">.</span><span class="n">local_static_root</span> <span class="o">=</span> <span class="s">&#39;/tmp/static&#39;</span>
+
+<span class="c"># Where the static files should go remotely</span>
+<span class="n">env</span><span class="o">.</span><span class="n">remote_static_root</span> <span class="o">=</span> <span class="s">&#39;/home/www/static.example.com&#39;</span>
+
+<span class="nd">@roles</span><span class="p">(</span><span class="s">&#39;static&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">deploy_static</span><span class="p">():</span>
+    <span class="n">local</span><span class="p">(</span><span class="s">&#39;./manage.py collectstatic&#39;</span><span class="p">)</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">rsync_project</span><span class="p">(</span>
+        <span class="n">remote_dir</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">remote_static_root</span><span class="p">,</span>
+        <span class="n">local_dir</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">local_static_root</span><span class="p">,</span>
+        <span class="n">delete</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="serving-static-files-from-a-cloud-service-or-cdn">
+<span id="staticfiles-from-cdn"></span><h3>Serving static files from a cloud service or CDN<a class="headerlink" href="#serving-static-files-from-a-cloud-service-or-cdn" title="Permalink to this headline">¶</a></h3>
+<p>Another common tactic is to serve static files from a cloud storage provider
+like Amazon&#8217;s S3 and/or a CDN (content delivery network). This lets you
+ignore the problems of serving static files and can often make for
+faster-loading webpages (especially when using a CDN).</p>
+<p>When using these services, the basic workflow would look a bit like the above,
+except that instead of using <code class="docutils literal"><span class="pre">rsync</span></code> to transfer your static files to the
+server you&#8217;d need to transfer the static files to the storage provider or CDN.</p>
+<p>There&#8217;s any number of ways you might do this, but if the provider has an API a
+custom file storage backend  will make the
+process incredibly simple. If you&#8217;ve written or are using a 3rd party custom
+storage backend, you can tell <code class="docutils literal"><span class="pre">collectstatic</span></code> to use it by setting
+<code class="docutils literal"><span class="pre">STATICFILES_STORAGE</span></code> to the storage engine.</p>
+<p>For example, if you&#8217;ve written an S3 storage backend in
+<code class="docutils literal"><span class="pre">myproject.storage.S3Storage</span></code> you could use it with:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">STATICFILES_STORAGE</span> <span class="o">=</span> <span class="s">&#39;myproject.storage.S3Storage&#39;</span>
+</pre></div>
+</div>
+<p>Once that&#8217;s done, all you have to do is run <code class="docutils literal"><span class="pre">collectstatic</span></code> and your
+static files would be pushed through your storage package up to S3. If you
+later needed to switch to a different storage provider, it could be as simple
+as changing your <code class="docutils literal"><span class="pre">STATICFILES_STORAGE</span></code> setting.</p>
+<p>There are 3rd party apps available that
+provide storage backends for many common file storage APIs. A good starting
+point is the <a class="reference external" href="https://www.djangopackages.com/grids/g/storage-backends/">overview at djangopackages.com</a>.</p>
+</div>
+</div>
+<div class="section" id="scaling">
+<h2>Scaling<a class="headerlink" href="#scaling" title="Permalink to this headline">¶</a></h2>
+<p>Now that you know how to get Django running on a single server, let&#8217;s look at
+how you can scale out a Django installation. This section walks through how
+a site might scale from a single server to a large-scale cluster that could
+serve millions of hits an hour.</p>
+<p>It&#8217;s important to note, however, that nearly every large site is large in
+different ways, so scaling is anything but a one-size-fits-all operation. The
+following coverage should suffice to show the general principle, and whenever
+possible we&#8217;ll try to point out where different choices could be made.</p>
+<p>First off, we&#8217;ll make a pretty big assumption and exclusively talk about
+scaling under Apache and mod_python. Though we know of a number of successful
+medium- to large-scale FastCGI deployments, we&#8217;re much more familiar with
+Apache.</p>
+<div class="section" id="running-on-a-single-server">
+<h3>Running on a Single Server<a class="headerlink" href="#running-on-a-single-server" title="Permalink to this headline">¶</a></h3>
+<p>Most sites start out running on a single server, with an architecture that
+looks something like Figure 13-1.</p>
+<div class="figure" id="id6">
+<img alt="_images/scaling-1.png" src="_images/scaling-1.png" />
+<p class="caption"><span class="caption-text">Figure 13-1: a single server Django setup.</span></p>
+</div>
+<p>This works just fine for small- to medium-sized sites, and it&#8217;s relatively cheap &#8211; you
+can put together a single-server site designed for Django for well under $3,000.</p>
+<p>However, as traffic increases you&#8217;ll quickly run into <em>resource contention</em>
+between the different pieces of software. Database servers and Web servers
+<em>love</em> to have the entire server to themselves, so when run on the same server
+they often end up &#8220;fighting&#8221; over the same resources (RAM, CPU) that they&#8217;d
+prefer to monopolize.</p>
+<p>This is solved easily by moving the database server to a second machine,
+as explained in the following section.</p>
+</div>
+<div class="section" id="separating-out-the-database-server">
+<h3>Separating Out the Database Server<a class="headerlink" href="#separating-out-the-database-server" title="Permalink to this headline">¶</a></h3>
+<p>As far as Django is concerned, the process of separating out the database server
+is extremely easy: you&#8217;ll simply need to change the <code class="docutils literal"><span class="pre">DATABASE_HOST</span></code>
+setting to the IP or DNS name of your database server. It&#8217;s probably a good idea
+to use the IP if at all possible, as relying on DNS for the connection between
+your Web server and database server isn&#8217;t recommended.</p>
+<p>With a separate database server, our architecture now looks like Figure 13-2.</p>
+<div class="figure" id="id7">
+<img alt="_images/scaling-2.png" src="_images/scaling-2.png" />
+<p class="caption"><span class="caption-text">Figure 13-2: Moving the database onto a dedicated server.</span></p>
+</div>
+<p>Here we&#8217;re starting to move into what&#8217;s usually called <em>n-tier</em>
+architecture. Don&#8217;t be scared by the buzzword &#8211; it just refers to the fact that
+different &#8220;tiers&#8221; of the Web stack get separated out onto different physical
+machines.</p>
+<p>At this point, if you anticipate ever needing to grow beyond a single database
+server, it&#8217;s probably a good idea to start thinking about connection pooling
+and/or database replication. Unfortunately, there&#8217;s not nearly enough space to do
+those topics justice in this book, so you&#8217;ll need to consult your database&#8217;s
+documentation and/or community for more information.</p>
+</div>
+<div class="section" id="running-a-separate-media-server">
+<h3>Running a Separate Media Server<a class="headerlink" href="#running-a-separate-media-server" title="Permalink to this headline">¶</a></h3>
+<p>We still have a big problem left over from the single-server setup:
+the serving of media from the same box that handles dynamic content.</p>
+<p>Those two activities perform best under different circumstances, and by smashing
+them together on the same box you end up with neither performing particularly
+well. So the next step is to separate out the media &#8211; that is, anything <em>not</em>
+generated by a Django view &#8211; onto a dedicated server (see Figure 13-3).</p>
+<div class="figure" id="id8">
+<img alt="_images/scaling-3.png" src="_images/scaling-3.png" />
+<p class="caption"><span class="caption-text">Figure 13-3: Separating out the media server.</span></p>
+</div>
+<p>Ideally, this media server should run a stripped-down Web server optimized for
+static media delivery. lighttpd and tux (<a class="reference external" href="http://www.djangoproject.com/r/tux/">http://www.djangoproject.com/r/tux/</a>)
+are both excellent choices here, but a heavily stripped down Apache could work,
+too.</p>
+<p>For sites heavy in static content (photos, videos, etc.), moving to a
+separate media server is doubly important and should likely be the <em>first</em>
+step in scaling up.</p>
+<p>This step can be slightly tricky, however. If your application involves file
+uploads, Django needs to be able to write uploaded media to the media server.
+If media lives on another server, you&#8217;ll need to arrange a way for that write
+to happen across the network.</p>
+</div>
+<div class="section" id="implementing-load-balancing-and-redundancy">
+<h3>Implementing Load Balancing and Redundancy<a class="headerlink" href="#implementing-load-balancing-and-redundancy" title="Permalink to this headline">¶</a></h3>
+<p>At this point, we&#8217;ve broken things down as much as possible. This
+three-server setup should handle a very large amount of traffic &#8211; we served
+around 10 million hits a day from an architecture of this sort &#8211; so if you
+grow further, you&#8217;ll need to start adding redundancy.</p>
+<p>This is a good thing, actually. One glance at Figure 13-3 shows you that
+if even a single one of your three servers fails, you&#8217;ll bring down your
+entire site. So as you add redundant servers, not only do you increase capacity,
+but you also increase reliability.</p>
+<p>For the sake of this example, let&#8217;s assume that the Web server hits capacity
+first. It&#8217;s relatively easy to get multiple copies of a Django site running on
+different hardware &#8211; just copy all the code onto multiple machines, and start
+Apache on both of them.</p>
+<p>However, you&#8217;ll need another piece of software to distribute traffic over your
+multiple servers: a <em>load balancer</em>. You can buy expensive and proprietary
+hardware load balancers, but there are a few high-quality open source software
+load balancers out there.</p>
+<p>Apache&#8217;s <code class="docutils literal"><span class="pre">mod_proxy</span></code> is one option, but we&#8217;ve found Perlbal
+(<a class="reference external" href="http://www.djangoproject.com/r/perlbal/">http://www.djangoproject.com/r/perlbal/</a>) to be fantastic. It&#8217;s a load
+balancer and reverse proxy written by the same folks who wrote <code class="docutils literal"><span class="pre">memcached</span></code>
+(see <a class="reference external" href="chapter15.html">Chapter 15</a>).</p>
+<p>With the Web servers now clustered, our evolving architecture starts to look
+more complex, as shown in Figure 13-4.</p>
+<div class="figure" id="id9">
+<img alt="_images/scaling-4.png" src="_images/scaling-4.png" />
+<p class="caption"><span class="caption-text">Figure 13-4: A load-balanced, redundant server setup.</span></p>
+</div>
+<p>Notice that in the diagram the Web servers are referred to as a &#8220;cluster&#8221; to
+indicate that the number of servers is basically variable. Once you have a
+load balancer out front, you can easily add and remove back-end Web servers
+without a second of downtime.</p>
+</div>
+<div class="section" id="going-big">
+<h3>Going Big<a class="headerlink" href="#going-big" title="Permalink to this headline">¶</a></h3>
+<p>At this point, the next few steps are pretty much derivatives of the last one:</p>
+<ul class="simple">
+<li>As you need more database performance, you might want to add replicated
+database servers. MySQL includes built-in replication; PostgreSQL
+users should look into Slony (<a class="reference external" href="http://www.djangoproject.com/r/slony/">http://www.djangoproject.com/r/slony/</a>)
+and pgpool (<a class="reference external" href="http://www.djangoproject.com/r/pgpool/">http://www.djangoproject.com/r/pgpool/</a>) for replication and
+connection pooling, respectively.</li>
+<li>If the single load balancer isn&#8217;t enough, you can add more load
+balancer machines out front and distribute among them using
+round-robin DNS.</li>
+<li>If a single media server doesn&#8217;t suffice, you can add more media
+servers and distribute the load with your load-balancing cluster.</li>
+<li>If you need more cache storage, you can add dedicated cache servers.</li>
+<li>At any stage, if a cluster isn&#8217;t performing well, you can add more
+servers to the cluster.</li>
+</ul>
+<p>After a few of these iterations, a large-scale architecture might look like Figure 13-5.</p>
+<div class="figure" id="id10">
+<img alt="_images/scaling-5.png" src="_images/scaling-5.png" />
+<p class="caption"><span class="caption-text">Figure 13-5. An example large-scale Django setup.</span></p>
+</div>
+<p>Though we&#8217;ve shown only two or three servers at each level, there&#8217;s no
+fundamental limit to how many you can add.</p>
+</div>
+</div>
+<div class="section" id="performance-tuning">
+<h2>Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permalink to this headline">¶</a></h2>
+<p>If you have huge amount of money, you can just keep throwing hardware at
+scaling problems. For the rest of us, though, performance tuning is a must.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Incidentally, if anyone with monstrous gobs of cash is actually reading
+this book, please consider a substantial donation to the Django Foundation.
+We accept uncut diamonds and gold ingots, too.</p>
+</div>
+<p>Unfortunately, performance tuning is much more of an art than a science, and it
+is even more difficult to write about than scaling. If you&#8217;re serious about
+deploying a large-scale Django application, you should spend a great deal of
+time learning how to tune each piece of your stack.</p>
+<p>The following sections, though, present a few Django-specific tuning tips we&#8217;ve
+discovered over the years.</p>
+<div class="section" id="there-s-no-such-thing-as-too-much-ram">
+<h3>There&#8217;s No Such Thing As Too Much RAM<a class="headerlink" href="#there-s-no-such-thing-as-too-much-ram" title="Permalink to this headline">¶</a></h3>
+<p>Even the really expensive RAM is relatively affordable these days. Buy as much
+RAM as you can possibly afford, and then buy a little bit more.</p>
+<p>Faster processors won&#8217;t improve performance all that much; most Web
+servers spend up to 90% of their time waiting on disk I/O. As soon as you start
+swapping, performance will just die. Faster disks might help slightly, but
+they&#8217;re much more expensive than RAM, such that it doesn&#8217;t really matter.</p>
+<p>If you have multiple servers, the first place to put your RAM is in the
+database server. If you can afford it, get enough RAM to get fit your entire
+database into memory. This shouldn&#8217;t be too hard; we&#8217;ve developed a site
+with more than half a million newspaper articles, and it took under 2GB of
+space.</p>
+<p>Next, max out the RAM on your Web server. The ideal situation is one where
+neither server swaps &#8211; ever. If you get to that point, you should be able to
+withstand most normal traffic.</p>
+</div>
+<div class="section" id="turn-off-keep-alive">
+<h3>Turn Off Keep-Alive<a class="headerlink" href="#turn-off-keep-alive" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">Keep-Alive</span></code> is a feature of HTTP that allows multiple HTTP requests to be
+served over a single TCP connection, avoiding the TCP setup/teardown overhead.</p>
+<p>This looks good at first glance, but it can kill the performance of a Django
+site. If you&#8217;re properly serving media from a separate server, each user
+browsing your site will only request a page from your Django server every ten
+seconds or so. This leaves HTTP servers waiting around for the next
+keep-alive request, and an idle HTTP server just consumes RAM that an active one
+should be using.</p>
+</div>
+<div class="section" id="use-memcached">
+<h3>Use memcached<a class="headerlink" href="#use-memcached" title="Permalink to this headline">¶</a></h3>
+<p>Although Django supports a number of different cache back-ends, none of them
+even come <em>close</em> to being as fast as memcached. If you have a high-traffic
+site, don&#8217;t even bother with the other backends &#8211; go straight to memcached.</p>
+</div>
+<div class="section" id="use-memcached-often">
+<h3>Use memcached Often<a class="headerlink" href="#use-memcached-often" title="Permalink to this headline">¶</a></h3>
+<p>Of course, selecting memcached does you no good if you don&#8217;t actually use it.
+<a class="reference external" href="chapter15.html">Chapter 15</a> is your best friend here: learn how to use Django&#8217;s cache
+framework, and use it everywhere possible. Aggressive, preemptive caching is
+usually the only thing that will keep a site up under major traffic.</p>
+</div>
+<div class="section" id="join-the-conversation">
+<h3>Join the Conversation<a class="headerlink" href="#join-the-conversation" title="Permalink to this headline">¶</a></h3>
+<p>Each piece of the Django stack &#8211; from Linux to Apache to PostgreSQL or MySQL
+&#8211; has an awesome community behind it. If you really want to get that last 1%
+out of your servers, join the open source communities behind your software and
+ask for help. Most free-software community members will be happy to help.</p>
+<p>And also be sure to join the Django community. Your humble authors are only two
+members of an incredibly active, growing group of Django developers. Our
+community has a huge amount of collective experience to offer.</p>
+</div>
+</div>
+<div class="section" id="what-s-next">
+<h2>What&#8217;s Next?<a class="headerlink" href="#what-s-next" title="Permalink to this headline">¶</a></h2>
+<p>The remaining chapters focus on other Django features that you may or may not
+need, depending on your application. Feel free to read them in any order you
+choose.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Chapter 13: Deploying Django</a><ul>
+<li><a class="reference internal" href="#preparing-your-codebase-for-production">Preparing Your Codebase for Production</a><ul>
+<li><a class="reference internal" href="#deployment-checklist">Deployment checklist</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#critical-settings">Critical settings</a><ul>
+<li><a class="reference internal" href="#secret-key">SECRET_KEY</a></li>
+<li><a class="reference internal" href="#debug">DEBUG</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#environment-specific-settings">Environment-specific settings</a><ul>
+<li><a class="reference internal" href="#allowed-hosts">ALLOWED_HOSTS</a></li>
+<li><a class="reference internal" href="#caches">CACHES</a></li>
+<li><a class="reference internal" href="#databases">DATABASES</a></li>
+<li><a class="reference internal" href="#email-backend-and-related-settings">EMAIL_BACKEND and related settings</a></li>
+<li><a class="reference internal" href="#static-root-and-static-url">STATIC_ROOT and STATIC_URL</a></li>
+<li><a class="reference internal" href="#media-root-and-media-url">MEDIA_ROOT and MEDIA_URL</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#https">HTTPS</a><ul>
+<li><a class="reference internal" href="#csrf-cookie-secure"><code class="docutils literal"><span class="pre">CSRF_COOKIE_SECURE</span></code></a></li>
+<li><a class="reference internal" href="#session-cookie-secure"><code class="docutils literal"><span class="pre">SESSION_COOKIE_SECURE</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#performance-optimizations">Performance optimizations</a><ul>
+<li><a class="reference internal" href="#conn-max-age"><code class="docutils literal"><span class="pre">CONN_MAX_AGE</span></code></a></li>
+<li><a class="reference internal" href="#templates"><code class="docutils literal"><span class="pre">TEMPLATES</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#error-reporting">Error reporting</a><ul>
+<li><a class="reference internal" href="#logging"><code class="docutils literal"><span class="pre">LOGGING</span></code></a></li>
+<li><a class="reference internal" href="#admins-and-managers"><code class="docutils literal"><span class="pre">ADMINS</span></code> and <code class="docutils literal"><span class="pre">MANAGERS</span></code></a></li>
+<li><a class="reference internal" href="#customize-the-default-error-views">Customize the default error views</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#python-options">Python Options</a></li>
+<li><a class="reference internal" href="#using-different-settings-for-production">Using Different Settings for Production</a></li>
+<li><a class="reference internal" href="#deploying-django-with-apache-and-mod-wsgi">Deploying Django with Apache and mod_wsgi</a></li>
+<li><a class="reference internal" href="#basic-configuration">Basic configuration</a></li>
+<li><a class="reference internal" href="#using-a-virtualenv">Using a virtualenv</a></li>
+<li><a class="reference internal" href="#using-mod-wsgi-daemon-mode">Using mod_wsgi daemon mode</a></li>
+<li><a class="reference internal" href="#serving-files">Serving files</a></li>
+<li><a class="reference internal" href="#serving-the-admin-files">Serving the admin files</a></li>
+<li><a class="reference internal" href="#authenticating-against-django-s-user-database-from-apache">Authenticating against Django&#8217;s user database from Apache</a></li>
+<li><a class="reference internal" href="#if-you-get-a-unicodeencodeerror">If you get a UnicodeEncodeError</a></li>
+<li><a class="reference internal" href="#serving-static-files-in-production">Serving static files in production</a><ul>
+<li><a class="reference internal" href="#serving-the-site-and-your-static-files-from-the-same-server">Serving the site and your static files from the same server</a></li>
+<li><a class="reference internal" href="#serving-static-files-from-a-dedicated-server">Serving static files from a dedicated server</a></li>
+<li><a class="reference internal" href="#serving-static-files-from-a-cloud-service-or-cdn">Serving static files from a cloud service or CDN</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scaling">Scaling</a><ul>
+<li><a class="reference internal" href="#running-on-a-single-server">Running on a Single Server</a></li>
+<li><a class="reference internal" href="#separating-out-the-database-server">Separating Out the Database Server</a></li>
+<li><a class="reference internal" href="#running-a-separate-media-server">Running a Separate Media Server</a></li>
+<li><a class="reference internal" href="#implementing-load-balancing-and-redundancy">Implementing Load Balancing and Redundancy</a></li>
+<li><a class="reference internal" href="#going-big">Going Big</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#performance-tuning">Performance Tuning</a><ul>
+<li><a class="reference internal" href="#there-s-no-such-thing-as-too-much-ram">There&#8217;s No Such Thing As Too Much RAM</a></li>
+<li><a class="reference internal" href="#turn-off-keep-alive">Turn Off Keep-Alive</a></li>
+<li><a class="reference internal" href="#use-memcached">Use memcached</a></li>
+<li><a class="reference internal" href="#use-memcached-often">Use memcached Often</a></li>
+<li><a class="reference internal" href="#join-the-conversation">Join the Conversation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-s-next">What&#8217;s Next?</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="chapter_12.html" title="previous chapter">Chapter 12 - testing in Django</a></li>
+      <li>Next: <a href="chapter_14.html" title="next chapter">Chapter 14 - How to write reusable apps</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chapter_13.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/chapter_13.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

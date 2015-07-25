@@ -1,0 +1,1889 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Appendix F: The django-admin Utility &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Appendix G: Request and Response Objects" href="appendix_G.html" />
+    <link rel="prev" title="Appendix E: Built-in Template Tags and Filters" href="appendix_E.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="appendix-f-the-django-admin-utility">
+<h1>Appendix F: The django-admin Utility<a class="headerlink" href="#appendix-f-the-django-admin-utility" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal"><span class="pre">django-admin</span></code> is Django&#8217;s command-line utility for administrative tasks.
+This document outlines all it can do.</p>
+<p>In addition, <code class="docutils literal"><span class="pre">manage.py</span></code> is automatically created in each Django project.
+<code class="docutils literal"><span class="pre">manage.py</span></code> is a thin wrapper around <code class="docutils literal"><span class="pre">django-admin</span></code> that takes care of
+several things for you before delegating to <code class="docutils literal"><span class="pre">django-admin</span></code>:</p>
+<ul class="simple">
+<li>It puts your project&#8217;s package on <code class="docutils literal"><span class="pre">sys.path</span></code>.</li>
+<li>It sets the <span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal"><span class="pre">DJANGO_SETTINGS_MODULE</span></code> environment variable so that
+it points to your project&#8217;s <code class="docutils literal"><span class="pre">settings.py</span></code> file.</li>
+<li>It calls <code class="xref py py-func docutils literal"><span class="pre">django.setup()</span></code> to initialize various internals of Django.</li>
+</ul>
+<p>The <code class="docutils literal"><span class="pre">django-admin</span></code> script should be on your system path if you installed
+Django via its <code class="docutils literal"><span class="pre">setup.py</span></code> utility. If it&#8217;s not on your path, you can find it
+in <code class="docutils literal"><span class="pre">site-packages/django/bin</span></code> within your Python installation. Consider
+symlinking it from some place on your path, such as <code class="docutils literal"><span class="pre">/usr/local/bin</span></code>.</p>
+<p>For Windows users, who do not have symlinking functionality available, you can
+copy <code class="docutils literal"><span class="pre">django-admin.exe</span></code> to a location on your existing path or edit the
+<code class="docutils literal"><span class="pre">PATH</span></code> settings (under <code class="docutils literal"><span class="pre">Settings</span> <span class="pre">-</span> <span class="pre">Control</span> <span class="pre">Panel</span> <span class="pre">-</span> <span class="pre">System</span> <span class="pre">-</span> <span class="pre">Advanced</span> <span class="pre">-</span>
+<span class="pre">Environment...</span></code>) to point to its installed location.</p>
+<p>Generally, when working on a single Django project, it&#8217;s easier to use
+<code class="docutils literal"><span class="pre">manage.py</span></code> than <code class="docutils literal"><span class="pre">django-admin</span></code>. If you need to switch between multiple
+Django settings files, use <code class="docutils literal"><span class="pre">django-admin</span></code> with
+<span class="target" id="index-1"></span><code class="xref std std-envvar docutils literal"><span class="pre">DJANGO_SETTINGS_MODULE</span></code> or the <code class="docutils literal"><span class="pre">--settings</span></code> command line
+option.</p>
+<p>The command-line examples throughout this document use <code class="docutils literal"><span class="pre">django-admin</span></code> to
+be consistent, but any example can use <code class="docutils literal"><span class="pre">manage.py</span></code> just as well.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>django-admin &lt;<span class="nb">command</span>&gt; <span class="o">[</span>options<span class="o">]</span>
+<span class="nv">$ </span>manage.py &lt;<span class="nb">command</span>&gt; <span class="o">[</span>options<span class="o">]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">command</span></code> should be one of the commands listed in this document.
+<code class="docutils literal"><span class="pre">options</span></code>, which is optional, should be zero or more of the options available
+for the given command.</p>
+<div class="section" id="getting-runtime-help">
+<h3>Getting runtime help<a class="headerlink" href="#getting-runtime-help" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">help</span></code></p>
+<p>Run <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">help</span></code> to display usage information and a list of the
+commands provided by each application.</p>
+<p>Run <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">help</span> <span class="pre">--commands</span></code> to display a list of all available
+commands.</p>
+<p>Run <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">help</span> <span class="pre">&lt;command&gt;</span></code> to display a description of the given
+command and a list of its available options.</p>
+</div>
+<div class="section" id="app-names">
+<h3>App names<a class="headerlink" href="#app-names" title="Permalink to this headline">¶</a></h3>
+<p>Many commands take a list of &#8220;app names.&#8221; An &#8220;app name&#8221; is the basename of
+the package containing your models. For example, if your <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>
+contains the string <code class="docutils literal"><span class="pre">'mysite.blog'</span></code>, the app name is <code class="docutils literal"><span class="pre">blog</span></code>.</p>
+</div>
+<div class="section" id="determining-the-version">
+<h3>Determining the version<a class="headerlink" href="#determining-the-version" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">version</span></code></p>
+<p>Run <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">version</span></code> to display the current Django version.</p>
+<p>The output follows the schema described in <span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0386"><strong>PEP 386</strong></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre>1.4.dev17026
+1.4a1
+1.4
+</pre></div>
+</div>
+</div>
+<div class="section" id="displaying-debug-output">
+<h3>Displaying debug output<a class="headerlink" href="#displaying-debug-output" title="Permalink to this headline">¶</a></h3>
+<p>Use <code class="docutils literal"><span class="pre">--verbosity</span></code> to specify the amount of notification and debug information
+that <code class="docutils literal"><span class="pre">django-admin</span></code> should print to the console. For more details, see the
+documentation for the <code class="docutils literal"><span class="pre">--verbosity</span></code> option.</p>
+</div>
+</div>
+<div class="section" id="available-commands">
+<h2>Available commands<a class="headerlink" href="#available-commands" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="check-appname-appname">
+<h3>check &lt;appname appname ...&gt;<a class="headerlink" href="#check-appname-appname" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">check</span></code></p>
+<p>Uses the system check framework  to inspect
+the entire Django project for common problems.</p>
+<p>The system check framework will confirm that there aren&#8217;t any problems with
+your installed models or your admin registrations. It will also provide warnings
+of common compatibility problems introduced by upgrading Django to a new version.
+Custom checks may be introduced by other libraries and applications.</p>
+<p>By default, all apps will be checked. You can check a subset of apps by providing
+a list of app labels as arguments:</p>
+<div class="highlight-python"><div class="highlight"><pre>python manage.py check auth admin myapp
+</pre></div>
+</div>
+<p>If you do not specify any app, all apps will be checked.</p>
+<p><code class="docutils literal"><span class="pre">--tag</span> <span class="pre">&lt;tagname&gt;</span></code></p>
+<p>The system check framework  performs many different
+types of checks. These check types are categorized with tags. You can use these tags
+to restrict the checks performed to just those in a particular category. For example,
+to perform only security and compatibility checks, you would run:</p>
+<div class="highlight-python"><div class="highlight"><pre>python manage.py check --tag security --tag compatibility
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">--list-tags</span></code></p>
+<p>List all available tags.</p>
+<p><code class="docutils literal"><span class="pre">--deploy</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--deploy</span></code> option activates some additional checks that are only relevant
+in a deployment setting.</p>
+<p>You can use this option in your local development environment, but since your
+local development settings module may not have many of your production settings,
+you will probably want to point the <code class="docutils literal"><span class="pre">check</span></code> command at a different settings
+module, either by setting the <code class="docutils literal"><span class="pre">DJANGO_SETTINGS_MODULE</span></code> environment variable,
+or by passing the <code class="docutils literal"><span class="pre">--settings</span></code> option:</p>
+<div class="highlight-python"><div class="highlight"><pre>python manage.py check --deploy --settings=production_settings
+</pre></div>
+</div>
+<p>Or you could run it directly on a production or staging deployment to verify
+that the correct settings are in use (omitting <code class="docutils literal"><span class="pre">--settings</span></code>). You could even
+make it part of your integration test suite.</p>
+</div>
+<div class="section" id="compilemessages">
+<h3>compilemessages<a class="headerlink" href="#compilemessages" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">compilemessages</span></code></p>
+<p>Compiles .po files created by <code class="docutils literal"><span class="pre">makemessages</span></code> to .mo files for use with
+the builtin gettext support.</p>
+<p>Use the <code class="docutils literal"><span class="pre">--locale</span></code> option (or its shorter version <code class="docutils literal"><span class="pre">-l</span></code>) to
+specify the locale(s) to process. If not provided, all locales are processed.</p>
+<p>Use the <code class="docutils literal"><span class="pre">--exclude</span></code> option (or its shorter version <code class="docutils literal"><span class="pre">-x</span></code>) to
+specify the locale(s) to exclude from processing. If not provided, no locales
+are excluded.</p>
+<p>You can pass <code class="docutils literal"><span class="pre">--use-fuzzy</span></code> option (or <code class="docutils literal"><span class="pre">-f</span></code>) to include fuzzy translations
+into compiled files.</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin compilemessages --locale=pt_BR
+django-admin compilemessages --locale=pt_BR --locale=fr -f
+django-admin compilemessages -l pt_BR
+django-admin compilemessages -l pt_BR -l fr --use-fuzzy
+django-admin compilemessages --exclude=pt_BR
+django-admin compilemessages --exclude=pt_BR --exclude=fr
+django-admin compilemessages -x pt_BR
+django-admin compilemessages -x pt_BR -x fr
+</pre></div>
+</div>
+</div>
+<div class="section" id="createcachetable">
+<h3>createcachetable<a class="headerlink" href="#createcachetable" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">createcachetable</span></code></p>
+<p>Creates the cache tables for use with the database cache backend using the
+information from your settings file.</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option can be used to specify the database
+onto which the cache table will be installed, but since this information is
+pulled from your settings by default, it&#8217;s typically not needed.</p>
+</div>
+<div class="section" id="dbshell">
+<h3>dbshell<a class="headerlink" href="#dbshell" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">dbshell</span></code></p>
+<p>Runs the command-line client for the database engine specified in your
+<code class="docutils literal"><span class="pre">ENGINE</span></code> setting, with the connection parameters specified in your
+<code class="docutils literal"><span class="pre">USER</span></code>, <code class="docutils literal"><span class="pre">PASSWORD</span></code>, etc., settings.</p>
+<ul class="simple">
+<li>For PostgreSQL, this runs the <code class="docutils literal"><span class="pre">psql</span></code> command-line client.</li>
+<li>For MySQL, this runs the <code class="docutils literal"><span class="pre">mysql</span></code> command-line client.</li>
+<li>For SQLite, this runs the <code class="docutils literal"><span class="pre">sqlite3</span></code> command-line client.</li>
+</ul>
+<p>This command assumes the programs are on your <code class="docutils literal"><span class="pre">PATH</span></code> so that a simple call to
+the program name (<code class="docutils literal"><span class="pre">psql</span></code>, <code class="docutils literal"><span class="pre">mysql</span></code>, <code class="docutils literal"><span class="pre">sqlite3</span></code>) will find the program in
+the right place. There&#8217;s no way to specify the location of the program
+manually.</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option can be used to specify the database
+onto which to open a shell.</p>
+</div>
+<div class="section" id="diffsettings">
+<h3>diffsettings<a class="headerlink" href="#diffsettings" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">diffsettings</span></code></p>
+<p>Displays differences between the current settings file and Django&#8217;s default
+settings.</p>
+<p>Settings that don&#8217;t appear in the defaults are followed by <code class="docutils literal"><span class="pre">&quot;###&quot;</span></code>. For
+example, the default settings don&#8217;t define <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code>, so
+<code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code> is followed by <code class="docutils literal"><span class="pre">&quot;###&quot;</span></code> in the output of
+<code class="docutils literal"><span class="pre">diffsettings</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">--all</span></code> option may be provided to display all settings, even
+if they have Django&#8217;s default value. Such settings are prefixed by <code class="docutils literal"><span class="pre">&quot;###&quot;</span></code>.</p>
+</div>
+<div class="section" id="dumpdata-app-label-app-label-app-label-model">
+<h3>dumpdata &lt;app_label app_label app_label.Model ...&gt;<a class="headerlink" href="#dumpdata-app-label-app-label-app-label-model" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">dumpdata</span></code></p>
+<p>Outputs to standard output all data in the database associated with the named
+application(s).</p>
+<p>If no application name is provided, all installed applications will be dumped.</p>
+<p>The output of <code class="docutils literal"><span class="pre">dumpdata</span></code> can be used as input for <code class="docutils literal"><span class="pre">loaddata</span></code>.</p>
+<p>Note that <code class="docutils literal"><span class="pre">dumpdata</span></code> uses the default manager on the model for selecting the
+records to dump. If you&#8217;re using a custom manager  as
+the default manager and it filters some of the available records, not all of the
+objects will be dumped.</p>
+<p>The <code class="docutils literal"><span class="pre">--all</span></code> option may be provided to specify that
+<code class="docutils literal"><span class="pre">dumpdata</span></code> should use Django&#8217;s base manager, dumping records which
+might otherwise be filtered or modified by a custom manager.</p>
+<p><code class="docutils literal"><span class="pre">--format</span> <span class="pre">&lt;fmt&gt;</span></code></p>
+<p>By default, <code class="docutils literal"><span class="pre">dumpdata</span></code> will format its output in JSON, but you can use the
+<code class="docutils literal"><span class="pre">--format</span></code> option to specify another format. Currently supported formats
+are listed in serialization-formats.</p>
+<p><code class="docutils literal"><span class="pre">--indent</span> <span class="pre">&lt;num&gt;</span></code></p>
+<p>By default, <code class="docutils literal"><span class="pre">dumpdata</span></code> will output all data on a single line. This isn&#8217;t
+easy for humans to read, so you can use the <code class="docutils literal"><span class="pre">--indent</span></code> option to
+pretty-print the output with a number of indentation spaces.</p>
+<p>The <code class="docutils literal"><span class="pre">--exclude</span></code> option may be provided to prevent specific
+applications or models (specified as in the form of <code class="docutils literal"><span class="pre">app_label.ModelName</span></code>)
+from being dumped. If you specify a model name to <code class="docutils literal"><span class="pre">dumpdata</span></code>, the dumped
+output will be restricted to that model, rather than the entire application.
+You can also mix application names and model names.</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option can be used to specify the database
+from which data will be dumped.</p>
+<p><code class="docutils literal"><span class="pre">--natural-foreign</span></code></p>
+<p>When this option is specified, Django will use the <code class="docutils literal"><span class="pre">natural_key()</span></code> model
+method to serialize any foreign key and many-to-many relationship to objects of
+the type that defines the method. If you are dumping <code class="docutils literal"><span class="pre">contrib.auth</span></code>
+<code class="docutils literal"><span class="pre">Permission</span></code> objects or <code class="docutils literal"><span class="pre">contrib.contenttypes</span></code> <code class="docutils literal"><span class="pre">ContentType</span></code> objects, you
+should probably be using this flag.</p>
+<p><code class="docutils literal"><span class="pre">--natural-primary</span></code></p>
+<p>When this option is specified, Django will not provide the primary key in the
+serialized data of this object since it can be calculated during
+deserialization.</p>
+<p><code class="docutils literal"><span class="pre">--pks</span></code></p>
+<p>By default, <code class="docutils literal"><span class="pre">dumpdata</span></code> will output all the records of the model, but
+you can use the <code class="docutils literal"><span class="pre">--pks</span></code> option to specify a comma separated list of
+primary keys on which to filter.  This is only available when dumping
+one model.</p>
+<p><code class="docutils literal"><span class="pre">--output</span></code></p>
+<p>By default <code class="docutils literal"><span class="pre">dumpdata</span></code> will output all the serialized data to standard output.
+This options allows to specify the file to which the data is to be written.</p>
+</div>
+<div class="section" id="flush">
+<h3>flush<a class="headerlink" href="#flush" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">flush</span></code></p>
+<p>Removes all data from the database, re-executes any post-synchronization
+handlers, and reinstalls any initial data fixtures.</p>
+<p>The <code class="docutils literal"><span class="pre">--noinput</span></code> option may be provided to suppress all user
+prompts.</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option may be used to specify the database
+to flush.</p>
+</div>
+<div class="section" id="inspectdb">
+<h3>inspectdb<a class="headerlink" href="#inspectdb" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">inspectdb</span></code></p>
+<p>Introspects the database tables and views in the database pointed-to by the
+<code class="docutils literal"><span class="pre">NAME</span></code> setting and outputs a Django model module (a <code class="docutils literal"><span class="pre">models.py</span></code>
+file) to standard output.</p>
+<p>Use this if you have a legacy database with which you&#8217;d like to use Django.
+The script will inspect the database and create a model for each table or view
+within it.</p>
+<p>As you might expect, the created models will have an attribute for every field
+in the table or view. Note that <code class="docutils literal"><span class="pre">inspectdb</span></code> has a few special cases in its
+field-name output:</p>
+<ul class="simple">
+<li>If <code class="docutils literal"><span class="pre">inspectdb</span></code> cannot map a column&#8217;s type to a model field type, it&#8217;ll
+use <code class="docutils literal"><span class="pre">TextField</span></code> and will insert the Python comment
+<code class="docutils literal"><span class="pre">'This</span> <span class="pre">field</span> <span class="pre">type</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">guess.'</span></code> next to the field in the generated
+model.</li>
+<li>If the database column name is a Python reserved word (such as
+<code class="docutils literal"><span class="pre">'pass'</span></code>, <code class="docutils literal"><span class="pre">'class'</span></code> or <code class="docutils literal"><span class="pre">'for'</span></code>), <code class="docutils literal"><span class="pre">inspectdb</span></code> will append
+<code class="docutils literal"><span class="pre">'_field'</span></code> to the attribute name. For example, if a table has a column
+<code class="docutils literal"><span class="pre">'for'</span></code>, the generated model will have a field <code class="docutils literal"><span class="pre">'for_field'</span></code>, with
+the <code class="docutils literal"><span class="pre">db_column</span></code> attribute set to <code class="docutils literal"><span class="pre">'for'</span></code>. <code class="docutils literal"><span class="pre">inspectdb</span></code> will insert
+the Python comment
+<code class="docutils literal"><span class="pre">'Field</span> <span class="pre">renamed</span> <span class="pre">because</span> <span class="pre">it</span> <span class="pre">was</span> <span class="pre">a</span> <span class="pre">Python</span> <span class="pre">reserved</span> <span class="pre">word.'</span></code> next to the
+field.</li>
+</ul>
+<p>This feature is meant as a shortcut, not as definitive model generation. After
+you run it, you&#8217;ll want to look over the generated models yourself to make
+customizations. In particular, you&#8217;ll need to rearrange models&#8217; order, so that
+models that refer to other models are ordered properly.</p>
+<p>Primary keys are automatically introspected for PostgreSQL, MySQL and
+SQLite, in which case Django puts in the <code class="docutils literal"><span class="pre">primary_key=True</span></code> where
+needed.</p>
+<p><code class="docutils literal"><span class="pre">inspectdb</span></code> works with PostgreSQL, MySQL and SQLite. Foreign-key detection
+only works in PostgreSQL and with certain types of MySQL tables.</p>
+<p>Django doesn&#8217;t create database defaults when a
+<a class="reference internal" href="appendix_A.html#django.db.models.Field.default" title="django.db.models.Field.default"><code class="xref py py-attr docutils literal"><span class="pre">default</span></code></a> is specified on a model field.
+Similarly, database defaults aren&#8217;t translated to model field defaults or
+detected in any fashion by <code class="docutils literal"><span class="pre">inspectdb</span></code>.</p>
+<p>By default, <code class="docutils literal"><span class="pre">inspectdb</span></code> creates unmanaged models. That is, <code class="docutils literal"><span class="pre">managed</span> <span class="pre">=</span> <span class="pre">False</span></code>
+in the model&#8217;s <code class="docutils literal"><span class="pre">Meta</span></code> class tells Django not to manage each table&#8217;s creation,
+modification, and deletion. If you do want to allow Django to manage the
+table&#8217;s lifecycle, you&#8217;ll need to change the
+<a class="reference internal" href="appendix_A.html#django.db.models.Options.managed" title="django.db.models.Options.managed"><code class="xref py py-attr docutils literal"><span class="pre">managed</span></code></a> option to <code class="docutils literal"><span class="pre">True</span></code> (or simply remove
+it because <code class="docutils literal"><span class="pre">True</span></code> is its default value).</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option may be used to specify the
+database to introspect.</p>
+</div>
+<div class="section" id="loaddata-fixture-fixture">
+<h3>loaddata &lt;fixture fixture ...&gt;<a class="headerlink" href="#loaddata-fixture-fixture" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">loaddata</span></code></p>
+<p>Searches for and loads the contents of the named fixture into the database.</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option can be used to specify the database
+onto which the data will be loaded.</p>
+<p><code class="docutils literal"><span class="pre">--ignorenonexistent</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--ignorenonexistent</span></code> option can be used to ignore fields and
+models that may have been removed since the fixture was originally generated.
+I will also ingore non-existent models.</p>
+<p><code class="docutils literal"><span class="pre">--app</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--app</span></code> option can be used to specify a single app to look
+for fixtures in rather than looking through all apps.</p>
+<div class="section" id="what-s-a-fixture">
+<h4>What&#8217;s a &#8220;fixture&#8221;?<a class="headerlink" href="#what-s-a-fixture" title="Permalink to this headline">¶</a></h4>
+<p>A <em>fixture</em> is a collection of files that contain the serialized contents of
+the database. Each fixture has a unique name, and the files that comprise the
+fixture can be distributed over multiple directories, in multiple applications.</p>
+<p>Django will search in three locations for fixtures:</p>
+<ol class="arabic simple">
+<li>In the <code class="docutils literal"><span class="pre">fixtures</span></code> directory of every installed application</li>
+<li>In any directory named in the <code class="docutils literal"><span class="pre">FIXTURE_DIRS</span></code> setting</li>
+<li>In the literal path named by the fixture</li>
+</ol>
+<p>Django will load any and all fixtures it finds in these locations that match
+the provided fixture names.</p>
+<p>If the named fixture has a file extension, only fixtures of that type
+will be loaded. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin loaddata mydata.json
+</pre></div>
+</div>
+<p>would only load JSON fixtures called <code class="docutils literal"><span class="pre">mydata</span></code>. The fixture extension
+must correspond to the registered name of a
+serializer (e.g., <code class="docutils literal"><span class="pre">json</span></code> or <code class="docutils literal"><span class="pre">xml</span></code>).</p>
+<p>If you omit the extensions, Django will search all available fixture types
+for a matching fixture. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin loaddata mydata
+</pre></div>
+</div>
+<p>would look for any fixture of any fixture type called <code class="docutils literal"><span class="pre">mydata</span></code>. If a fixture
+directory contained <code class="docutils literal"><span class="pre">mydata.json</span></code>, that fixture would be loaded
+as a JSON fixture.</p>
+<p>The fixtures that are named can include directory components. These
+directories will be included in the search path. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin loaddata foo/bar/mydata.json
+</pre></div>
+</div>
+<p>would search <code class="docutils literal"><span class="pre">&lt;app_label&gt;/fixtures/foo/bar/mydata.json</span></code> for each installed
+application,  <code class="docutils literal"><span class="pre">&lt;dirname&gt;/foo/bar/mydata.json</span></code> for each directory in
+<code class="docutils literal"><span class="pre">FIXTURE_DIRS</span></code>, and the literal path <code class="docutils literal"><span class="pre">foo/bar/mydata.json</span></code>.</p>
+<p>When fixture files are processed, the data is saved to the database as is.
+Model defined <code class="xref py py-meth docutils literal"><span class="pre">save()</span></code> methods are not called, and
+any <code class="xref py py-data docutils literal"><span class="pre">pre_save</span></code> or
+<code class="xref py py-data docutils literal"><span class="pre">post_save</span></code> signals will be called with
+<code class="docutils literal"><span class="pre">raw=True</span></code> since the instance only contains attributes that are local to the
+model. You may, for example, want to disable handlers that access
+related fields that aren&#8217;t present during fixture loading and would otherwise
+raise an exception:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db.models.signals</span> <span class="kn">import</span> <span class="n">post_save</span>
+<span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">MyModel</span>
+
+<span class="k">def</span> <span class="nf">my_handler</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c"># disable the handler during fixture loading</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;raw&#39;</span><span class="p">]:</span>
+        <span class="k">return</span>
+    <span class="o">...</span>
+
+<span class="n">post_save</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">my_handler</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="n">MyModel</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You could also write a simple decorator to encapsulate this logic:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+
+<span class="k">def</span> <span class="nf">disable_for_loaddata</span><span class="p">(</span><span class="n">signal_handler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator that turns off signal handlers when loading fixture data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">signal_handler</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;raw&#39;</span><span class="p">]:</span>
+            <span class="k">return</span>
+        <span class="n">signal_handler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+<span class="nd">@disable_for_loaddata</span>
+<span class="k">def</span> <span class="nf">my_handler</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Just be aware that this logic will disable the signals whenever fixtures are
+deserialized, not just during <code class="docutils literal"><span class="pre">loaddata</span></code>.</p>
+<p>Note that the order in which fixture files are processed is undefined. However,
+all fixture data is installed as a single transaction, so data in
+one fixture can reference data in another fixture. If the database backend
+supports row-level constraints, these constraints will be checked at the
+end of the transaction.</p>
+<p>The <code class="docutils literal"><span class="pre">dumpdata</span></code> command can be used to generate input for <code class="docutils literal"><span class="pre">loaddata</span></code>.</p>
+</div>
+<div class="section" id="compressed-fixtures">
+<h4>Compressed fixtures<a class="headerlink" href="#compressed-fixtures" title="Permalink to this headline">¶</a></h4>
+<p>Fixtures may be compressed in <code class="docutils literal"><span class="pre">zip</span></code>, <code class="docutils literal"><span class="pre">gz</span></code>, or <code class="docutils literal"><span class="pre">bz2</span></code> format. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin loaddata mydata.json
+</pre></div>
+</div>
+<p>would look for any of <code class="docutils literal"><span class="pre">mydata.json</span></code>, <code class="docutils literal"><span class="pre">mydata.json.zip</span></code>,
+<code class="docutils literal"><span class="pre">mydata.json.gz</span></code>, or <code class="docutils literal"><span class="pre">mydata.json.bz2</span></code>. The first file contained within a
+zip-compressed archive is used.</p>
+<p>Note that if two fixtures with the same name but different
+fixture type are discovered (for example, if <code class="docutils literal"><span class="pre">mydata.json</span></code> and
+<code class="docutils literal"><span class="pre">mydata.xml.gz</span></code> were found in the same fixture directory), fixture
+installation will be aborted, and any data installed in the call to
+<code class="docutils literal"><span class="pre">loaddata</span></code> will be removed from the database.</p>
+<div class="admonition-mysql-with-myisam-and-fixtures admonition">
+<p class="first admonition-title">MySQL with MyISAM and fixtures</p>
+<p class="last">The MyISAM storage engine of MySQL doesn&#8217;t support transactions or
+constraints, so if you use MyISAM, you won&#8217;t get validation of fixture
+data, or a rollback if multiple transaction files are found.</p>
+</div>
+</div>
+<div class="section" id="database-specific-fixtures">
+<h4>Database-specific fixtures<a class="headerlink" href="#database-specific-fixtures" title="Permalink to this headline">¶</a></h4>
+<p>If you&#8217;re in a multi-database setup, you might have fixture data that
+you want to load onto one database, but not onto another. In this
+situation, you can add database identifier into the names of your fixtures.</p>
+<p>For example, if your <code class="docutils literal"><span class="pre">DATABASES</span></code> setting has a &#8216;master&#8217; database
+defined, name the fixture <code class="docutils literal"><span class="pre">mydata.master.json</span></code> or
+<code class="docutils literal"><span class="pre">mydata.master.json.gz</span></code> and the fixture will only be loaded when you
+specify you want to load data into the <code class="docutils literal"><span class="pre">master</span></code> database.</p>
+</div>
+</div>
+<div class="section" id="makemessages">
+<h3>makemessages<a class="headerlink" href="#makemessages" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">makemessages</span></code></p>
+<p>Runs over the entire source tree of the current directory and pulls out all
+strings marked for translation. It creates (or updates) a message file in the
+conf/locale (in the Django tree) or locale (for project and application)
+directory. After making changes to the messages files you need to compile them
+with <code class="docutils literal"><span class="pre">compilemessages</span></code> for use with the builtin gettext support. See
+the i18n documentation  for details.</p>
+<p><code class="docutils literal"><span class="pre">--all</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--all</span></code> or <code class="docutils literal"><span class="pre">-a</span></code> option to update the message files for all
+available languages.</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin makemessages --all
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">--extension</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--extension</span></code> or <code class="docutils literal"><span class="pre">-e</span></code> option to specify a list of file extensions
+to examine (default: &#8221;.html&#8221;, &#8221;.txt&#8221;).</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin makemessages --locale=de --extension xhtml
+</pre></div>
+</div>
+<p>Separate multiple extensions with commas or use -e or &#8211;extension multiple times:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin makemessages --locale=de --extension=html,txt --extension xml
+</pre></div>
+</div>
+<p>Use the <code class="docutils literal"><span class="pre">--locale</span></code> option (or its shorter version <code class="docutils literal"><span class="pre">-l</span></code>) to
+specify the locale(s) to process.</p>
+<p>Use the <code class="docutils literal"><span class="pre">--exclude</span></code> option (or its shorter version <code class="docutils literal"><span class="pre">-x</span></code>) to
+specify the locale(s) to exclude from processing. If not provided, no locales
+are excluded.</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin makemessages --locale=pt_BR
+django-admin makemessages --locale=pt_BR --locale=fr
+django-admin makemessages -l pt_BR
+django-admin makemessages -l pt_BR -l fr
+django-admin makemessages --exclude=pt_BR
+django-admin makemessages --exclude=pt_BR --exclude=fr
+django-admin makemessages -x pt_BR
+django-admin makemessages -x pt_BR -x fr
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">--domain</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--domain</span></code> or <code class="docutils literal"><span class="pre">-d</span></code> option to change the domain of the messages files.
+Currently supported:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">django</span></code> for all <code class="docutils literal"><span class="pre">*.py</span></code>, <code class="docutils literal"><span class="pre">*.html</span></code> and <code class="docutils literal"><span class="pre">*.txt</span></code> files (default)</li>
+<li><code class="docutils literal"><span class="pre">djangojs</span></code> for <code class="docutils literal"><span class="pre">*.js</span></code> files</li>
+</ul>
+<p><code class="docutils literal"><span class="pre">--symlinks</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--symlinks</span></code> or <code class="docutils literal"><span class="pre">-s</span></code> option to follow symlinks to directories when
+looking for new translation strings.</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin makemessages --locale=de --symlinks
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">--ignore</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--ignore</span></code> or <code class="docutils literal"><span class="pre">-i</span></code> option to ignore files or directories matching
+the given <code class="xref py py-mod docutils literal"><span class="pre">glob</span></code>-style pattern. Use multiple times to ignore more.</p>
+<p>These patterns are used by default: <code class="docutils literal"><span class="pre">'CVS'</span></code>, <code class="docutils literal"><span class="pre">'.*'</span></code>, <code class="docutils literal"><span class="pre">'*~'</span></code>, <code class="docutils literal"><span class="pre">'*.pyc'</span></code></p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin makemessages --locale=en_US --ignore=apps/* --ignore=secret/*.html
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">--no-default-ignore</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--no-default-ignore</span></code> option to disable the default values of
+<code class="docutils literal"><span class="pre">--ignore</span></code>.</p>
+<p><code class="docutils literal"><span class="pre">--no-wrap</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--no-wrap</span></code> option to disable breaking long message lines into
+several lines in language files.</p>
+<p><code class="docutils literal"><span class="pre">--no-location</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--no-location</span></code> option to not write &#8216;<code class="docutils literal"><span class="pre">#:</span> <span class="pre">filename:line</span></code>’
+comment lines in language files. Note that using this option makes it harder
+for technically skilled translators to understand each message&#8217;s context.</p>
+<p><code class="docutils literal"><span class="pre">--keep-pot</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--keep-pot</span></code> option to prevent Django from deleting the temporary
+.pot files it generates before creating the .po file. This is useful for
+debugging errors which may prevent the final language files from being created.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last">See customizing-makemessages for instructions on how to customize
+the keywords that <code class="docutils literal"><span class="pre">makemessages</span></code> passes to <code class="docutils literal"><span class="pre">xgettext</span></code>.</p>
+</div>
+</div>
+<div class="section" id="makemigrations-app-label">
+<h3>makemigrations [&lt;app_label&gt;]<a class="headerlink" href="#makemigrations-app-label" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">makemigrations</span></code></p>
+<p>Creates new migrations based on the changes detected to your models.
+Migrations, their relationship with apps and more are covered in depth in
+the migrations documentation.</p>
+<p>Providing one or more app names as arguments will limit the migrations created
+to the app(s) specified and any dependencies needed (the table at the other end
+of a <code class="docutils literal"><span class="pre">ForeignKey</span></code>, for example).</p>
+<p><code class="docutils literal"><span class="pre">--empty</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--empty</span></code> option will cause <code class="docutils literal"><span class="pre">makemigrations</span></code> to output an empty
+migration for the specified apps, for manual editing. This option is only
+for advanced users and should not be used unless you are familiar with
+the migration format, migration operations, and the dependencies between
+your migrations.</p>
+<p><code class="docutils literal"><span class="pre">--dry-run</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--dry-run</span></code> option shows what migrations would be made without
+actually writing any migrations files to disk. Using this option along with
+<code class="docutils literal"><span class="pre">--verbosity</span> <span class="pre">3</span></code> will also show the complete migrations files that would be
+written.</p>
+<p><code class="docutils literal"><span class="pre">--merge</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--merge</span></code> option enables fixing of migration conflicts. The
+<code class="docutils literal"><span class="pre">--noinput</span></code> option may be provided to suppress user prompts during
+a merge.</p>
+<p><code class="docutils literal"><span class="pre">--name,</span> <span class="pre">-n</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--name</span></code> option allows you to give the migration(s) a custom name instead
+of a generated one.</p>
+<p><code class="docutils literal"><span class="pre">--exit,</span> <span class="pre">-e</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--exit</span></code> option will cause <code class="docutils literal"><span class="pre">makemigrations</span></code> to exit with error code 1
+when no migration are created (or would have been created, if combined with
+<code class="docutils literal"><span class="pre">--dry-run</span></code>).</p>
+</div>
+<div class="section" id="migrate-app-label-migrationname">
+<h3>migrate [&lt;app_label&gt; [&lt;migrationname&gt;]]<a class="headerlink" href="#migrate-app-label-migrationname" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">migrate</span></code></p>
+<p>Synchronizes the database state with the current set of models and migrations.
+Migrations, their relationship with apps and more are covered in depth in
+the migrations documentation.</p>
+<p>The behavior of this command changes depending on the arguments provided:</p>
+<ul class="simple">
+<li>No arguments: All apps have all of their migrations run.</li>
+<li><code class="docutils literal"><span class="pre">&lt;app_label&gt;</span></code>: The specified app has its migrations run, up to the most
+recent migration. This may involve running other apps&#8217; migrations too, due
+to dependencies.</li>
+<li><code class="docutils literal"><span class="pre">&lt;app_label&gt;</span> <span class="pre">&lt;migrationname&gt;</span></code>: Brings the database schema to a state where
+the named migration is applied, but no later migrations in the same app are
+applied. This may involve unapplying migrations if you have previously
+migrated past the named migration. Use the name <code class="docutils literal"><span class="pre">zero</span></code> to unapply all
+migrations for an app.</li>
+</ul>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option can be used to specify the database to
+migrate.</p>
+<p><code class="docutils literal"><span class="pre">--fake</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--fake</span></code> option tells Django to mark the migrations as having been
+applied or unapplied, but without actually running the SQL to change your
+database schema.</p>
+<p>This is intended for advanced users to manipulate the
+current migration state directly if they&#8217;re manually applying changes;
+be warned that using <code class="docutils literal"><span class="pre">--fake</span></code> runs the risk of putting the migration state
+table into a state where manual recovery will be needed to make migrations
+run correctly.</p>
+<p><code class="docutils literal"><span class="pre">--fake-initial</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--fake-initial</span></code> option can be used to allow Django to skip an app&#8217;s
+initial migration if all database tables with the names of all models created
+by all <code class="xref py py-class docutils literal"><span class="pre">CreateModel</span></code> operations in that
+migration already exist. This option is intended for use when first running
+migrations against a database that preexisted the use of migrations. This
+option does not, however, check for matching database schema beyond matching
+table names and so is only safe to use if you are confident that your existing
+schema matches what is recorded in your initial migration.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 1.8: </span>The <code class="docutils literal"><span class="pre">--list</span></code> option has been moved to the <code class="docutils literal"><span class="pre">showmigrations</span></code>
+command.</p>
+</div>
+</div>
+<div class="section" id="runserver-port-or-address-port">
+<h3>runserver [port or address:port]<a class="headerlink" href="#runserver-port-or-address-port" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">runserver</span></code></p>
+<p>Starts a lightweight development Web server on the local machine. By default,
+the server runs on port 8000 on the IP address <code class="docutils literal"><span class="pre">127.0.0.1</span></code>. You can pass in an
+IP address and port number explicitly.</p>
+<p>If you run this script as a user with normal privileges (recommended), you
+might not have access to start a port on a low port number. Low port numbers
+are reserved for the superuser (root).</p>
+<p>This server uses the WSGI application object specified by the
+<code class="docutils literal"><span class="pre">WSGI_APPLICATION</span></code> setting.</p>
+<p>DO NOT USE THIS SERVER IN A PRODUCTION SETTING. It has not gone through
+security audits or performance tests. (And that&#8217;s how it&#8217;s gonna stay. We&#8217;re in
+the business of making Web frameworks, not Web servers, so improving this
+server to be able to handle a production environment is outside the scope of
+Django.)</p>
+<p>The development server automatically reloads Python code for each request, as
+needed. You don&#8217;t need to restart the server for code changes to take effect.
+However, some actions like adding files don&#8217;t trigger a restart, so you&#8217;ll
+have to restart the server in these cases.</p>
+<p>If you are using Linux and install <a class="reference external" href="https://pypi.python.org/pypi/pyinotify/">pyinotify</a>, kernel signals will be used to
+autoreload the server (rather than polling file modification timestamps each
+second). This offers better scaling to large projects, reduction in response
+time to code modification, more robust change detection, and battery usage
+reduction.</p>
+<p>When you start the server, and each time you change Python code while the
+server is running, the server will check your entire Django project for errors (see
+the <code class="docutils literal"><span class="pre">check</span></code> command). If any errors are found, they will be printed
+to standard output, but it won&#8217;t stop the server.</p>
+<p>You can run as many servers as you want, as long as they&#8217;re on separate ports.
+Just execute <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">runserver</span></code> more than once.</p>
+<p>Note that the default IP address, <code class="docutils literal"><span class="pre">127.0.0.1</span></code>, is not accessible from other
+machines on your network. To make your development server viewable to other
+machines on the network, use its own IP address (e.g. <code class="docutils literal"><span class="pre">192.168.2.1</span></code>) or
+<code class="docutils literal"><span class="pre">0.0.0.0</span></code> or <code class="docutils literal"><span class="pre">::</span></code> (with IPv6 enabled).</p>
+<p>You can provide an IPv6 address surrounded by brackets
+(e.g. <code class="docutils literal"><span class="pre">[200a::1]:8000</span></code>). This will automatically enable IPv6 support.</p>
+<p>A hostname containing ASCII-only characters can also be used.</p>
+<p>If the staticfiles contrib app is enabled
+(default in new projects) the <code class="docutils literal"><span class="pre">runserver</span></code> command will be overridden
+with its own runserver command.</p>
+<p>If <code class="docutils literal"><span class="pre">migrate</span></code> was not previously executed, the table that stores the
+history of migrations is created at first run of <code class="docutils literal"><span class="pre">runserver</span></code>.</p>
+<p><code class="docutils literal"><span class="pre">--noreload</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--noreload</span></code> option to disable the use of the auto-reloader. This
+means any Python code changes you make while the server is running will <em>not</em>
+take effect if the particular Python modules have already been loaded into
+memory.</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver --noreload
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">--nothreading</span></code></p>
+<p>The development server is multithreaded by default. Use the <code class="docutils literal"><span class="pre">--nothreading</span></code>
+option to disable the use of threading in the development server.</p>
+<p><code class="docutils literal"><span class="pre">--ipv6,</span> <span class="pre">-6</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--ipv6</span></code> (or shorter <code class="docutils literal"><span class="pre">-6</span></code>) option to tell Django to use IPv6 for
+the development server. This changes the default IP address from
+<code class="docutils literal"><span class="pre">127.0.0.1</span></code> to <code class="docutils literal"><span class="pre">::1</span></code>.</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver --ipv6
+</pre></div>
+</div>
+<div class="section" id="examples-of-using-different-ports-and-addresses">
+<h4>Examples of using different ports and addresses<a class="headerlink" href="#examples-of-using-different-ports-and-addresses" title="Permalink to this headline">¶</a></h4>
+<p>Port 8000 on IP address <code class="docutils literal"><span class="pre">127.0.0.1</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver
+</pre></div>
+</div>
+<p>Port 8000 on IP address <code class="docutils literal"><span class="pre">1.2.3.4</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver 1.2.3.4:8000
+</pre></div>
+</div>
+<p>Port 7000 on IP address <code class="docutils literal"><span class="pre">127.0.0.1</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver 7000
+</pre></div>
+</div>
+<p>Port 7000 on IP address <code class="docutils literal"><span class="pre">1.2.3.4</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver 1.2.3.4:7000
+</pre></div>
+</div>
+<p>Port 8000 on IPv6 address <code class="docutils literal"><span class="pre">::1</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver -6
+</pre></div>
+</div>
+<p>Port 7000 on IPv6 address <code class="docutils literal"><span class="pre">::1</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver -6 7000
+</pre></div>
+</div>
+<p>Port 7000 on IPv6 address <code class="docutils literal"><span class="pre">2001:0db8:1234:5678::9</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver [2001:0db8:1234:5678::9]:7000
+</pre></div>
+</div>
+<p>Port 8000 on IPv4 address of host <code class="docutils literal"><span class="pre">localhost</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver localhost:8000
+</pre></div>
+</div>
+<p>Port 8000 on IPv6 address of host <code class="docutils literal"><span class="pre">localhost</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin runserver -6 localhost:8000
+</pre></div>
+</div>
+</div>
+<div class="section" id="serving-static-files-with-the-development-server">
+<h4>Serving static files with the development server<a class="headerlink" href="#serving-static-files-with-the-development-server" title="Permalink to this headline">¶</a></h4>
+<p>By default, the development server doesn&#8217;t serve any static files for your site
+(such as CSS files, images, things under <code class="docutils literal"><span class="pre">MEDIA_URL</span></code> and so forth). If
+you want to configure Django to serve static media, read
+Chapter 13.
+shell
+&#8212;&#8211;</p>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">shell</span></code></p>
+<p>Starts the Python interactive interpreter.</p>
+<p>Django will use <a class="reference external" href="http://ipython.scipy.org/">IPython</a> or <a class="reference external" href="http://bpython-interpreter.org/">bpython</a> if either is installed. If you have a
+rich shell installed but want to force use of the &#8220;plain&#8221; Python interpreter,
+use the <code class="docutils literal"><span class="pre">--plain</span></code> option, like so:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin shell --plain
+</pre></div>
+</div>
+<p>If you would like to specify either IPython or bpython as your interpreter if
+you have both installed you can specify an alternative interpreter interface
+with the <code class="docutils literal"><span class="pre">-i</span></code> or <code class="docutils literal"><span class="pre">--interface</span></code> options like so:</p>
+<p>IPython:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin shell -i ipython
+django-admin shell --interface ipython
+</pre></div>
+</div>
+<p>bpython:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin shell -i bpython
+django-admin shell --interface bpython
+</pre></div>
+</div>
+<p>When the &#8220;plain&#8221; Python interactive interpreter starts (be it because
+<code class="docutils literal"><span class="pre">--plain</span></code> was specified or because no other interactive interface is
+available) it reads the script pointed to by the <span class="target" id="index-3"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONSTARTUP</span></code>
+environment variable and the <code class="docutils literal"><span class="pre">~/.pythonrc.py</span></code> script. If you don&#8217;t wish this
+behavior you can use the <code class="docutils literal"><span class="pre">--no-startup</span></code> option. e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin shell --plain --no-startup
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="showmigrations-app-label-app-label">
+<h3>showmigrations [&lt;app_label&gt; [&lt;app_label&gt;]]<a class="headerlink" href="#showmigrations-app-label-app-label" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">showmigrations</span></code></p>
+<p>Shows all migrations in a project.</p>
+<p><code class="docutils literal"><span class="pre">--list,</span> <span class="pre">-l</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--list</span></code> option lists all of the apps Django knows about, the
+migrations available for each app, and whether or not each migrations is
+applied (marked by an <code class="docutils literal"><span class="pre">[X]</span></code> next to the migration name).</p>
+<p>Apps without migrations are also listed, but have <code class="docutils literal"><span class="pre">(no</span> <span class="pre">migrations)</span></code> printed
+under them.</p>
+<p><code class="docutils literal"><span class="pre">--plan,</span> <span class="pre">-p</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--plan</span></code> option shows the migration plan Django will follow to apply
+migrations. Any supplied app labels are ignored because the plan might go
+beyond those apps. Same as <code class="docutils literal"><span class="pre">--list</span></code>, applied migrations are marked by an
+<code class="docutils literal"><span class="pre">[X]</span></code>. For a verbosity of 2 and above, all dependencies of a migration will
+also be shown.</p>
+</div>
+<div class="section" id="sqlflush">
+<h3>sqlflush<a class="headerlink" href="#sqlflush" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">sqlflush</span></code></p>
+<p>Prints the SQL statements that would be executed for the <code class="docutils literal"><span class="pre">flush</span></code>
+command.</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option can be used to specify the database for
+which to print the SQL.</p>
+</div>
+<div class="section" id="sqlmigrate-app-label-migrationname">
+<h3>sqlmigrate &lt;app_label&gt; &lt;migrationname&gt;<a class="headerlink" href="#sqlmigrate-app-label-migrationname" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">sqlmigrate</span></code></p>
+<p>Prints the SQL for the named migration. This requires an active database
+connection, which it will use to resolve constraint names; this means you must
+generate the SQL against a copy of the database you wish to later apply it on.</p>
+<p>Note that <code class="docutils literal"><span class="pre">sqlmigrate</span></code> doesn&#8217;t colorize its output.</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option can be used to specify the database for
+which to generate the SQL.</p>
+<p><code class="docutils literal"><span class="pre">--backwards</span></code></p>
+<p>By default, the SQL created is for running the migration in the forwards
+direction. Pass <code class="docutils literal"><span class="pre">--backwards</span></code> to generate the SQL for
+unapplying the migration instead.</p>
+</div>
+<div class="section" id="sqlsequencereset-app-label-app-label">
+<h3>sqlsequencereset &lt;app_label app_label ...&gt;<a class="headerlink" href="#sqlsequencereset-app-label-app-label" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">sqlsequencereset</span></code></p>
+<p>Prints the SQL statements for resetting sequences for the given app name(s).</p>
+<p>Sequences are indexes used by some database engines to track the next available
+number for automatically incremented fields.</p>
+<p>Use this command to generate SQL which will fix cases where a sequence is out
+of sync with its automatically incremented field data.</p>
+<p>The <code class="docutils literal"><span class="pre">--database</span></code> option can be used to specify the database for
+which to print the SQL.</p>
+</div>
+<div class="section" id="squashmigrations-app-label-migration-name">
+<h3>squashmigrations &lt;app_label&gt; &lt;migration_name&gt;<a class="headerlink" href="#squashmigrations-app-label-migration-name" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">squashmigrations</span></code></p>
+<p>Squashes the migrations for <code class="docutils literal"><span class="pre">app_label</span></code> up to and including <code class="docutils literal"><span class="pre">migration_name</span></code>
+down into fewer migrations, if possible. The resulting squashed migrations
+can live alongside the unsquashed ones safely. For more information,
+please read migration-squashing.</p>
+<p><code class="docutils literal"><span class="pre">--no-optimize</span></code></p>
+<p>By default, Django will try to optimize the operations in your migrations
+to reduce the size of the resulting file. Pass <code class="docutils literal"><span class="pre">--no-optimize</span></code> if this
+process is failing for you or creating incorrect migrations, though please
+also file a Django bug report about the behavior, as optimization is meant
+to be safe.</p>
+</div>
+<div class="section" id="startapp-app-label-destination">
+<h3>startapp &lt;app_label&gt; [destination]<a class="headerlink" href="#startapp-app-label-destination" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">startapp</span></code></p>
+<p>Creates a Django app directory structure for the given app name in the current
+directory or the given destination.</p>
+<p>By default the directory created contains a <code class="docutils literal"><span class="pre">models.py</span></code> file and other app
+template files. (See the <a class="reference external" href="https://github.com/django/django/tree/master/django/conf/app_template/">source</a> for more details.) If only the app
+name is given, the app directory will be created in the current working
+directory.</p>
+<p>If the optional destination is provided, Django will use that existing
+directory rather than creating a new one. You can use &#8216;.&#8217; to denote the current
+working directory.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin startapp myapp /Users/jezdez/Code/myapp
+</pre></div>
+</div>
+<p id="custom-app-and-project-templates"><code class="docutils literal"><span class="pre">--template</span></code></p>
+<p>With the <code class="docutils literal"><span class="pre">--template</span></code> option, you can use a custom app template by providing
+either the path to a directory with the app template file, or a path to a
+compressed file (<code class="docutils literal"><span class="pre">.tar.gz</span></code>, <code class="docutils literal"><span class="pre">.tar.bz2</span></code>, <code class="docutils literal"><span class="pre">.tgz</span></code>, <code class="docutils literal"><span class="pre">.tbz</span></code>, <code class="docutils literal"><span class="pre">.zip</span></code>)
+containing the app template files.</p>
+<p>For example, this would look for an app template in the given directory when
+creating the <code class="docutils literal"><span class="pre">myapp</span></code> app:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin startapp --template=/Users/jezdez/Code/my_app_template myapp
+</pre></div>
+</div>
+<p>Django will also accept URLs (<code class="docutils literal"><span class="pre">http</span></code>, <code class="docutils literal"><span class="pre">https</span></code>, <code class="docutils literal"><span class="pre">ftp</span></code>) to compressed
+archives with the app template files, downloading and extracting them on the
+fly.</p>
+<p>For example, taking advantage of Github&#8217;s feature to expose repositories as
+zip files, you can use a URL like:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin startapp --template=https://github.com/githubuser/django-app-template/archive/master.zip myapp
+</pre></div>
+</div>
+<p>When Django copies the app template files, it also renders certain files
+through the template engine: the files whose extensions match the
+<code class="docutils literal"><span class="pre">--extension</span></code> option (<code class="docutils literal"><span class="pre">py</span></code> by default) and the files whose names are passed
+with the <code class="docutils literal"><span class="pre">--name</span></code> option. The <code class="xref py py-class docutils literal"><span class="pre">template</span> <span class="pre">context</span></code> used is:</p>
+<ul class="simple">
+<li>Any option passed to the <code class="docutils literal"><span class="pre">startapp</span></code> command (among the command&#8217;s supported
+options)</li>
+<li><code class="docutils literal"><span class="pre">app_name</span></code> &#8211; the app name as passed to the command</li>
+<li><code class="docutils literal"><span class="pre">app_directory</span></code> &#8211; the full path of the newly created app</li>
+<li><code class="docutils literal"><span class="pre">docs_version</span></code> &#8211; the version of the documentation: <code class="docutils literal"><span class="pre">'dev'</span></code> or <code class="docutils literal"><span class="pre">'1.x'</span></code></li>
+</ul>
+<div class="admonition warning" id="render-warning">
+<p class="first admonition-title">Warning</p>
+<p>When the app template files are rendered with the Django template
+engine (by default all <code class="docutils literal"><span class="pre">*.py</span></code> files), Django will also replace all
+stray template variables contained. For example, if one of the Python files
+contains a docstring explaining a particular feature related
+to template rendering, it might result in an incorrect example.</p>
+<p class="last">To work around this problem, you can use the <code class="docutils literal"><span class="pre">templatetag</span></code>
+templatetag to &#8220;escape&#8221; the various parts of the template syntax.</p>
+</div>
+</div>
+<div class="section" id="startproject-projectname-destination">
+<h3>startproject &lt;projectname&gt; [destination]<a class="headerlink" href="#startproject-projectname-destination" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">startproject</span></code></p>
+<p>Creates a Django project directory structure for the given project name in
+the current directory or the given destination.</p>
+<p>By default, the new directory contains <code class="docutils literal"><span class="pre">manage.py</span></code> and a project package
+(containing a <code class="docutils literal"><span class="pre">settings.py</span></code> and other files). See the <a class="reference external" href="https://github.com/django/django/tree/master/django/conf/project_template/">template source</a> for
+details.</p>
+<p>If only the project name is given, both the project directory and project
+package will be named <code class="docutils literal"><span class="pre">&lt;projectname&gt;</span></code> and the project directory
+will be created in the current working directory.</p>
+<p>If the optional destination is provided, Django will use that existing
+directory as the project directory, and create <code class="docutils literal"><span class="pre">manage.py</span></code> and the project
+package within it. Use &#8216;.&#8217; to denote the current working directory.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin startproject myproject /Users/jezdez/Code/myproject_repo
+</pre></div>
+</div>
+<p>As with the <code class="docutils literal"><span class="pre">startapp</span></code> command, the <code class="docutils literal"><span class="pre">--template</span></code> option lets you
+specify a directory, file path or URL of a custom project template. See the
+<code class="docutils literal"><span class="pre">startapp</span></code> documentation for details of supported project template
+formats.</p>
+<p>For example, this would look for a project template in the given directory
+when creating the <code class="docutils literal"><span class="pre">myproject</span></code> project:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin startproject --template=/Users/jezdez/Code/my_project_template myproject
+</pre></div>
+</div>
+<p>Django will also accept URLs (<code class="docutils literal"><span class="pre">http</span></code>, <code class="docutils literal"><span class="pre">https</span></code>, <code class="docutils literal"><span class="pre">ftp</span></code>) to compressed
+archives with the project template files, downloading and extracting them on the
+fly.</p>
+<p>For example, taking advantage of Github&#8217;s feature to expose repositories as
+zip files, you can use a URL like:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin startproject --template=https://github.com/githubuser/django-project-template/archive/master.zip myproject
+</pre></div>
+</div>
+<p>When Django copies the project template files, it also renders certain files
+through the template engine: the files whose extensions match the
+<code class="docutils literal"><span class="pre">--extension</span></code> option (<code class="docutils literal"><span class="pre">py</span></code> by default) and the files whose names are passed
+with the <code class="docutils literal"><span class="pre">--name</span></code> option. The <code class="xref py py-class docutils literal"><span class="pre">template</span> <span class="pre">context</span></code> used is:</p>
+<ul class="simple">
+<li>Any option passed to the <code class="docutils literal"><span class="pre">startproject</span></code> command (among the command&#8217;s
+supported options)</li>
+<li><code class="docutils literal"><span class="pre">project_name</span></code> &#8211; the project name as passed to the command</li>
+<li><code class="docutils literal"><span class="pre">project_directory</span></code> &#8211; the full path of the newly created project</li>
+<li><code class="docutils literal"><span class="pre">secret_key</span></code> &#8211; a random key for the <code class="docutils literal"><span class="pre">SECRET_KEY</span></code> setting</li>
+<li><code class="docutils literal"><span class="pre">docs_version</span></code> &#8211; the version of the documentation: <code class="docutils literal"><span class="pre">'dev'</span></code> or <code class="docutils literal"><span class="pre">'1.x'</span></code></li>
+</ul>
+<p>Please also see the rendering warning  as mentioned
+for <code class="docutils literal"><span class="pre">startapp</span></code>.</p>
+</div>
+<div class="section" id="test-app-or-test-identifier">
+<h3>test &lt;app or test identifier&gt;<a class="headerlink" href="#test-app-or-test-identifier" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">test</span></code></p>
+<p>Runs tests for all installed models.</p>
+<p><code class="docutils literal"><span class="pre">--failfast</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--failfast</span></code> option can be used to stop running tests and report the
+failure immediately after a test fails.</p>
+<p><code class="docutils literal"><span class="pre">--testrunner</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--testrunner</span></code> option can be used to control the test runner class that
+is used to execute tests. If this value is provided, it overrides the value
+provided by the <code class="docutils literal"><span class="pre">TEST_RUNNER</span></code> setting.</p>
+<p><code class="docutils literal"><span class="pre">--liveserver</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--liveserver</span></code> option can be used to override the default address where
+the live server (used with <a class="reference internal" href="chapter_12.html#django.test.LiveServerTestCase" title="django.test.LiveServerTestCase"><code class="xref py py-class docutils literal"><span class="pre">LiveServerTestCase</span></code></a>) is
+expected to run from. The default value is <code class="docutils literal"><span class="pre">localhost:8081</span></code>.</p>
+<p><code class="docutils literal"><span class="pre">--keepdb</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--keepdb</span></code> option can be used to preserve the test database between test
+runs. This has the advantage of skipping both the create and destroy actions
+which greatly decreases the time to run tests, especially those in a large
+test suite. If the test database does not exist, it will be created on the first
+run and then preserved for each subsequent run. Any unapplied migrations will also
+be applied to the test database before running the test suite.</p>
+<p><code class="docutils literal"><span class="pre">--reverse</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--reverse</span></code> option can be used to sort test cases in the opposite order.
+This may help in debugging tests that aren&#8217;t properly isolated and have side
+effects. Grouping by test class  is preserved when using
+this option.</p>
+<p><code class="docutils literal"><span class="pre">--debug-sql</span></code></p>
+<p>The <code class="docutils literal"><span class="pre">--debug-sql</span></code> option can be used to enable SQL logging
+for failing tests. If <code class="docutils literal"><span class="pre">--verbosity</span></code> is <code class="docutils literal"><span class="pre">2</span></code>,
+then queries in passing tests are also output.</p>
+</div>
+<div class="section" id="testserver-fixture-fixture">
+<h3>testserver &lt;fixture fixture ...&gt;<a class="headerlink" href="#testserver-fixture-fixture" title="Permalink to this headline">¶</a></h3>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">testserver</span></code></p>
+<p>Runs a Django development server (as in <code class="docutils literal"><span class="pre">runserver</span></code>) using data from
+the given fixture(s).</p>
+<p>For example, this command:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin testserver mydata.json
+</pre></div>
+</div>
+<p>...would perform the following steps:</p>
+<ol class="arabic simple">
+<li>Create a test database, as described in the-test-database.</li>
+<li>Populate the test database with fixture data from the given fixtures.
+(For more on fixtures, see the documentation for <code class="docutils literal"><span class="pre">loaddata</span></code> above.)</li>
+<li>Runs the Django development server (as in <code class="docutils literal"><span class="pre">runserver</span></code>), pointed at
+this newly created test database instead of your production database.</li>
+</ol>
+<p>This is useful in a number of ways:</p>
+<ul class="simple">
+<li>When you&#8217;re writing unit tests  of how your views
+act with certain fixture data, you can use <code class="docutils literal"><span class="pre">testserver</span></code> to interact with
+the views in a Web browser, manually.</li>
+<li>Let&#8217;s say you&#8217;re developing your Django application and have a &#8220;pristine&#8221;
+copy of a database that you&#8217;d like to interact with. You can dump your
+database to a fixture (using the <code class="docutils literal"><span class="pre">dumpdata</span></code> command, explained
+above), then use <code class="docutils literal"><span class="pre">testserver</span></code> to run your Web application with that data.
+With this arrangement, you have the flexibility of messing up your data
+in any way, knowing that whatever data changes you&#8217;re making are only
+being made to a test database.</li>
+</ul>
+<p>Note that this server does <em>not</em> automatically detect changes to your Python
+source code (as <code class="docutils literal"><span class="pre">runserver</span></code> does). It does, however, detect changes to
+templates.</p>
+<p><code class="docutils literal"><span class="pre">--addrport</span> <span class="pre">[port</span> <span class="pre">number</span> <span class="pre">or</span> <span class="pre">ipaddr:port]</span></code></p>
+<p>Use <code class="docutils literal"><span class="pre">--addrport</span></code> to specify a different port, or IP address and port, from
+the default of <code class="docutils literal"><span class="pre">127.0.0.1:8000</span></code>. This value follows exactly the same format and
+serves exactly the same function as the argument to the <code class="docutils literal"><span class="pre">runserver</span></code>
+command.</p>
+<p>Examples:</p>
+<p>To run the test server on port 7000 with <code class="docutils literal"><span class="pre">fixture1</span></code> and <code class="docutils literal"><span class="pre">fixture2</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin testserver --addrport 7000 fixture1 fixture2
+django-admin testserver fixture1 fixture2 --addrport 7000
+</pre></div>
+</div>
+<p>(The above statements are equivalent. We include both of them to demonstrate
+that it doesn&#8217;t matter whether the options come before or after the fixture
+arguments.)</p>
+<p>To run on 1.2.3.4:7000 with a <code class="docutils literal"><span class="pre">test</span></code> fixture:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin testserver --addrport 1.2.3.4:7000 test
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">--noinput</span></code> option may be provided to suppress all user
+prompts.</p>
+</div>
+</div>
+<div class="section" id="commands-provided-by-applications">
+<h2>Commands provided by applications<a class="headerlink" href="#commands-provided-by-applications" title="Permalink to this headline">¶</a></h2>
+<p>Some commands are only available when the <code class="docutils literal"><span class="pre">django.contrib</span></code> application that
+implements  them has been
+<code class="docutils literal"><span class="pre">enabled</span> <span class="pre">&lt;INSTALLED_APPS&gt;</span></code>. This section describes them grouped by
+their application.</p>
+<div class="section" id="django-contrib-auth">
+<h3><code class="docutils literal"><span class="pre">django.contrib.auth</span></code><a class="headerlink" href="#django-contrib-auth" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="changepassword">
+<h4>changepassword<a class="headerlink" href="#changepassword" title="Permalink to this headline">¶</a></h4>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">changepassword</span></code></p>
+<p>This command is only available if Django&#8217;s authentication system
+(<code class="docutils literal"><span class="pre">django.contrib.auth</span></code>) is installed.</p>
+<p>Allows changing a user&#8217;s password. It prompts you to enter twice the password of
+the user given as parameter. If they both match, the new password will be
+changed immediately. If you do not supply a user, the command will attempt to
+change the password whose username matches the current user.</p>
+<p>Use the <code class="docutils literal"><span class="pre">--database</span></code> option to specify the database to query for the user. If
+it&#8217;s not supplied, Django will use the <code class="docutils literal"><span class="pre">default</span></code> database.</p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin changepassword ringo
+</pre></div>
+</div>
+</div>
+<div class="section" id="createsuperuser">
+<h4>createsuperuser<a class="headerlink" href="#createsuperuser" title="Permalink to this headline">¶</a></h4>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">createsuperuser</span></code></p>
+<p>This command is only available if Django&#8217;s authentication system
+(<code class="docutils literal"><span class="pre">django.contrib.auth</span></code>) is installed.</p>
+<p>Creates a superuser account (a user who has all permissions). This is
+useful if you need to create an initial superuser account or if you need to
+programmatically generate superuser accounts for your site(s).</p>
+<p>When run interactively, this command will prompt for a password for
+the new superuser account. When run non-interactively, no password
+will be set, and the superuser account will not be able to log in until
+a password has been manually set for it.</p>
+<p><code class="docutils literal"><span class="pre">--username</span></code>
+<code class="docutils literal"><span class="pre">--email</span></code></p>
+<p>The username and email address for the new account can be supplied by
+using the <code class="docutils literal"><span class="pre">--username</span></code> and <code class="docutils literal"><span class="pre">--email</span></code> arguments on the command
+line. If either of those is not supplied, <code class="docutils literal"><span class="pre">createsuperuser</span></code> will prompt for
+it when running interactively.</p>
+<p>Use the <code class="docutils literal"><span class="pre">--database</span></code> option to specify the database into which the superuser
+object will be saved.</p>
+<p>You can subclass the management command and override <code class="docutils literal"><span class="pre">get_input_data()</span></code> if you
+want to customize data input and validation. Consult the source code for
+details on the existing implementation and the method&#8217;s parameters. For example,
+it could be useful if you have a <code class="docutils literal"><span class="pre">ForeignKey</span></code> in
+<a class="reference internal" href="chapter_11.html#django.contrib.auth.models.CustomUser.REQUIRED_FIELDS" title="django.contrib.auth.models.CustomUser.REQUIRED_FIELDS"><code class="xref py py-attr docutils literal"><span class="pre">REQUIRED_FIELDS</span></code></a> and want to
+allow creating an instance instead of entering the primary key of an existing
+instance.</p>
+</div>
+</div>
+<div class="section" id="django-contrib-gis">
+<h3><code class="docutils literal"><span class="pre">django.contrib.gis</span></code><a class="headerlink" href="#django-contrib-gis" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ogrinspect">
+<h4>ogrinspect<a class="headerlink" href="#ogrinspect" title="Permalink to this headline">¶</a></h4>
+<p>This command is only available if GeoDjango
+(<code class="docutils literal"><span class="pre">django.contrib.gis</span></code>) is installed.</p>
+<p>Please refer to its <code class="docutils literal"><span class="pre">description</span> <span class="pre">&lt;ogrinspect&gt;</span></code> in the GeoDjango
+documentation.</p>
+</div>
+</div>
+<div class="section" id="django-contrib-sessions">
+<h3><code class="docutils literal"><span class="pre">django.contrib.sessions</span></code><a class="headerlink" href="#django-contrib-sessions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="clearsessions">
+<h4>clearsessions<a class="headerlink" href="#clearsessions" title="Permalink to this headline">¶</a></h4>
+<p><code class="xref py py-attr docutils literal"> <span class="pre">clearsessions</span></code></p>
+<p>Can be run as a cron job or directly to clean out expired sessions.</p>
+</div>
+</div>
+<div class="section" id="django-contrib-sitemaps">
+<h3><code class="docutils literal"><span class="pre">django.contrib.sitemaps</span></code><a class="headerlink" href="#django-contrib-sitemaps" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ping-google">
+<h4>ping_google<a class="headerlink" href="#ping-google" title="Permalink to this headline">¶</a></h4>
+<p>This command is only available if the Sitemaps framework
+(<code class="docutils literal"><span class="pre">django.contrib.sitemaps</span></code>) is installed.</p>
+<p>Please refer to its <code class="docutils literal"><span class="pre">description</span> <span class="pre">&lt;ping_google&gt;</span></code> in the Sitemaps
+documentation.</p>
+</div>
+</div>
+<div class="section" id="django-contrib-staticfiles">
+<h3><code class="docutils literal"><span class="pre">django.contrib.staticfiles</span></code><a class="headerlink" href="#django-contrib-staticfiles" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="collectstatic">
+<h4>collectstatic<a class="headerlink" href="#collectstatic" title="Permalink to this headline">¶</a></h4>
+<p>This command is only available if the static files application
+(<code class="docutils literal"><span class="pre">django.contrib.staticfiles</span></code>) is installed.</p>
+<p>Please refer to its <code class="docutils literal"><span class="pre">description</span> <span class="pre">&lt;collectstatic&gt;</span></code> in the
+staticfiles  documentation.</p>
+</div>
+<div class="section" id="findstatic">
+<h4>findstatic<a class="headerlink" href="#findstatic" title="Permalink to this headline">¶</a></h4>
+<p>This command is only available if the static files application
+(<code class="docutils literal"><span class="pre">django.contrib.staticfiles</span></code>) is installed.</p>
+<p>Please refer to its <code class="docutils literal"><span class="pre">description</span> <span class="pre">&lt;findstatic&gt;</span></code> in the staticfiles
+documentation.</p>
+</div>
+</div>
+</div>
+<div class="section" id="default-options">
+<h2>Default options<a class="headerlink" href="#default-options" title="Permalink to this headline">¶</a></h2>
+<p>Although some commands may allow their own custom options, every command
+allows for the following options:</p>
+<p><code class="docutils literal"><span class="pre">--pythonpath</span></code></p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin migrate --pythonpath=&#39;/home/djangoprojects/myproject&#39;
+</pre></div>
+</div>
+<p>Adds the given filesystem path to the Python <a class="reference external" href="http://www.diveintopython.net/getting_to_know_python/everything_is_an_object.html">import search path</a>. If this
+isn&#8217;t provided, <code class="docutils literal"><span class="pre">django-admin</span></code> will use the <code class="docutils literal"><span class="pre">PYTHONPATH</span></code> environment
+variable.</p>
+<p>Note that this option is unnecessary in <code class="docutils literal"><span class="pre">manage.py</span></code>, because it takes care of
+setting the Python path for you.</p>
+<p><code class="docutils literal"><span class="pre">--settings</span></code></p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin migrate --settings=mysite.settings
+</pre></div>
+</div>
+<p>Explicitly specifies the settings module to use. The settings module should be
+in Python package syntax, e.g. <code class="docutils literal"><span class="pre">mysite.settings</span></code>. If this isn&#8217;t provided,
+<code class="docutils literal"><span class="pre">django-admin</span></code> will use the <code class="docutils literal"><span class="pre">DJANGO_SETTINGS_MODULE</span></code> environment
+variable.</p>
+<p>Note that this option is unnecessary in <code class="docutils literal"><span class="pre">manage.py</span></code>, because it uses
+<code class="docutils literal"><span class="pre">settings.py</span></code> from the current project by default.</p>
+<p><code class="docutils literal"><span class="pre">--traceback</span></code></p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin migrate --traceback
+</pre></div>
+</div>
+<p>By default, <code class="docutils literal"><span class="pre">django-admin</span></code> will show a simple error message whenever an
+<a class="reference internal" href="#django.core.management.CommandError" title="django.core.management.CommandError"><code class="xref py py-class docutils literal"><span class="pre">CommandError</span></code></a> occurs, but a full stack trace
+for any other exception. If you specify <code class="docutils literal"><span class="pre">--traceback</span></code>, <code class="docutils literal"><span class="pre">django-admin</span></code>
+will also output a full stack trace when a <code class="docutils literal"><span class="pre">CommandError</span></code> is raised.</p>
+<p><code class="docutils literal"><span class="pre">--verbosity</span></code></p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin migrate --verbosity 2
+</pre></div>
+</div>
+<p>Use <code class="docutils literal"><span class="pre">--verbosity</span></code> to specify the amount of notification and debug information
+that <code class="docutils literal"><span class="pre">django-admin</span></code> should print to the console.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">0</span></code> means no output.</li>
+<li><code class="docutils literal"><span class="pre">1</span></code> means normal output (default).</li>
+<li><code class="docutils literal"><span class="pre">2</span></code> means verbose output.</li>
+<li><code class="docutils literal"><span class="pre">3</span></code> means <em>very</em> verbose output.</li>
+</ul>
+<p><code class="docutils literal"><span class="pre">--no-color</span></code></p>
+<p>Example usage:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin sqlall --no-color
+</pre></div>
+</div>
+<p>By default, <code class="docutils literal"><span class="pre">django-admin</span></code> will format the output to be colorized. For
+example, errors will be printed to the console in red and SQL statements will
+be syntax highlighted. To prevent this and have a plain text output, pass the
+<code class="docutils literal"><span class="pre">--no-color</span></code> option when running your command.</p>
+</div>
+<div class="section" id="common-options">
+<h2>Common options<a class="headerlink" href="#common-options" title="Permalink to this headline">¶</a></h2>
+<p>The following options are not available on every command, but they are common
+to a number of commands.</p>
+<p><code class="docutils literal"><span class="pre">--database</span></code></p>
+<p>Used to specify the database on which a command will operate. If not
+specified, this option will default to an alias of <code class="docutils literal"><span class="pre">default</span></code>.</p>
+<p>For example, to dump data from the database with the alias <code class="docutils literal"><span class="pre">master</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin dumpdata --database=master
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">--exclude</span></code></p>
+<p>Exclude a specific application from the applications whose contents is
+output. For example, to specifically exclude the <code class="docutils literal"><span class="pre">auth</span></code> application from
+the output of dumpdata, you would call:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin dumpdata --exclude=auth
+</pre></div>
+</div>
+<p>If you want to exclude multiple applications, use multiple <code class="docutils literal"><span class="pre">--exclude</span></code>
+directives:</p>
+<div class="highlight-python"><div class="highlight"><pre>django-admin dumpdata --exclude=auth --exclude=contenttypes
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">--locale</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--locale</span></code> or <code class="docutils literal"><span class="pre">-l</span></code> option to specify the locale to process.
+If not provided all locales are processed.</p>
+<p><code class="docutils literal"><span class="pre">--noinput</span></code></p>
+<p>Use the <code class="docutils literal"><span class="pre">--noinput</span></code> option to suppress all user prompting, such as &#8220;Are
+you sure?&#8221; confirmation messages. This is useful if <code class="docutils literal"><span class="pre">django-admin</span></code> is
+being executed as an unattended, automated script.</p>
+</div>
+<div class="section" id="extra-niceties">
+<h2>Extra niceties<a class="headerlink" href="#extra-niceties" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="syntax-coloring">
+<span id="id1"></span><h3>Syntax coloring<a class="headerlink" href="#syntax-coloring" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">django-admin</span></code> / <code class="docutils literal"><span class="pre">manage.py</span></code> commands will use pretty
+color-coded output if your terminal supports ANSI-colored output. It
+won&#8217;t use the color codes if you&#8217;re piping the command&#8217;s output to
+another program.</p>
+<p>Under Windows, the native console doesn&#8217;t support ANSI escape sequences so by
+default there is no color output. But you can install the <a class="reference external" href="http://adoxa.altervista.org/ansicon/">ANSICON</a>
+third-party tool, the Django commands will detect its presence and will make
+use of its services to color output just like on Unix-based platforms.</p>
+<p>The colors used for syntax highlighting can be customized. Django
+ships with three color palettes:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">dark</span></code>, suited to terminals that show white text on a black
+background. This is the default palette.</li>
+<li><code class="docutils literal"><span class="pre">light</span></code>, suited to terminals that show black text on a white
+background.</li>
+<li><code class="docutils literal"><span class="pre">nocolor</span></code>, which disables syntax highlighting.</li>
+</ul>
+<p>You select a palette by setting a <code class="docutils literal"><span class="pre">DJANGO_COLORS</span></code> environment
+variable to specify the palette you want to use. For example, to
+specify the <code class="docutils literal"><span class="pre">light</span></code> palette under a Unix or OS/X BASH shell, you
+would run the following at a command prompt:</p>
+<div class="highlight-python"><div class="highlight"><pre>export DJANGO_COLORS=&quot;light&quot;
+</pre></div>
+</div>
+<p>You can also customize the colors that are used. Django specifies a
+number of roles in which color is used:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">error</span></code> - A major error.</li>
+<li><code class="docutils literal"><span class="pre">notice</span></code> - A minor error.</li>
+<li><code class="docutils literal"><span class="pre">sql_field</span></code> - The name of a model field in SQL.</li>
+<li><code class="docutils literal"><span class="pre">sql_coltype</span></code> - The type of a model field in SQL.</li>
+<li><code class="docutils literal"><span class="pre">sql_keyword</span></code> - An SQL keyword.</li>
+<li><code class="docutils literal"><span class="pre">sql_table</span></code> - The name of a model in SQL.</li>
+<li><code class="docutils literal"><span class="pre">http_info</span></code> - A 1XX HTTP Informational server response.</li>
+<li><code class="docutils literal"><span class="pre">http_success</span></code> - A 2XX HTTP Success server response.</li>
+<li><code class="docutils literal"><span class="pre">http_not_modified</span></code> - A 304 HTTP Not Modified server response.</li>
+<li><code class="docutils literal"><span class="pre">http_redirect</span></code> - A 3XX HTTP Redirect server response other than 304.</li>
+<li><code class="docutils literal"><span class="pre">http_not_found</span></code> - A 404 HTTP Not Found server response.</li>
+<li><code class="docutils literal"><span class="pre">http_bad_request</span></code> - A 4XX HTTP Bad Request server response other than 404.</li>
+<li><code class="docutils literal"><span class="pre">http_server_error</span></code> - A 5XX HTTP Server Error response.</li>
+</ul>
+<p>Each of these roles can be assigned a specific foreground and
+background color, from the following list:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">black</span></code></li>
+<li><code class="docutils literal"><span class="pre">red</span></code></li>
+<li><code class="docutils literal"><span class="pre">green</span></code></li>
+<li><code class="docutils literal"><span class="pre">yellow</span></code></li>
+<li><code class="docutils literal"><span class="pre">blue</span></code></li>
+<li><code class="docutils literal"><span class="pre">magenta</span></code></li>
+<li><code class="docutils literal"><span class="pre">cyan</span></code></li>
+<li><code class="docutils literal"><span class="pre">white</span></code></li>
+</ul>
+<p>Each of these colors can then be modified by using the following
+display options:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">bold</span></code></li>
+<li><code class="docutils literal"><span class="pre">underscore</span></code></li>
+<li><code class="docutils literal"><span class="pre">blink</span></code></li>
+<li><code class="docutils literal"><span class="pre">reverse</span></code></li>
+<li><code class="docutils literal"><span class="pre">conceal</span></code></li>
+</ul>
+<p>A color specification follows one of the following patterns:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">role=fg</span></code></li>
+<li><code class="docutils literal"><span class="pre">role=fg/bg</span></code></li>
+<li><code class="docutils literal"><span class="pre">role=fg,option,option</span></code></li>
+<li><code class="docutils literal"><span class="pre">role=fg/bg,option,option</span></code></li>
+</ul>
+<p>where <code class="docutils literal"><span class="pre">role</span></code> is the name of a valid color role, <code class="docutils literal"><span class="pre">fg</span></code> is the
+foreground color, <code class="docutils literal"><span class="pre">bg</span></code> is the background color and each <code class="docutils literal"><span class="pre">option</span></code>
+is one of the color modifying options. Multiple color specifications
+are then separated by semicolon. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>export DJANGO_COLORS=&quot;error=yellow/blue,blink;notice=magenta&quot;
+</pre></div>
+</div>
+<p>would specify that errors be displayed using blinking yellow on blue,
+and notices displayed using magenta. All other color roles would be
+left uncolored.</p>
+<p>Colors can also be specified by extending a base palette. If you put
+a palette name in a color specification, all the colors implied by that
+palette will be loaded. So:</p>
+<div class="highlight-python"><div class="highlight"><pre>export DJANGO_COLORS=&quot;light;error=yellow/blue,blink;notice=magenta&quot;
+</pre></div>
+</div>
+<p>would specify the use of all the colors in the light color palette,
+<em>except</em> for the colors for errors and notices which would be
+overridden as specified.</p>
+</div>
+<div class="section" id="bash-completion">
+<h3>Bash completion<a class="headerlink" href="#bash-completion" title="Permalink to this headline">¶</a></h3>
+<p>If you use the Bash shell, consider installing the Django bash completion
+script, which lives in <code class="docutils literal"><span class="pre">extras/django_bash_completion</span></code> in the Django
+distribution. It enables tab-completion of <code class="docutils literal"><span class="pre">django-admin</span></code> and
+<code class="docutils literal"><span class="pre">manage.py</span></code> commands, so you can, for instance...</p>
+<ul class="simple">
+<li>Type <code class="docutils literal"><span class="pre">django-admin</span></code>.</li>
+<li>Press [TAB] to see all available options.</li>
+<li>Type <code class="docutils literal"><span class="pre">sql</span></code>, then [TAB], to see all available options whose names start
+with <code class="docutils literal"><span class="pre">sql</span></code>.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="running-management-commands-from-your-code">
+<h1>Running management commands from your code<a class="headerlink" href="#running-management-commands-from-your-code" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="call-command"></span><dl class="function">
+<dt id="django.core.management.call_command">
+<code class="descclassname">django.core.management.</code><code class="descname">call_command</code><span class="sig-paren">(</span><em>name</em>, <em>*args</em>, <em>**options</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.call_command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>To call a management command from code use <code class="docutils literal"><span class="pre">call_command</span></code>.</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">name</span></code></dt>
+<dd>the name of the command to call.</dd>
+<dt><code class="docutils literal"><span class="pre">*args</span></code></dt>
+<dd>a list of arguments accepted by the command.</dd>
+<dt><code class="docutils literal"><span class="pre">**options</span></code></dt>
+<dd>named options accepted on the command-line.</dd>
+</dl>
+<p>Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.core</span> <span class="kn">import</span> <span class="n">management</span>
+<span class="n">management</span><span class="o">.</span><span class="n">call_command</span><span class="p">(</span><span class="s">&#39;flush&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">management</span><span class="o">.</span><span class="n">call_command</span><span class="p">(</span><span class="s">&#39;loaddata&#39;</span><span class="p">,</span> <span class="s">&#39;test_data&#39;</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that command options that take no arguments are passed as keywords
+with <code class="docutils literal"><span class="pre">True</span></code> or <code class="docutils literal"><span class="pre">False</span></code>, as you can see with the <code class="docutils literal"><span class="pre">interactive</span></code> option above.</p>
+<p>Named arguments can be passed by using either one of the following syntaxes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Similar to the command line</span>
+<span class="n">management</span><span class="o">.</span><span class="n">call_command</span><span class="p">(</span><span class="s">&#39;dumpdata&#39;</span><span class="p">,</span> <span class="s">&#39;--natural-foreign&#39;</span><span class="p">)</span>
+
+<span class="c"># Named argument similar to the command line minus the initial dashes and</span>
+<span class="c"># with internal dashes replaced by underscores</span>
+<span class="n">management</span><span class="o">.</span><span class="n">call_command</span><span class="p">(</span><span class="s">&#39;dumpdata&#39;</span><span class="p">,</span> <span class="n">natural_foreign</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c"># `use_natural_foreign_keys` is the option destination variable</span>
+<span class="n">management</span><span class="o">.</span><span class="n">call_command</span><span class="p">(</span><span class="s">&#39;dumpdata&#39;</span><span class="p">,</span> <span class="n">use_natural_foreign_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first syntax is now supported thanks to management commands using the
+<code class="xref py py-mod docutils literal"><span class="pre">argparse</span></code> module. For the second syntax, Django previously passed
+the option name as-is to the command, now it is always using the <code class="docutils literal"><span class="pre">dest</span></code>
+variable name (which may or may not be the same as the option name).</p>
+<p>Command options which take multiple options are passed a list:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">management</span><span class="o">.</span><span class="n">call_command</span><span class="p">(</span><span class="s">&#39;dumpdata&#39;</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;contenttypes&#39;</span><span class="p">,</span> <span class="s">&#39;auth&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="section" id="output-redirection">
+<h2>Output redirection<a class="headerlink" href="#output-redirection" title="Permalink to this headline">¶</a></h2>
+<p>Note that you can redirect standard output and error streams as all commands
+support the <code class="docutils literal"><span class="pre">stdout</span></code> and <code class="docutils literal"><span class="pre">stderr</span></code> options. For example, you could write:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/tmp/command_output&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">management</span><span class="o">.</span><span class="n">call_command</span><span class="p">(</span><span class="s">&#39;dumpdata&#39;</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="module-django.core.management">
+<span id="writing-custom-django-admin-commands"></span><h2>Writing custom django-admin commands<a class="headerlink" href="#module-django.core.management" title="Permalink to this headline">¶</a></h2>
+<p>Applications can register their own actions with <code class="docutils literal"><span class="pre">manage.py</span></code>. For example,
+you might want to add a <code class="docutils literal"><span class="pre">manage.py</span></code> action for a Django app that you&#8217;re
+distributing. In this document, we will be building a custom <code class="docutils literal"><span class="pre">closepoll</span></code>
+command for the <code class="docutils literal"><span class="pre">polls</span></code> application from the
+tutorial.</p>
+<p>To do this, just add a <code class="docutils literal"><span class="pre">management/commands</span></code> directory to the application.
+Django will register a <code class="docutils literal"><span class="pre">manage.py</span></code> command for each Python module in that
+directory whose name doesn&#8217;t begin with an underscore. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>polls/
+    __init__.py
+    models.py
+    management/
+        __init__.py
+        commands/
+            __init__.py
+            _private.py
+            closepoll.py
+    tests.py
+    views.py
+</pre></div>
+</div>
+<p>On Python 2, be sure to include <code class="docutils literal"><span class="pre">__init__.py</span></code> files in both the
+<code class="docutils literal"><span class="pre">management</span></code> and <code class="docutils literal"><span class="pre">management/commands</span></code> directories as done above or your
+command will not be detected.</p>
+<p>In this example, the <code class="docutils literal"><span class="pre">closepoll</span></code> command will be made available to any project
+that includes the <code class="docutils literal"><span class="pre">polls</span></code> application in <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">_private.py</span></code> module will not be available as a management command.</p>
+<p>The <code class="docutils literal"><span class="pre">closepoll.py</span></code> module has only one requirement &#8211; it must define a class
+<code class="docutils literal"><span class="pre">Command</span></code> that extends <a class="reference internal" href="#django.core.management.BaseCommand" title="django.core.management.BaseCommand"><code class="xref py py-class docutils literal"><span class="pre">BaseCommand</span></code></a> or one of its
+subclasses&lt;ref-basecommand-subclasses&gt;.</p>
+<div class="admonition-standalone-scripts admonition">
+<p class="first admonition-title">Standalone scripts</p>
+<p class="last">Custom management commands are especially useful for running standalone
+scripts or for scripts that are periodically executed from the UNIX crontab
+or from Windows scheduled tasks control panel.</p>
+</div>
+<p>To implement the command, edit <code class="docutils literal"><span class="pre">polls/management/commands/closepoll.py</span></code> to
+look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.core.management.base</span> <span class="kn">import</span> <span class="n">BaseCommand</span><span class="p">,</span> <span class="n">CommandError</span>
+<span class="kn">from</span> <span class="nn">polls.models</span> <span class="kn">import</span> <span class="n">Poll</span>
+
+<span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+    <span class="n">help</span> <span class="o">=</span> <span class="s">&#39;Closes the specified poll for voting&#39;</span>
+
+    <span class="k">def</span> <span class="nf">add_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;poll_id&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">&#39;+&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">poll_id</span> <span class="ow">in</span> <span class="n">options</span><span class="p">[</span><span class="s">&#39;poll_id&#39;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">poll</span> <span class="o">=</span> <span class="n">Poll</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">poll_id</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">Poll</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CommandError</span><span class="p">(</span><span class="s">&#39;Poll &quot;</span><span class="si">%s</span><span class="s">&quot; does not exist&#39;</span> <span class="o">%</span> <span class="n">poll_id</span><span class="p">)</span>
+
+            <span class="n">poll</span><span class="o">.</span><span class="n">opened</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="n">poll</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Successfully closed poll &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">poll_id</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Before Django 1.8, management commands were based on the <code class="xref py py-mod docutils literal"><span class="pre">optparse</span></code>
+module, and positional arguments were passed in <code class="docutils literal"><span class="pre">*args</span></code> while optional
+arguments were passed in <code class="docutils literal"><span class="pre">**options</span></code>. Now that management commands use
+<code class="xref py py-mod docutils literal"><span class="pre">argparse</span></code> for argument parsing, all arguments are passed in
+<code class="docutils literal"><span class="pre">**options</span></code> by default, unless you name your positional arguments to
+<code class="docutils literal"><span class="pre">args</span></code> (compatibility mode). You are encouraged to exclusively use
+<code class="docutils literal"><span class="pre">**options</span></code> for new commands.</p>
+<div class="admonition note" id="management-commands-output">
+<p class="first admonition-title">Note</p>
+<p>When you are using management commands and wish to provide console
+output, you should write to <code class="docutils literal"><span class="pre">self.stdout</span></code> and <code class="docutils literal"><span class="pre">self.stderr</span></code>,
+instead of printing to <code class="docutils literal"><span class="pre">stdout</span></code> and <code class="docutils literal"><span class="pre">stderr</span></code> directly. By
+using these proxies, it becomes much easier to test your custom
+command. Note also that you don&#8217;t need to end messages with a newline
+character, it will be added automatically, unless you specify the <code class="docutils literal"><span class="pre">ending</span></code>
+parameter:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Unterminated line&quot;</span><span class="p">,</span> <span class="n">ending</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The new custom command can be called using <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">closepoll</span>
+<span class="pre">&lt;poll_id&gt;</span></code>.</p>
+<p>The <code class="docutils literal"><span class="pre">handle()</span></code> method takes one or more <code class="docutils literal"><span class="pre">poll_ids</span></code> and sets <code class="docutils literal"><span class="pre">poll.opened</span></code>
+to <code class="docutils literal"><span class="pre">False</span></code> for each one. If the user referenced any nonexistent polls, a
+<a class="reference internal" href="#django.core.management.CommandError" title="django.core.management.CommandError"><code class="xref py py-class docutils literal"><span class="pre">CommandError</span></code></a> is raised. The <code class="docutils literal"><span class="pre">poll.opened</span></code> attribute does not exist
+in the tutorial and was added to
+<code class="docutils literal"><span class="pre">polls.models.Poll</span></code> for this example.</p>
+</div>
+<div class="section" id="accepting-optional-arguments">
+<span id="custom-commands-options"></span><h2>Accepting optional arguments<a class="headerlink" href="#accepting-optional-arguments" title="Permalink to this headline">¶</a></h2>
+<p>The same <code class="docutils literal"><span class="pre">closepoll</span></code> could be easily modified to delete a given poll instead
+of closing it by accepting additional command line options. These custom
+options can be added in the <a class="reference internal" href="#django.core.management.BaseCommand.add_arguments" title="django.core.management.BaseCommand.add_arguments"><code class="xref py py-meth docutils literal"><span class="pre">add_arguments()</span></code></a> method like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+        <span class="c"># Positional arguments</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;poll_id&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">&#39;+&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="c"># Named (optional) arguments</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">&#39;--delete&#39;</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="s">&#39;store_true&#39;</span><span class="p">,</span>
+            <span class="n">dest</span><span class="o">=</span><span class="s">&#39;delete&#39;</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s">&#39;Delete poll instead of closing it&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="c"># ...</span>
+        <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s">&#39;delete&#39;</span><span class="p">]:</span>
+            <span class="n">poll</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="c"># ...</span>
+</pre></div>
+</div>
+<p>The option (<code class="docutils literal"><span class="pre">delete</span></code> in our example) is available in the options dict
+parameter of the handle method. See the <code class="xref py py-mod docutils literal"><span class="pre">argparse</span></code> Python documentation
+for more about <code class="docutils literal"><span class="pre">add_argument</span></code> usage.</p>
+<p>In addition to being able to add custom command line options, all
+management commands can accept some
+default options such as <code class="docutils literal"><span class="pre">--verbosity</span></code> and <code class="docutils literal"><span class="pre">--traceback</span></code>.</p>
+</div>
+<div class="section" id="management-commands-and-locales">
+<span id="id2"></span><h2>Management commands and locales<a class="headerlink" href="#management-commands-and-locales" title="Permalink to this headline">¶</a></h2>
+<p>By default, the <a class="reference internal" href="#django.core.management.BaseCommand.execute" title="django.core.management.BaseCommand.execute"><code class="xref py py-meth docutils literal"><span class="pre">BaseCommand.execute()</span></code></a> method deactivates translations
+because some commands shipped with Django perform several tasks (for example,
+user-facing content rendering and database population) that require a
+project-neutral string language.</p>
+<p>If, for some reason, your custom management command needs to use a fixed locale,
+you should manually activate and deactivate it in your
+<a class="reference internal" href="#django.core.management.BaseCommand.handle" title="django.core.management.BaseCommand.handle"><code class="xref py py-meth docutils literal"><span class="pre">handle()</span></code></a> method using the functions provided by the I18N
+support code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.core.management.base</span> <span class="kn">import</span> <span class="n">BaseCommand</span><span class="p">,</span> <span class="n">CommandError</span>
+<span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">translation</span>
+
+<span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">can_import_settings</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+
+        <span class="c"># Activate a fixed locale, e.g. Russian</span>
+        <span class="n">translation</span><span class="o">.</span><span class="n">activate</span><span class="p">(</span><span class="s">&#39;ru&#39;</span><span class="p">)</span>
+
+        <span class="c"># Or you can activate the LANGUAGE_CODE # chosen in the settings:</span>
+        <span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+        <span class="n">translation</span><span class="o">.</span><span class="n">activate</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">LANGUAGE_CODE</span><span class="p">)</span>
+
+        <span class="c"># Your command logic here</span>
+        <span class="o">...</span>
+
+        <span class="n">translation</span><span class="o">.</span><span class="n">deactivate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Another need might be that your command simply should use the locale set in
+settings and Django should be kept from deactivating it. You can achieve
+it by using the <a class="reference internal" href="#django.core.management.BaseCommand.leave_locale_alone" title="django.core.management.BaseCommand.leave_locale_alone"><code class="xref py py-data docutils literal"><span class="pre">BaseCommand.leave_locale_alone</span></code></a> option.</p>
+<p>When working on the scenarios described above though, take into account that
+system management commands typically have to be very careful about running in
+non-uniform locales, so you might need to:</p>
+<ul class="simple">
+<li>Make sure the <code class="docutils literal"><span class="pre">USE_I18N</span></code> setting is always <code class="docutils literal"><span class="pre">True</span></code> when running
+the command (this is a good example of the potential problems stemming
+from a dynamic runtime environment that Django commands avoid offhand by
+deactivating translations).</li>
+<li>Review the code of your command and the code it calls for behavioral
+differences when locales are changed and evaluate its impact on
+predictable behavior of your command.</li>
+</ul>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>Information on how to test custom management commands can be found in the
+testing docs .</p>
+</div>
+<div class="section" id="command-objects">
+<h2>Command objects<a class="headerlink" href="#command-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="django.core.management.BaseCommand">
+<em class="property">class </em><code class="descclassname">django.core.management.</code><code class="descname">BaseCommand</code><a class="headerlink" href="#django.core.management.BaseCommand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The base class from which all management commands ultimately derive.</p>
+<p>Use this class if you want access to all of the mechanisms which
+parse the command-line arguments and work out what code to call in
+response; if you don&#8217;t need to change any of that behavior,
+consider using one of its subclasses.</p>
+<p>Subclassing the <a class="reference internal" href="#django.core.management.BaseCommand" title="django.core.management.BaseCommand"><code class="xref py py-class docutils literal"><span class="pre">BaseCommand</span></code></a> class requires that you implement the
+<a class="reference internal" href="#django.core.management.BaseCommand.handle" title="django.core.management.BaseCommand.handle"><code class="xref py py-meth docutils literal"><span class="pre">handle()</span></code></a> method.</p>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<p>All attributes can be set in your derived class and can be used in
+<a class="reference internal" href="#django.core.management.BaseCommand" title="django.core.management.BaseCommand"><code class="xref py py-class docutils literal"><span class="pre">BaseCommand</span></code></a>’s subclasses&lt;ref-basecommand-subclasses&gt;.</p>
+<dl class="attribute">
+<dt id="django.core.management.BaseCommand.can_import_settings">
+<code class="descclassname">BaseCommand.</code><code class="descname">can_import_settings</code><a class="headerlink" href="#django.core.management.BaseCommand.can_import_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean indicating whether the command needs to be able to
+import Django settings; if <code class="docutils literal"><span class="pre">True</span></code>, <code class="docutils literal"><span class="pre">execute()</span></code> will verify
+that this is possible before proceeding. Default value is
+<code class="docutils literal"><span class="pre">True</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="django.core.management.BaseCommand.help">
+<code class="descclassname">BaseCommand.</code><code class="descname">help</code><a class="headerlink" href="#django.core.management.BaseCommand.help" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short description of the command, which will be printed in the
+help message when the user runs the command
+<code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">help</span> <span class="pre">&lt;command&gt;</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="django.core.management.BaseCommand.missing_args_message">
+<code class="descclassname">BaseCommand.</code><code class="descname">missing_args_message</code><a class="headerlink" href="#django.core.management.BaseCommand.missing_args_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>If your command defines mandatory positional arguments, you can customize
+the message error returned in the case of missing arguments. The default is
+output by <code class="xref py py-mod docutils literal"><span class="pre">argparse</span></code> (&#8220;too few arguments&#8221;).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="django.core.management.BaseCommand.output_transaction">
+<code class="descclassname">BaseCommand.</code><code class="descname">output_transaction</code><a class="headerlink" href="#django.core.management.BaseCommand.output_transaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean indicating whether the command outputs SQL statements; if
+<code class="docutils literal"><span class="pre">True</span></code>, the output will automatically be wrapped with <code class="docutils literal"><span class="pre">BEGIN;</span></code> and
+<code class="docutils literal"><span class="pre">COMMIT;</span></code>. Default value is <code class="docutils literal"><span class="pre">False</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="django.core.management.BaseCommand.requires_system_checks">
+<code class="descclassname">BaseCommand.</code><code class="descname">requires_system_checks</code><a class="headerlink" href="#django.core.management.BaseCommand.requires_system_checks" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean; if <code class="docutils literal"><span class="pre">True</span></code>, the entire Django project will be checked for
+potential problems prior to executing the command. Default value is <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="django.core.management.BaseCommand.leave_locale_alone">
+<code class="descclassname">BaseCommand.</code><code class="descname">leave_locale_alone</code><a class="headerlink" href="#django.core.management.BaseCommand.leave_locale_alone" title="Permalink to this definition">¶</a></dt>
+<dd><p>A boolean indicating whether the locale set in settings should be preserved
+during the execution of the command instead of being forcibly set to &#8216;en-us&#8217;.</p>
+<p>Default value is <code class="docutils literal"><span class="pre">False</span></code>.</p>
+<p>Make sure you know what you are doing if you decide to change the value of
+this option in your custom command if it creates database content that
+is locale-sensitive and such content shouldn&#8217;t contain any translations
+(like it happens e.g. with django.contrib.auth permissions) as making the
+locale differ from the de facto default &#8216;en-us&#8217; might cause unintended
+effects. Seethe <a class="reference internal" href="#id2">Management commands and locales</a> section above for
+further details.</p>
+<p>This option can&#8217;t be <code class="docutils literal"><span class="pre">False</span></code> when the
+<a class="reference internal" href="#django.core.management.BaseCommand.can_import_settings" title="django.core.management.BaseCommand.can_import_settings"><code class="xref py py-data docutils literal"><span class="pre">can_import_settings</span></code></a> option is set to <code class="docutils literal"><span class="pre">False</span></code> too
+because attempting to set the locale needs access to settings. This
+condition will generate a <a class="reference internal" href="#django.core.management.CommandError" title="django.core.management.CommandError"><code class="xref py py-class docutils literal"><span class="pre">CommandError</span></code></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="methods">
+<h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#django.core.management.BaseCommand" title="django.core.management.BaseCommand"><code class="xref py py-class docutils literal"><span class="pre">BaseCommand</span></code></a> has a few methods that can be overridden but only
+the <a class="reference internal" href="#django.core.management.BaseCommand.handle" title="django.core.management.BaseCommand.handle"><code class="xref py py-meth docutils literal"><span class="pre">handle()</span></code></a> method must be implemented.</p>
+<div class="admonition-implementing-a-constructor-in-a-subclass admonition">
+<p class="first admonition-title">Implementing a constructor in a subclass</p>
+<p>If you implement <code class="docutils literal"><span class="pre">__init__</span></code> in your subclass of <a class="reference internal" href="#django.core.management.BaseCommand" title="django.core.management.BaseCommand"><code class="xref py py-class docutils literal"><span class="pre">BaseCommand</span></code></a>,
+you must call <a class="reference internal" href="#django.core.management.BaseCommand" title="django.core.management.BaseCommand"><code class="xref py py-class docutils literal"><span class="pre">BaseCommand</span></code></a>’s <code class="docutils literal"><span class="pre">__init__</span></code>:</p>
+<div class="last highlight-python"><div class="highlight"><pre>class Command(BaseCommand):
+    def __init__(self, \*args, \*\*kwargs):
+        super(Command, self).__init__(\*args, \*\*kwargs)
+        # ...
+</pre></div>
+</div>
+</div>
+<dl class="method">
+<dt id="django.core.management.BaseCommand.add_arguments">
+<code class="descclassname">BaseCommand.</code><code class="descname">add_arguments</code><span class="sig-paren">(</span><em>parser</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.BaseCommand.add_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Entry point to add parser arguments to handle command line arguments passed
+to the command. Custom commands should override this method to add both
+positional and optional arguments accepted by the command. Calling
+<code class="docutils literal"><span class="pre">super()</span></code> is not needed when directly subclassing <code class="docutils literal"><span class="pre">BaseCommand</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="django.core.management.BaseCommand.get_version">
+<code class="descclassname">BaseCommand.</code><code class="descname">get_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.BaseCommand.get_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Django version, which should be correct for all built-in Django
+commands. User-supplied commands can override this method to return their
+own version.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="django.core.management.BaseCommand.execute">
+<code class="descclassname">BaseCommand.</code><code class="descname">execute</code><span class="sig-paren">(</span><em>*args</em>, <em>**options</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.BaseCommand.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tries to execute this command, performing system checks if needed (as
+controlled by the <a class="reference internal" href="#django.core.management.BaseCommand.requires_system_checks" title="django.core.management.BaseCommand.requires_system_checks"><code class="xref py py-attr docutils literal"><span class="pre">requires_system_checks</span></code></a> attribute). If the command
+raises a <a class="reference internal" href="#django.core.management.CommandError" title="django.core.management.CommandError"><code class="xref py py-class docutils literal"><span class="pre">CommandError</span></code></a>, it&#8217;s intercepted and printed to stderr.</p>
+</dd></dl>
+
+<div class="admonition-calling-a-management-command-in-your-code admonition">
+<p class="first admonition-title">Calling a management command in your code</p>
+<p class="last"><code class="docutils literal"><span class="pre">execute()</span></code> should not be called directly from your code to execute a
+command. Use call_command  instead.</p>
+</div>
+<dl class="method">
+<dt id="django.core.management.BaseCommand.handle">
+<code class="descclassname">BaseCommand.</code><code class="descname">handle</code><span class="sig-paren">(</span><em>*args</em>, <em>**options</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.BaseCommand.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>The actual logic of the command. Subclasses must implement this method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="django.core.management.BaseCommand.check">
+<code class="descclassname">BaseCommand.</code><code class="descname">check</code><span class="sig-paren">(</span><em>app_configs=None</em>, <em>tags=None</em>, <em>display_num_errors=False</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.BaseCommand.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the system check framework to inspect the entire Django project for
+potential problems. Serious problems are raised as a <a class="reference internal" href="#django.core.management.CommandError" title="django.core.management.CommandError"><code class="xref py py-class docutils literal"><span class="pre">CommandError</span></code></a>;
+warnings are output to stderr; minor notifications are output to stdout.</p>
+<p>If <code class="docutils literal"><span class="pre">app_configs</span></code> and <code class="docutils literal"><span class="pre">tags</span></code> are both <code class="docutils literal"><span class="pre">None</span></code>, all system checks are
+performed. <code class="docutils literal"><span class="pre">tags</span></code> can be a list of check tags, like <code class="docutils literal"><span class="pre">compatibility</span></code> or
+<code class="docutils literal"><span class="pre">models</span></code>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="basecommand-subclasses">
+<span id="ref-basecommand-subclasses"></span><h3>BaseCommand subclasses<a class="headerlink" href="#basecommand-subclasses" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="django.core.management.AppCommand">
+<em class="property">class </em><code class="descclassname">django.core.management.</code><code class="descname">AppCommand</code><a class="headerlink" href="#django.core.management.AppCommand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>A management command which takes one or more installed application labels as
+arguments, and does something with each of them.</p>
+<p>Rather than implementing <a class="reference internal" href="#django.core.management.BaseCommand.handle" title="django.core.management.BaseCommand.handle"><code class="xref py py-meth docutils literal"><span class="pre">handle()</span></code></a>, subclasses must
+implement <a class="reference internal" href="#django.core.management.AppCommand.handle_app_config" title="django.core.management.AppCommand.handle_app_config"><code class="xref py py-meth docutils literal"><span class="pre">handle_app_config()</span></code></a>, which will be called once for
+each application.</p>
+<dl class="method">
+<dt id="django.core.management.AppCommand.handle_app_config">
+<code class="descclassname">AppCommand.</code><code class="descname">handle_app_config</code><span class="sig-paren">(</span><em>app_config</em>, <em>**options</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.AppCommand.handle_app_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the command&#8217;s actions for <code class="docutils literal"><span class="pre">app_config</span></code>, which will be an
+<code class="xref py py-class docutils literal"><span class="pre">AppConfig</span></code> instance corresponding to an application
+label given on the command line.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="django.core.management.LabelCommand">
+<em class="property">class </em><code class="descclassname">django.core.management.</code><code class="descname">LabelCommand</code><a class="headerlink" href="#django.core.management.LabelCommand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>A management command which takes one or more arbitrary arguments (labels) on
+the command line, and does something with each of them.</p>
+<p>Rather than implementing <a class="reference internal" href="#django.core.management.BaseCommand.handle" title="django.core.management.BaseCommand.handle"><code class="xref py py-meth docutils literal"><span class="pre">handle()</span></code></a>, subclasses must implement
+<a class="reference internal" href="#django.core.management.LabelCommand.handle_label" title="django.core.management.LabelCommand.handle_label"><code class="xref py py-meth docutils literal"><span class="pre">handle_label()</span></code></a>, which will be called once for each label.</p>
+<dl class="method">
+<dt id="django.core.management.LabelCommand.handle_label">
+<code class="descclassname">LabelCommand.</code><code class="descname">handle_label</code><span class="sig-paren">(</span><em>label</em>, <em>**options</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.LabelCommand.handle_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the command&#8217;s actions for <code class="docutils literal"><span class="pre">label</span></code>, which will be the string as
+given on the command line.</p>
+</dd></dl>
+
+<p>A command which takes no arguments on the command line.</p>
+<p>Rather than implementing <a class="reference internal" href="#django.core.management.BaseCommand.handle" title="django.core.management.BaseCommand.handle"><code class="xref py py-meth docutils literal"><span class="pre">handle()</span></code></a>, subclasses must implement
+<a class="reference internal" href="#django.core.management.NoArgsCommand.handle_noargs" title="django.core.management.NoArgsCommand.handle_noargs"><code class="xref py py-meth docutils literal"><span class="pre">handle_noargs()</span></code></a>; <a class="reference internal" href="#django.core.management.BaseCommand.handle" title="django.core.management.BaseCommand.handle"><code class="xref py py-meth docutils literal"><span class="pre">handle()</span></code></a> itself is
+overridden to ensure no arguments are passed to the command.</p>
+<dl class="method">
+<dt id="django.core.management.NoArgsCommand.handle_noargs">
+<code class="descclassname">NoArgsCommand.</code><code class="descname">handle_noargs</code><span class="sig-paren">(</span><em>**options</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.management.NoArgsCommand.handle_noargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform this command&#8217;s actions</p>
+</dd></dl>
+
+</div>
+<div class="section" id="command-exceptions">
+<span id="ref-command-exceptions"></span><h3>Command exceptions<a class="headerlink" href="#command-exceptions" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="django.core.management.CommandError">
+<em class="property">class </em><code class="descclassname">django.core.management.</code><code class="descname">CommandError</code><a class="headerlink" href="#django.core.management.CommandError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Exception class indicating a problem while executing a management command.</p>
+<p>If this exception is raised during the execution of a management command from a
+command line console, it will be caught and turned into a nicely-printed error
+message to the appropriate output stream (i.e., stderr); as a result, raising
+this exception (with a sensible description of the error) is the preferred way
+to indicate that something has gone wrong in the execution of a command.</p>
+<p>If a management command is called from code through call_command
+, it&#8217;s up to you to catch the exception when needed.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Appendix F: The django-admin Utility</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#getting-runtime-help">Getting runtime help</a></li>
+<li><a class="reference internal" href="#app-names">App names</a></li>
+<li><a class="reference internal" href="#determining-the-version">Determining the version</a></li>
+<li><a class="reference internal" href="#displaying-debug-output">Displaying debug output</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#available-commands">Available commands</a><ul>
+<li><a class="reference internal" href="#check-appname-appname">check &lt;appname appname ...&gt;</a></li>
+<li><a class="reference internal" href="#compilemessages">compilemessages</a></li>
+<li><a class="reference internal" href="#createcachetable">createcachetable</a></li>
+<li><a class="reference internal" href="#dbshell">dbshell</a></li>
+<li><a class="reference internal" href="#diffsettings">diffsettings</a></li>
+<li><a class="reference internal" href="#dumpdata-app-label-app-label-app-label-model">dumpdata &lt;app_label app_label app_label.Model ...&gt;</a></li>
+<li><a class="reference internal" href="#flush">flush</a></li>
+<li><a class="reference internal" href="#inspectdb">inspectdb</a></li>
+<li><a class="reference internal" href="#loaddata-fixture-fixture">loaddata &lt;fixture fixture ...&gt;</a><ul>
+<li><a class="reference internal" href="#what-s-a-fixture">What&#8217;s a &#8220;fixture&#8221;?</a></li>
+<li><a class="reference internal" href="#compressed-fixtures">Compressed fixtures</a></li>
+<li><a class="reference internal" href="#database-specific-fixtures">Database-specific fixtures</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#makemessages">makemessages</a></li>
+<li><a class="reference internal" href="#makemigrations-app-label">makemigrations [&lt;app_label&gt;]</a></li>
+<li><a class="reference internal" href="#migrate-app-label-migrationname">migrate [&lt;app_label&gt; [&lt;migrationname&gt;]]</a></li>
+<li><a class="reference internal" href="#runserver-port-or-address-port">runserver [port or address:port]</a><ul>
+<li><a class="reference internal" href="#examples-of-using-different-ports-and-addresses">Examples of using different ports and addresses</a></li>
+<li><a class="reference internal" href="#serving-static-files-with-the-development-server">Serving static files with the development server</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#showmigrations-app-label-app-label">showmigrations [&lt;app_label&gt; [&lt;app_label&gt;]]</a></li>
+<li><a class="reference internal" href="#sqlflush">sqlflush</a></li>
+<li><a class="reference internal" href="#sqlmigrate-app-label-migrationname">sqlmigrate &lt;app_label&gt; &lt;migrationname&gt;</a></li>
+<li><a class="reference internal" href="#sqlsequencereset-app-label-app-label">sqlsequencereset &lt;app_label app_label ...&gt;</a></li>
+<li><a class="reference internal" href="#squashmigrations-app-label-migration-name">squashmigrations &lt;app_label&gt; &lt;migration_name&gt;</a></li>
+<li><a class="reference internal" href="#startapp-app-label-destination">startapp &lt;app_label&gt; [destination]</a></li>
+<li><a class="reference internal" href="#startproject-projectname-destination">startproject &lt;projectname&gt; [destination]</a></li>
+<li><a class="reference internal" href="#test-app-or-test-identifier">test &lt;app or test identifier&gt;</a></li>
+<li><a class="reference internal" href="#testserver-fixture-fixture">testserver &lt;fixture fixture ...&gt;</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#commands-provided-by-applications">Commands provided by applications</a><ul>
+<li><a class="reference internal" href="#django-contrib-auth"><code class="docutils literal"><span class="pre">django.contrib.auth</span></code></a><ul>
+<li><a class="reference internal" href="#changepassword">changepassword</a></li>
+<li><a class="reference internal" href="#createsuperuser">createsuperuser</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#django-contrib-gis"><code class="docutils literal"><span class="pre">django.contrib.gis</span></code></a><ul>
+<li><a class="reference internal" href="#ogrinspect">ogrinspect</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#django-contrib-sessions"><code class="docutils literal"><span class="pre">django.contrib.sessions</span></code></a><ul>
+<li><a class="reference internal" href="#clearsessions">clearsessions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#django-contrib-sitemaps"><code class="docutils literal"><span class="pre">django.contrib.sitemaps</span></code></a><ul>
+<li><a class="reference internal" href="#ping-google">ping_google</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#django-contrib-staticfiles"><code class="docutils literal"><span class="pre">django.contrib.staticfiles</span></code></a><ul>
+<li><a class="reference internal" href="#collectstatic">collectstatic</a></li>
+<li><a class="reference internal" href="#findstatic">findstatic</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#default-options">Default options</a></li>
+<li><a class="reference internal" href="#common-options">Common options</a></li>
+<li><a class="reference internal" href="#extra-niceties">Extra niceties</a><ul>
+<li><a class="reference internal" href="#syntax-coloring">Syntax coloring</a></li>
+<li><a class="reference internal" href="#bash-completion">Bash completion</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#running-management-commands-from-your-code">Running management commands from your code</a><ul>
+<li><a class="reference internal" href="#output-redirection">Output redirection</a></li>
+<li><a class="reference internal" href="#module-django.core.management">Writing custom django-admin commands</a></li>
+<li><a class="reference internal" href="#accepting-optional-arguments">Accepting optional arguments</a></li>
+<li><a class="reference internal" href="#management-commands-and-locales">Management commands and locales</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#command-objects">Command objects</a><ul>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#basecommand-subclasses">BaseCommand subclasses</a></li>
+<li><a class="reference internal" href="#command-exceptions">Command exceptions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="appendix_E.html" title="previous chapter">Appendix E: Built-in Template Tags and Filters</a></li>
+      <li>Next: <a href="appendix_G.html" title="next chapter">Appendix G: Request and Response Objects</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/appendix_F.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/appendix_F.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

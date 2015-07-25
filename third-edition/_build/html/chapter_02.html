@@ -1,0 +1,979 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Chapter 2: Views and URLconfs &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Chapter 3: Templates" href="chapter_03.html" />
+    <link rel="prev" title="Chapter 1: Getting Started" href="chapter_01.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="chapter-2-views-and-urlconfs">
+<h1>Chapter 2: Views and URLconfs<a class="headerlink" href="#chapter-2-views-and-urlconfs" title="Permalink to this headline">¶</a></h1>
+<p>In the previous chapter, we explained how to set up a Django project and run the
+Django development server. In this chapter, you&#8217;ll learn the basics of creating
+dynamic Web pages with Django.</p>
+<div class="section" id="your-first-django-powered-page-hello-world">
+<h2>Your First Django-Powered Page: Hello World<a class="headerlink" href="#your-first-django-powered-page-hello-world" title="Permalink to this headline">¶</a></h2>
+<p>As our first goal, let&#8217;s create a Web page that outputs that famous example
+message: &#8220;Hello world.&#8221;</p>
+<p>If you were publishing a simple &#8220;Hello world&#8221; Web page without a Web framework,
+you&#8217;d simply type &#8220;Hello world&#8221; into a text file, call it <code class="docutils literal"><span class="pre">hello.html</span></code>,
+and upload it to a directory on a Web server somewhere. Notice, in that
+process, you&#8217;ve specified two key pieces of information about that Web page:
+its contents (the string <code class="docutils literal"><span class="pre">&quot;Hello</span> <span class="pre">world&quot;</span></code>) and its URL (
+<code class="docutils literal"><span class="pre">http://www.example.com/hello.html</span></code>, or maybe <code class="docutils literal"><span class="pre">http://www.example.com/files/hello.html</span></code>
+if you put it in a subdirectory).</p>
+<p>With Django, you specify those same two things, but in a different way. The
+contents of the page are produced by a <em>view function</em>, and the URL is
+specified in a <em>URLconf</em>. First, let&#8217;s write our &#8220;Hello world&#8221; view function.</p>
+<div class="section" id="your-first-view">
+<h3>Your First View<a class="headerlink" href="#your-first-view" title="Permalink to this headline">¶</a></h3>
+<p>Within the <code class="docutils literal"><span class="pre">mysite</span></code> directory that <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">startproject</span></code> made in
+the last chapter, create an empty file called <code class="docutils literal"><span class="pre">views.py</span></code>. This Python module
+will contain our views for this chapter. Note that there&#8217;s nothing special
+about the name <code class="docutils literal"><span class="pre">views.py</span></code> &#8211; Django doesn&#8217;t care what the file is called, as
+you&#8217;ll see in a bit &#8211; but it&#8217;s a good idea to call it <code class="docutils literal"><span class="pre">views.py</span></code> as a
+convention, for the benefit of other developers reading your code.</p>
+<p>Our &#8220;Hello world&#8221; view is simple. Here&#8217;s the entire function, plus import
+statements, which you should type into the <code class="docutils literal"><span class="pre">views.py</span></code> file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="s">&quot;Hello world&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let&#8217;s step through this code one line at a time:</p>
+<ul>
+<li><p class="first">First, we import the class <code class="docutils literal"><span class="pre">HttpResponse</span></code>, which lives in the
+<code class="docutils literal"><span class="pre">django.http</span></code> module. We need to import this class because it&#8217;s used
+later in our code.</p>
+</li>
+<li><p class="first">Next, we define a function called <code class="docutils literal"><span class="pre">hello</span></code> &#8211; the view function.</p>
+<p>Each view function takes at least one parameter, called <code class="docutils literal"><span class="pre">request</span></code> by
+convention. This is an object that contains information about the
+current Web request that has triggered this view, and it&#8217;s an instance of
+the class <code class="docutils literal"><span class="pre">django.http.HttpRequest</span></code>. In this example, we don&#8217;t do
+anything with <code class="docutils literal"><span class="pre">request</span></code>, but it must be the first parameter of the view
+nonetheless.</p>
+<p>Note that the name of the view function doesn&#8217;t matter; it doesn&#8217;t have
+to be named in a certain way in order for Django to recognize it. We&#8217;re
+calling it <code class="docutils literal"><span class="pre">hello</span></code> here, because that name clearly indicates the gist
+of the view, but it could just as well be named
+<code class="docutils literal"><span class="pre">hello_wonderful_beautiful_world</span></code>, or something equally revolting. The
+next section, &#8220;Your First URLconf&#8221;, will shed light on how Django finds
+this function.</p>
+</li>
+<li><p class="first">The function is a simple one-liner: it merely returns an <code class="docutils literal"><span class="pre">HttpResponse</span></code>
+object that has been instantiated with the text <code class="docutils literal"><span class="pre">&quot;Hello</span> <span class="pre">world&quot;</span></code>.</p>
+</li>
+</ul>
+<p>The main lesson here is this: a view is just a Python function that takes an
+<code class="docutils literal"><span class="pre">HttpRequest</span></code> as its first parameter and returns an instance of
+<code class="docutils literal"><span class="pre">HttpResponse</span></code>. In order for a Python function to be a Django view, it must
+do these two things. (There are exceptions, but we&#8217;ll get to those later.)</p>
+</div>
+<div class="section" id="your-first-urlconf">
+<h3>Your First URLconf<a class="headerlink" href="#your-first-urlconf" title="Permalink to this headline">¶</a></h3>
+<p>If, at this point, you ran <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">runserver</span></code> again, you&#8217;d still
+see the &#8220;Welcome to Django&#8221; message, with no trace of our &#8220;Hello world&#8221; view
+anywhere. That&#8217;s because our <code class="docutils literal"><span class="pre">mysite</span></code> project doesn&#8217;t yet know about the
+<code class="docutils literal"><span class="pre">hello</span></code> view; we need to tell Django explicitly that we&#8217;re activating this
+view at a particular URL. (Continuing our previous analogy of publishing
+static HTML files, at this point we&#8217;ve created the HTML file but haven&#8217;t
+uploaded it to a directory on the server yet.) To hook a view function to a
+particular URL with Django, use a URLconf.</p>
+<p>A <em>URLconf</em> is like a table of contents for your Django-powered Web site.
+Basically, it&#8217;s a mapping between URLs and the view functions that
+should be called for those URLs. It&#8217;s how you tell Django, &#8220;For this
+URL, call this code, and for that URL, call that code.&#8221; For example, &#8220;When
+somebody visits the URL <code class="docutils literal"><span class="pre">/foo/</span></code>, call the view function <code class="docutils literal"><span class="pre">foo_view()</span></code>, which
+lives in the Python module <code class="docutils literal"><span class="pre">views.py</span></code>.&#8221;</p>
+<p>When you executed <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">startproject</span></code> in the previous chapter, the
+script created a URLconf for you automatically: the file <code class="docutils literal"><span class="pre">urls.py</span></code>. By
+default, it looks something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;mysite URL Configuration</span>
+
+<span class="sd">The `urlpatterns` list routes URLs to views. For more information please see:</span>
+<span class="sd">    https://docs.djangoproject.com/en/1.8/topics/http/urls/</span>
+<span class="sd">Examples:</span>
+<span class="sd">Function views</span>
+<span class="sd">    1. Add an import:  from my_app import views</span>
+<span class="sd">    2. Add a URL to urlpatterns:  url(r&#39;^$&#39;, views.home, name=&#39;home&#39;)</span>
+<span class="sd">Class-based views</span>
+<span class="sd">    1. Add an import:  from other_app.views import Home</span>
+<span class="sd">    2. Add a URL to urlpatterns:  url(r&#39;^$&#39;, Home.as_view(), name=&#39;home&#39;)</span>
+<span class="sd">Including another URLconf</span>
+<span class="sd">    1. Add an import:  from blog import urls as blog_urls</span>
+<span class="sd">    2. Add a URL to urlpatterns:  url(r&#39;^blog/&#39;, include(blog_urls))</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">django.conf.urls</span> <span class="kn">import</span> <span class="n">include</span><span class="p">,</span> <span class="n">url</span>
+<span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^admin/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">)),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>If we ignore the documentation comments at the top of the file, here&#8217;s the essence of a URLconf:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.conf.urls</span> <span class="kn">import</span> <span class="n">include</span><span class="p">,</span> <span class="n">url</span>
+<span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^admin/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">)),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Let&#8217;s step through this code one line at a time:</p>
+<ul class="simple">
+<li>The first line imports two functions from the <code class="docutils literal"><span class="pre">django.conf.urls</span></code>
+module: <code class="docutils literal"><span class="pre">include</span></code> which allows you to include a full Python import path to
+another URLconf module, and <code class="docutils literal"><span class="pre">url</span></code> which uses a regular expression to
+pattern match the URL in your browser to a module in your Django project.</li>
+<li>The second line calls the function <code class="docutils literal"><span class="pre">admin</span></code> from the <code class="docutils literal"><span class="pre">django.contrib</span></code>
+module. This function is called by the <code class="docutils literal"><span class="pre">include</span></code> function to load the URLs
+for the Django admin site.</li>
+<li>The third line is <code class="docutils literal"><span class="pre">urlpatterns</span></code> - a simple list of <code class="docutils literal"><span class="pre">url()</span></code> instances.</li>
+</ul>
+<p>The main thing to note here is the variable <code class="docutils literal"><span class="pre">urlpatterns</span></code>, which Django
+expects to find in your URLconf module. This variable defines the mapping
+between URLs and the code that handles those URLs.</p>
+<p>To add a URL and view to the URLconf, just add a mapping between a URL
+pattern and the view function. Here&#8217;s how to hook in our <code class="docutils literal"><span class="pre">hello</span></code> view:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.conf.urls</span> <span class="kn">import</span> <span class="n">include</span><span class="p">,</span> <span class="n">url</span>
+<span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span> <span class="nn">mysite.views</span> <span class="kn">import</span> <span class="n">hello</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^admin/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">)),</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^hello/$&#39;</span><span class="p">,</span> <span class="n">hello</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>We made two changes here:</p>
+<ul class="simple">
+<li>First, we imported the <code class="docutils literal"><span class="pre">hello</span></code> view from its module &#8211;
+<code class="docutils literal"><span class="pre">mysite/views.py</span></code>, which translates into <code class="docutils literal"><span class="pre">mysite.views</span></code> in Python
+import syntax. (This assumes <code class="docutils literal"><span class="pre">mysite/views.py</span></code> is on your Python path;
+see the sidebar for details.)</li>
+<li>Next, we added the line <code class="docutils literal"><span class="pre">url(r'^hello/$',</span> <span class="pre">hello),</span></code> to <code class="docutils literal"><span class="pre">urlpatterns</span></code>. This
+line is referred to as a <em>URLpattern</em>. The <code class="docutils literal"><span class="pre">url()</span></code> function tells Django how
+to handle the url that you are configuring. The first argument is a
+pattern-matching string (a regular expression; more on this in a bit) and the
+second argument is the view function to use for that pattern. <code class="docutils literal"><span class="pre">url()</span></code> can
+take other optional arguments as well, which we&#8217;ll cover in more depth in
+Chapter 7.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">One more important detail we&#8217;ve introduced here is that <code class="docutils literal"><span class="pre">r</span></code> character in
+front of the regular expression string. This tells Python that the string is a
+&#8220;raw string&#8221; &#8211; its contents should not interpret backslashes. In normal
+Python strings, backslashes are used for escaping special characters &#8211; such
+as in the string <code class="docutils literal"><span class="pre">'\n'</span></code>, which is a one-character string containing a
+newline. When you add the <code class="docutils literal"><span class="pre">r</span></code> to make it a raw string, Python does not apply
+its backslash escaping &#8211; so, <code class="docutils literal"><span class="pre">r'\n'</span></code> is a two-character string containing a
+literal backslash and a lowercase &#8220;n&#8221;. There&#8217;s a natural collision between
+Python&#8217;s usage of backslashes and the backslashes that are found in regular
+expressions, so it&#8217;s strongly suggested that you use raw strings any time
+you&#8217;re defining a regular expression in Python. All of the URLpatterns in this
+book will be raw strings.</p>
+</div>
+<p>In a nutshell, we just told Django that any request to the URL <code class="docutils literal"><span class="pre">/hello/</span></code> should
+be handled by the <code class="docutils literal"><span class="pre">hello</span></code> view function.</p>
+<div class="admonition-your-python-path admonition">
+<p class="first admonition-title">Your Python Path</p>
+<p>Your <em>Python path</em> is the list of directories on your system where Python
+looks when you use the Python <code class="docutils literal"><span class="pre">import</span></code> statement.</p>
+<p>For example, let&#8217;s say your Python path is set to <code class="docutils literal"><span class="pre">['',</span>
+<span class="pre">'/usr/lib/python3.4/site-packages',</span> <span class="pre">'/home/username/djcode']</span></code>. If you
+execute the Python statement <code class="docutils literal"><span class="pre">from</span> <span class="pre">foo</span> <span class="pre">import</span> <span class="pre">bar</span></code>, Python will look for
+a module called <code class="docutils literal"><span class="pre">foo.py</span></code> in the current directory. (The first entry in the
+Python path, an empty string, means &#8220;the current directory.&#8221;) If that file
+doesn&#8217;t exist, Python will look for the file
+<code class="docutils literal"><span class="pre">/usr/lib/python3.4/site-packages/foo.py</span></code>. If that file doesn&#8217;t exist, it
+will try <code class="docutils literal"><span class="pre">/home/username/djcode/foo.py</span></code>. Finally, if <em>that</em> file doesn&#8217;t
+exist, it will raise <code class="docutils literal"><span class="pre">ImportError</span></code>.</p>
+<p>If you&#8217;re interested in seeing the value of your Python path, start the
+Python interactive interpreter and type this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="last">Generally you don&#8217;t have to worry about setting your Python path &#8211; Python
+and Django take care of things for you automatically behind the scenes.
+(Setting the Python path is one of the things that the <code class="docutils literal"><span class="pre">manage.py</span></code> script
+does.)</p>
+</div>
+<p>It&#8217;s worth discussing the syntax of this URLpattern, as it may not be
+immediately obvious. Although we want to match the URL <code class="docutils literal"><span class="pre">/hello/</span></code>, the pattern
+looks a bit different than that. Here&#8217;s why:</p>
+<ul>
+<li><p class="first">Django removes the slash from the front of every incoming URL before it
+checks the URLpatterns. This means that our URLpattern doesn&#8217;t include
+the leading slash in <code class="docutils literal"><span class="pre">/hello/</span></code>. (At first, this may seem unintuitive,
+but this requirement simplifies things &#8211; such as the inclusion of
+URLconfs within other URLconfs, which we&#8217;ll cover in Chapter 7.)</p>
+</li>
+<li><p class="first">The pattern includes a caret (<code class="docutils literal"><span class="pre">^</span></code>) and a dollar sign (<code class="docutils literal"><span class="pre">$</span></code>). These are
+regular expression characters that have a special meaning: the caret
+means &#8220;require that the pattern matches the start of the string,&#8221; and the
+dollar sign means &#8220;require that the pattern matches the end of the
+string.&#8221;</p>
+<p>This concept is best explained by example. If we had instead used the
+pattern <code class="docutils literal"><span class="pre">'^hello/'</span></code> (without a dollar sign at the end), then <em>any</em> URL
+starting with <code class="docutils literal"><span class="pre">/hello/</span></code> would match, such as <code class="docutils literal"><span class="pre">/hello/foo</span></code> and
+<code class="docutils literal"><span class="pre">/hello/bar</span></code>, not just <code class="docutils literal"><span class="pre">/hello/</span></code>. Similarly, if we had left off the
+initial caret character (i.e., <code class="docutils literal"><span class="pre">'hello/$'</span></code>), Django would match <em>any</em>
+URL that ends with <code class="docutils literal"><span class="pre">hello/</span></code>, such as <code class="docutils literal"><span class="pre">/foo/bar/hello/</span></code>. If we had
+simply used <code class="docutils literal"><span class="pre">hello/</span></code>, without a caret <em>or</em> dollar sign, then any URL
+containing <code class="docutils literal"><span class="pre">hello/</span></code> would match, such as <code class="docutils literal"><span class="pre">/foo/hello/bar</span></code>. Thus, we
+use both the caret and dollar sign to ensure that only the URL
+<code class="docutils literal"><span class="pre">/hello/</span></code> matches &#8211; nothing more, nothing less.</p>
+<p>Most of your URLpatterns will start with carets and end with dollar
+signs, but it&#8217;s nice to have the flexibility to perform more
+sophisticated matches.</p>
+<p>You may be wondering what happens if someone requests the URL <code class="docutils literal"><span class="pre">/hello</span></code>
+(that is, <em>without</em> a trailing slash). Because our URLpattern requires a
+trailing slash, that URL would <em>not</em> match. However, by default, any
+request to a URL that <em>doesn&#8217;t</em> match a URLpattern and <em>doesn&#8217;t</em> end with
+a slash will be redirected to the same URL with a trailing slash. (This
+is regulated by the <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code> Django setting, which is covered in
+Appendix D.)</p>
+<p>If you&#8217;re the type of person who likes all URLs to end with slashes
+(which is the preference of Django&#8217;s developers), all you&#8217;ll need to do
+is add a trailing slash to each URLpattern and leave <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code> set
+to <code class="docutils literal"><span class="pre">True</span></code>. If you prefer your URLs <em>not</em> to have trailing slashes, or
+if you want to decide it on a per-URL basis, set <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code> to
+<code class="docutils literal"><span class="pre">False</span></code> and put trailing slashes in your URLpatterns as you see fit.</p>
+</li>
+</ul>
+<p>The other thing to note about this URLconf is that we&#8217;ve passed the
+<code class="docutils literal"><span class="pre">hello</span></code> view function as an object without calling the function. This is a
+key feature of Python (and other dynamic languages): functions are first-class
+objects, which means you can pass them around just like any other variables.
+Cool stuff, eh?</p>
+<p>To test our changes to the URLconf, start the Django development server, as you
+did in Chapter 2, by running the command <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">runserver</span></code>. (If you
+left it running, that&#8217;s fine, too. The development server automatically detects
+changes to your Python code and reloads as necessary, so you don&#8217;t have to
+restart the server between changes.) The server is running at the address
+<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/</span></code>, so open up a Web browser and go to
+<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/hello/</span></code>. You should see the text &#8220;Hello world&#8221; &#8211; the
+output of your Django view.</p>
+<div class="figure" id="id1">
+<img alt="_images/helloworld.png" src="_images/helloworld.png" />
+<p class="caption"><span class="caption-text">Figure 2-1. Hooray! Your first Django-powered Web page.</span></p>
+</div>
+<div class="admonition-regular-expressions admonition">
+<p class="first admonition-title">Regular Expressions</p>
+<p><em>Regular expressions</em> (or <em>regexes</em>) are a compact way of specifying
+patterns in text. While Django URLconfs allow arbitrary regexes for
+powerful URL matching, you&#8217;ll probably only use a few regex symbols in
+practice. Here&#8217;s a selection of common symbols:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Symbol</th>
+<th class="head">Matches</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">.</span></code> (dot)</td>
+<td>Any single character</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\d</span></code></td>
+<td>Any single digit</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">[A-Z]</span></code></td>
+<td>Any character between <code class="docutils literal"><span class="pre">A</span></code> and <code class="docutils literal"><span class="pre">Z</span></code> (uppercase)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">[a-z]</span></code></td>
+<td>Any character between <code class="docutils literal"><span class="pre">a</span></code> and <code class="docutils literal"><span class="pre">z</span></code> (lowercase)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">[A-Za-z]</span></code></td>
+<td>Any character between <code class="docutils literal"><span class="pre">a</span></code> and <code class="docutils literal"><span class="pre">z</span></code> (case-insensitive)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">+</span></code></td>
+<td>One or more of the previous expression (e.g., <code class="docutils literal"><span class="pre">\d+</span></code>
+matches one or more digits)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">[^/]+</span></code></td>
+<td>One or more characters until (and not including) a
+forward slash</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">?</span></code></td>
+<td>Zero or one of the previous expression (e.g., <code class="docutils literal"><span class="pre">\d?</span></code>
+matches zero or one digits)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">*</span></code></td>
+<td>Zero or more of the previous expression (e.g., <code class="docutils literal"><span class="pre">\d*</span></code>
+matches zero, one or more than one digit)</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">{1,3}</span></code></td>
+<td>Between one and three (inclusive) of the previous
+expression (e.g., <code class="docutils literal"><span class="pre">\d{1,3}</span></code> matches one, two or three
+digits)</td>
+</tr>
+</tbody>
+</table>
+<blockquote class="last">
+<div>For more on regular expressions, see
+<a class="reference external" href="https://docs.python.org/3.4/library/re.html">https://docs.python.org/3.4/library/re.html</a>.</div></blockquote>
+</div>
+</div>
+<div class="section" id="a-quick-note-about-404-errors">
+<h3>A Quick Note About 404 Errors<a class="headerlink" href="#a-quick-note-about-404-errors" title="Permalink to this headline">¶</a></h3>
+<p>At this point, our URLconf defines only a single URLpattern: the one that
+handles requests to the URL <code class="docutils literal"><span class="pre">/hello/</span></code>. What happens when you request a
+different URL?</p>
+<p>To find out, try running the Django development server and visiting a page such
+as <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/goodbye/</span></code> or
+<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/hello/subdirectory/</span></code>, or even <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/</span></code>
+(the site &#8220;root&#8221;). You should see a &#8220;Page not found&#8221; message (see Figure 3-1).
+Django displays this message because you requested a URL that&#8217;s not defined in
+your URLconf.</p>
+<div class="figure" id="id2">
+<img alt="_images/404.png" src="_images/404.png" />
+<p class="caption"><span class="caption-text">Figure 2-2. Django&#8217;s 404 page</span></p>
+</div>
+<p>The utility of this page goes beyond the basic 404 error message. It also tells
+you precisely which URLconf Django used and every pattern in that URLconf. From
+that information, you should be able to tell why the requested URL threw a 404.</p>
+<p>Naturally, this is sensitive information intended only for you, the Web
+developer. If this were a production site deployed live on the Internet, you
+wouldn&#8217;t want to expose that information to the public. For that reason, this
+&#8220;Page not found&#8221; page is only displayed if your Django project is in <em>debug
+mode</em>. We&#8217;ll explain how to deactivate debug mode later. For now, just know
+that every Django project is in debug mode when you first create it, and if the
+project is not in debug mode, Django outputs a different 404 response.</p>
+</div>
+<div class="section" id="a-quick-note-about-the-site-root">
+<h3>A Quick Note About The Site Root<a class="headerlink" href="#a-quick-note-about-the-site-root" title="Permalink to this headline">¶</a></h3>
+<p>As explained in the last section, you&#8217;ll see a 404 error message if you view
+the site root &#8211; <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/</span></code>. Django doesn&#8217;t magically add
+anything to the site root; that URL is not special-cased in any way. It&#8217;s up to
+you to assign it to a URLpattern, just like every other entry in your URLconf.</p>
+<p>The URLpattern to match the site root is a bit unintuitive, though, so it&#8217;s
+worth mentioning. When you&#8217;re ready to implement a view for the site root, use
+the URLpattern <code class="docutils literal"><span class="pre">'^$'</span></code>, which matches an empty string. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">mysite.views</span> <span class="kn">import</span> <span class="n">hello</span><span class="p">,</span> <span class="n">my_homepage_view</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^$&#39;</span><span class="p">,</span> <span class="n">my_homepage_view</span><span class="p">),</span>
+    <span class="c"># ...</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="how-django-processes-a-request">
+<h2>How Django Processes a Request<a class="headerlink" href="#how-django-processes-a-request" title="Permalink to this headline">¶</a></h2>
+<p>Before continuing to our second view function, let&#8217;s pause to learn a little
+more about how Django works. Specifically, when you view your &#8220;Hello world&#8221;
+message by visiting <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/hello/</span></code> in your Web browser, what
+does Django do behind the scenes?</p>
+<p>It all starts with the <em>settings file</em>. When you run <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span>
+<span class="pre">runserver</span></code>, the script looks for a file called <code class="docutils literal"><span class="pre">settings.py</span></code> in the inner
+<code class="docutils literal"><span class="pre">mysite</span></code> directory. This file contains all sorts of configuration for this
+particular Django project, all in uppercase: <code class="docutils literal"><span class="pre">TEMPLATE_DIRS</span></code>, <code class="docutils literal"><span class="pre">DATABASES</span></code>,
+etc. The most important setting is called <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code>. <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code>
+tells Django which Python module should be used as the URLconf for this Web
+site.</p>
+<p>Remember when <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">startproject</span></code> created the files
+<code class="docutils literal"><span class="pre">settings.py</span></code> and <code class="docutils literal"><span class="pre">urls.py</span></code>? The autogenerated <code class="docutils literal"><span class="pre">settings.py</span></code> contains a
+<code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code> setting that points to the autogenerated <code class="docutils literal"><span class="pre">urls.py</span></code>. Open the
+<code class="docutils literal"><span class="pre">settings.py</span></code> file and see for yourself; it should look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ROOT_URLCONF</span> <span class="o">=</span> <span class="s">&#39;mysite.urls&#39;</span>
+</pre></div>
+</div>
+<p>This corresponds to the file <code class="docutils literal"><span class="pre">mysite/urls.py</span></code>.</p>
+<p>When a request comes in for a particular URL &#8211; say, a request for <code class="docutils literal"><span class="pre">/hello/</span></code>
+&#8211; Django loads the URLconf pointed to by the <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code> setting. Then it
+checks each of the URLpatterns in that URLconf, in order, comparing the
+requested URL with the patterns one at a time, until it finds one that matches.
+When it finds one that matches, it calls the view function associated with that
+pattern, passing it an <code class="docutils literal"><span class="pre">HttpRequest</span></code> object as the first parameter. (We&#8217;ll
+cover the specifics of <code class="docutils literal"><span class="pre">HttpRequest</span></code> later.)</p>
+<p>As we saw in our first view example, a view function must return an
+<code class="docutils literal"><span class="pre">HttpResponse</span></code>. Once it does this, Django does the rest, converting the
+Python object to a proper Web response with the appropriate HTTP headers and
+body (i.e., the content of the Web page).</p>
+<p>In summary:</p>
+<ol class="arabic simple">
+<li>A request comes in to <code class="docutils literal"><span class="pre">/hello/</span></code>.</li>
+<li>Django determines the root URLconf by looking at the <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code>
+setting.</li>
+<li>Django looks at all of the URLpatterns in the URLconf for the first one
+that matches <code class="docutils literal"><span class="pre">/hello/</span></code>.</li>
+<li>If it finds a match, it calls the associated view function.</li>
+<li>The view function returns an <code class="docutils literal"><span class="pre">HttpResponse</span></code>.</li>
+<li>Django converts the <code class="docutils literal"><span class="pre">HttpResponse</span></code> to the proper HTTP response, which
+results in a Web page.</li>
+</ol>
+<p>You now know the basics of how to make Django-powered pages. It&#8217;s quite simple,
+really &#8211; just write view functions and map them to URLs via URLconfs.</p>
+</div>
+<div class="section" id="your-second-view-dynamic-content">
+<h2>Your Second View: Dynamic Content<a class="headerlink" href="#your-second-view-dynamic-content" title="Permalink to this headline">¶</a></h2>
+<p>Our &#8220;Hello world&#8221; view was instructive in demonstrating the basics of how
+Django works, but it wasn&#8217;t an example of a <em>dynamic</em> Web page, because the
+content of the page are always the same. Every time you view <code class="docutils literal"><span class="pre">/hello/</span></code>,
+you&#8217;ll see the same thing; it might as well be a static HTML file.</p>
+<p>For our second view, let&#8217;s create something more dynamic &#8211; a Web page that
+displays the current date and time. This is a nice, simple next step, because
+it doesn&#8217;t involve a database or any user input &#8211; just the output of your
+server&#8217;s internal clock. It&#8217;s only marginally more exciting than &#8220;Hello world,&#8221;
+but it&#8217;ll demonstrate a few new concepts.</p>
+<p>This view needs to do two things: calculate the current date and time, and
+return an <code class="docutils literal"><span class="pre">HttpResponse</span></code> containing that value. If you have experience with
+Python, you know that Python includes a <code class="docutils literal"><span class="pre">datetime</span></code> module for calculating
+dates. Here&#8217;s how to use it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">now</span>
+<span class="go">datetime.datetime(2015, 7, 15, 18, 12, 39, 2731)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">now</span><span class="p">)</span>
+<span class="go">2015-07-15 18:12:39.002731</span>
+</pre></div>
+</div>
+<p>That&#8217;s simple enough, and it has nothing to do with Django. It&#8217;s just Python
+code. (We want to emphasize that you should be aware of what code is &#8220;just
+Python&#8221; vs. code that is Django-specific. As you learn Django, we want you to
+be able to apply your knowledge to other Python projects that don&#8217;t necessarily
+use Django.)</p>
+<p>To make a Django view that displays the current date and time, then, we just
+need to hook this <code class="docutils literal"><span class="pre">datetime.datetime.now()</span></code> statement into a view and return
+an <code class="docutils literal"><span class="pre">HttpResponse</span></code>. Here&#8217;s how that looks:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;html&gt;&lt;body&gt;It is now </span><span class="si">%s</span><span class="s">.&lt;/body&gt;&lt;/html&gt;&quot;</span> <span class="o">%</span> <span class="n">now</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As with our <code class="docutils literal"><span class="pre">hello</span></code> view function, this should live in <code class="docutils literal"><span class="pre">views.py</span></code>. Note
+that we&#8217;ve hidden the <code class="docutils literal"><span class="pre">hello</span></code> function from this example for brevity, but for
+the sake of completeness, here&#8217;s what the entire <code class="docutils literal"><span class="pre">views.py</span></code> looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="s">&quot;Hello world&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;html&gt;&lt;body&gt;It is now </span><span class="si">%s</span><span class="s">.&lt;/body&gt;&lt;/html&gt;&quot;</span> <span class="o">%</span> <span class="n">now</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let&#8217;s step through the changes we&#8217;ve made to <code class="docutils literal"><span class="pre">views.py</span></code> to accommodate
+the <code class="docutils literal"><span class="pre">current_datetime</span></code> view.</p>
+<ul class="simple">
+<li>We&#8217;ve added an <code class="docutils literal"><span class="pre">import</span> <span class="pre">datetime</span></code> to the top of the module, so we can
+calculate dates.</li>
+<li>The new <code class="docutils literal"><span class="pre">current_datetime</span></code> function calculates the current date and
+time, as a <code class="docutils literal"><span class="pre">datetime.datetime</span></code> object, and stores that as the local
+variable <code class="docutils literal"><span class="pre">now</span></code>.</li>
+<li>The second line of code within the view constructs an HTML response using
+Python&#8217;s &#8220;format-string&#8221; capability. The <code class="docutils literal"><span class="pre">%s</span></code> within the string is a
+placeholder, and the percent sign after the string means &#8220;Replace the
+<code class="docutils literal"><span class="pre">%s</span></code> in the preceding string with the value of the variable <code class="docutils literal"><span class="pre">now</span></code>.&#8221;
+The <code class="docutils literal"><span class="pre">now</span></code> variable is technically a <code class="docutils literal"><span class="pre">datetime.datetime</span></code> object, not
+a string, but the <code class="docutils literal"><span class="pre">%s</span></code> format character converts it to its string
+representation, which is something like <code class="docutils literal"><span class="pre">&quot;2008-12-13</span> <span class="pre">14:09:39.002731&quot;</span></code>.
+This will result in an HTML string such as
+<code class="docutils literal"><span class="pre">&quot;&lt;html&gt;&lt;body&gt;It</span> <span class="pre">is</span> <span class="pre">now</span> <span class="pre">2008-12-13</span> <span class="pre">14:09:39.002731.&lt;/body&gt;&lt;/html&gt;&quot;</span></code>.</li>
+<li>Finally, the view returns an <code class="docutils literal"><span class="pre">HttpResponse</span></code> object that contains the
+generated response &#8211; just as we did in <code class="docutils literal"><span class="pre">hello</span></code>.</li>
+</ul>
+<p>After adding that to <code class="docutils literal"><span class="pre">views.py</span></code>, add the URLpattern to <code class="docutils literal"><span class="pre">urls.py</span></code> to tell
+Django which URL should handle this view. Something like <code class="docutils literal"><span class="pre">/time/</span></code> would make
+sense:</p>
+<div class="highlight-python"><div class="highlight"><pre>from django.conf.urls import include, url
+from django.contrib import admin
+from mysite.views import hello, current_datetime
+
+    urlpatterns = [
+        url(r&#39;^admin/&#39;, include(admin.site.urls)),
+        url(r&#39;^hello/$&#39;, hello),
+        url(r&#39;^time/$&#39;, current_datetime),
+    ]
+</pre></div>
+</div>
+<p>We&#8217;ve made two changes here. First, we imported the <code class="docutils literal"><span class="pre">current_datetime</span></code>
+function at the top. Second, and more importantly, we added a URLpattern
+mapping the URL <code class="docutils literal"><span class="pre">/time/</span></code> to that new view. Getting the hang of this?</p>
+<p>With the view written and URLconf updated, fire up the <code class="docutils literal"><span class="pre">runserver</span></code> and visit
+<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/time/</span></code> in your browser. You should see the current
+date and time.</p>
+<div class="admonition-django-s-time-zone admonition">
+<p class="first admonition-title">Django&#8217;s Time Zone</p>
+<p class="last">Depending on your computer, the date and time may be a few hours off.
+That&#8217;s because Django is time zone-aware and defaults to the <code class="docutils literal"><span class="pre">UTC</span></code> time
+zone. If you live elsewhere, you&#8217;ll want to change it in <code class="docutils literal"><span class="pre">settings.py</span></code>.
+See the comment in that file for a link to an up-to-date list of worldwide
+time zone options.</p>
+</div>
+</div>
+<div class="section" id="urlconfs-and-loose-coupling">
+<h2>URLconfs and Loose Coupling<a class="headerlink" href="#urlconfs-and-loose-coupling" title="Permalink to this headline">¶</a></h2>
+<p>Now&#8217;s a good time to highlight a key philosophy behind URLconfs and behind
+Django in general: the principle of <em>loose coupling</em>. Simply put, loose coupling
+is a software-development approach that values the importance of making pieces
+interchangeable. If two pieces of code are loosely coupled, then changes made to
+one of the pieces will have little or no effect on the other.</p>
+<p>Django&#8217;s URLconfs are a good example of this principle in practice. In a Django
+web application, the URL definitions and the view functions they call are
+loosely coupled; that is, the decision of what the URL should be for a given
+function, and the implementation of the function itself, reside in two separate
+places. This lets you switch out one piece without affecting the other.</p>
+<p>For example, consider our <code class="docutils literal"><span class="pre">current_datetime</span></code> view. If we wanted to change the
+URL for the application &#8211; say, to move it from <code class="docutils literal"><span class="pre">/time/</span></code> to
+<code class="docutils literal"><span class="pre">/current-time/</span></code> &#8211; we could make a quick change to the URLconf, without
+having to worry about the view itself. Similarly, if we wanted to change the
+view function &#8211; altering its logic somehow &#8211; we could do that without
+affecting the URL to which the function is bound.</p>
+<p>Furthermore, if we wanted to expose the current-date functionality at
+<em>several</em> URLs, we could easily take care of that by editing the URLconf,
+without having to touch the view code. In this example, our
+<code class="docutils literal"><span class="pre">current_datetime</span></code> is available at two URLs. It&#8217;s a contrived example, but
+this technique can come in handy:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^admin/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">)),</span>
+      <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^hello/$&#39;</span><span class="p">,</span> <span class="n">hello</span><span class="p">),</span>
+      <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/$&#39;</span><span class="p">,</span> <span class="n">current_datetime</span><span class="p">),</span>
+      <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^another-time-page/$&#39;</span><span class="p">,</span> <span class="n">current_datetime</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>URLconfs and views are loose coupling in action. I&#8217;ll continue to point out
+examples of this important philosophy throughout this book.</p>
+</div>
+<div class="section" id="your-third-view-dynamic-urls">
+<h2>Your Third View: Dynamic URLs<a class="headerlink" href="#your-third-view-dynamic-urls" title="Permalink to this headline">¶</a></h2>
+<p>In our <code class="docutils literal"><span class="pre">current_datetime</span></code> view, the contents of the page &#8211; the current
+date/time &#8211; were dynamic, but the URL (<code class="docutils literal"><span class="pre">/time/</span></code>) was static. In most dynamic
+Web applications, though, a URL contains parameters that influence the output
+of the page. For example, an online bookstore might give each book its own URL,
+like <code class="docutils literal"><span class="pre">/books/243/</span></code> and <code class="docutils literal"><span class="pre">/books/81196/</span></code>.</p>
+<p>Let&#8217;s create a third view that displays the current date and time offset by a
+certain number of hours. The goal is to craft a site in such a way that the page
+<code class="docutils literal"><span class="pre">/time/plus/1/</span></code> displays the date/time one hour into the future, the page
+<code class="docutils literal"><span class="pre">/time/plus/2/</span></code> displays the date/time two hours into the future, the page
+<code class="docutils literal"><span class="pre">/time/plus/3/</span></code> displays the date/time three hours into the future, and so
+on.</p>
+<p>A novice might think to code a separate view function for each hour offset,
+which might result in a URLconf like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/$&#39;</span><span class="p">,</span> <span class="n">current_datetime</span><span class="p">),</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/1/$&#39;</span><span class="p">,</span> <span class="n">one_hour_ahead</span><span class="p">),</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/2/$&#39;</span><span class="p">,</span> <span class="n">two_hours_ahead</span><span class="p">),</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/3/$&#39;</span><span class="p">,</span> <span class="n">three_hours_ahead</span><span class="p">),</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/4/$&#39;</span><span class="p">,</span> <span class="n">four_hours_ahead</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Clearly, this line of thought is flawed. Not only would this result in redundant
+view functions, but also the application is fundamentally limited to supporting
+only the predefined hour ranges &#8211; one, two, three or four hours. If we decided
+to create a page that displayed the time <em>five</em> hours into the future, we&#8217;d
+have to create a separate view and URLconf line for that, furthering the
+duplication. We need to do some abstraction here.</p>
+<div class="admonition-a-word-about-pretty-urls admonition">
+<p class="first admonition-title">A Word About Pretty URLs</p>
+<p>If you&#8217;re experienced in another Web development platform, you may be
+thinking, &#8220;Hey, let&#8217;s use a query string parameter!&#8221; &#8211; something like
+<code class="docutils literal"><span class="pre">/time/plus?hours=3</span></code>, in which the hours would be designated by the <code class="docutils literal"><span class="pre">hours</span></code>
+parameter in the URL&#8217;s query string (the part after the <code class="docutils literal"><span class="pre">?</span></code>).</p>
+<p>You <em>can</em> do that with Django (and we&#8217;ll tell you how in Chapter 7), but
+one of Django&#8217;s core philosophies is that URLs should be beautiful. The URL
+<code class="docutils literal"><span class="pre">/time/plus/3/</span></code> is far cleaner, simpler, more readable, easier to recite to
+somebody aloud and . . . just plain prettier than its query string counterpart.
+Pretty URLs are a characteristic of a quality Web application.</p>
+<p class="last">Django&#8217;s URLconf system encourages pretty URLs by making it easier to use
+pretty URLs than <em>not</em> to.</p>
+</div>
+<p>How, then do we design our application to handle arbitrary hour offsets? The
+key is to use <em>wildcard URLpatterns</em>. As we mentioned previously, a URLpattern
+is a regular expression; hence, we can use the regular expression pattern
+<code class="docutils literal"><span class="pre">\d+</span></code> to match one or more digits:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c"># ...</span>
+    <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/\d+/$&#39;</span><span class="p">,</span> <span class="n">hours_ahead</span><span class="p">),</span>
+    <span class="c"># ...</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>(We&#8217;re using the <code class="docutils literal"><span class="pre">#</span> <span class="pre">...</span></code> to imply there might be other URLpatterns that we
+trimmed from this example.)</p>
+<p>This new URLpattern will match any URL such as <code class="docutils literal"><span class="pre">/time/plus/2/</span></code>,
+<code class="docutils literal"><span class="pre">/time/plus/25/</span></code>, or even <code class="docutils literal"><span class="pre">/time/plus/100000000000/</span></code>. Come to think of it,
+let&#8217;s limit it so that the maximum allowed offset is 99 hours. That means we
+want to allow either one- or two-digit numbers &#8211; and in regular expression
+syntax, that translates into <code class="docutils literal"><span class="pre">\d{1,2}</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/\d{1,2}/$&#39;</span><span class="p">,</span> <span class="n">hours_ahead</span><span class="p">),</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When building Web applications, it&#8217;s always important to consider the most
+outlandish data input possible, and decide whether or not the application
+should support that input. We&#8217;ve curtailed the outlandishness here by
+limiting the offset to 99 hours.</p>
+</div>
+<p>Now that we&#8217;ve designated a wildcard for the URL, we need a way of passing that
+wildcard data to the view function, so that we can use a single view function
+for any arbitrary hour offset. We do this by placing parentheses around the
+data in the URLpattern that we want to save. In the case of our example, we
+want to save whatever number was entered in the URL, so let&#8217;s put parentheses
+around the <code class="docutils literal"><span class="pre">\d{1,2}</span></code>, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/(\d{1,2})/$&#39;</span><span class="p">,</span> <span class="n">hours_ahead</span><span class="p">),</span>
+</pre></div>
+</div>
+<p>If you&#8217;re familiar with regular expressions, you&#8217;ll be right at home here;
+we&#8217;re using parentheses to <em>capture</em> data from the matched text.</p>
+<p>The final URLconf, including our previous two views, looks like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.conf.urls</span> <span class="kn">import</span> <span class="n">include</span><span class="p">,</span> <span class="n">url</span>
+<span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span> <span class="nn">mysite.views</span> <span class="kn">import</span> <span class="n">hello</span><span class="p">,</span> <span class="n">current_datetime</span><span class="p">,</span> <span class="n">hours_ahead</span>
+
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+<span class="n">url</span><span class="p">(</span><span class="s">r&#39;^admin/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">urls</span><span class="p">)),</span>
+<span class="n">url</span><span class="p">(</span><span class="s">r&#39;^hello/$&#39;</span><span class="p">,</span> <span class="n">hello</span><span class="p">),</span>
+<span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/$&#39;</span><span class="p">,</span> <span class="n">current_datetime</span><span class="p">),</span>
+<span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/(\d{1,2})/$&#39;</span><span class="p">,</span> <span class="n">hours_ahead</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>With that taken care of, let&#8217;s write the <code class="docutils literal"><span class="pre">hours_ahead</span></code> view.</p>
+<p><code class="docutils literal"><span class="pre">hours_ahead</span></code> is very similar to the <code class="docutils literal"><span class="pre">current_datetime</span></code> view we wrote
+earlier, with a key difference: it takes an extra argument, the number of hours
+of offset. Here&#8217;s the view code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">Http404</span><span class="p">,</span> <span class="n">HttpResponse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">hours_ahead</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">Http404</span><span class="p">()</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;html&gt;&lt;body&gt;In </span><span class="si">%s</span><span class="s"> hour(s), it will be </span><span class="si">%s</span><span class="s">.&lt;/body&gt;&lt;/html&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let&#8217;s step through this code one line at a time:</p>
+<ul>
+<li><p class="first">The view function, <code class="docutils literal"><span class="pre">hours_ahead</span></code>, takes <em>two</em> parameters: <code class="docutils literal"><span class="pre">request</span></code>
+and <code class="docutils literal"><span class="pre">offset</span></code>.</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">request</span></code> is an <code class="docutils literal"><span class="pre">HttpRequest</span></code> object, just as in <code class="docutils literal"><span class="pre">hello</span></code> and
+<code class="docutils literal"><span class="pre">current_datetime</span></code>. We&#8217;ll say it again: each view <em>always</em> takes an
+<code class="docutils literal"><span class="pre">HttpRequest</span></code> object as its first parameter.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">offset</span></code> is the string captured by the parentheses in the
+URLpattern. For example, if the requested URL were <code class="docutils literal"><span class="pre">/time/plus/3/</span></code>,
+then <code class="docutils literal"><span class="pre">offset</span></code> would be the string <code class="docutils literal"><span class="pre">'3'</span></code>. If the requested URL were
+<code class="docutils literal"><span class="pre">/time/plus/21/</span></code>, then <code class="docutils literal"><span class="pre">offset</span></code> would be the string <code class="docutils literal"><span class="pre">'21'</span></code>. Note
+that captured values will always be <em>Unicode objects</em>, not integers, even if
+the string is composed of only digits, such as <code class="docutils literal"><span class="pre">'21'</span></code>.</p>
+<p>We decided to call the variable <code class="docutils literal"><span class="pre">offset</span></code>, but you can call it
+whatever you&#8217;d like, as long as it&#8217;s a valid Python identifier. The
+variable name doesn&#8217;t matter; all that matters is that it&#8217;s the second
+argument to the function, after <code class="docutils literal"><span class="pre">request</span></code>. (It&#8217;s also possible to
+use keyword, rather than positional, arguments in an URLconf. We cover
+that in Chapter 7.)</p>
+</li>
+</ul>
+</li>
+<li><p class="first">The first thing we do within the function is call <code class="docutils literal"><span class="pre">int()</span></code> on <code class="docutils literal"><span class="pre">offset</span></code>.
+This converts the Unicode  string value to an integer.</p>
+<p>Note that Python will raise a <code class="docutils literal"><span class="pre">ValueError</span></code> exception if you call
+<code class="docutils literal"><span class="pre">int()</span></code> on a value that cannot be converted to an integer, such as the
+string <code class="docutils literal"><span class="pre">'foo'</span></code>. In this example, if we encounter the <code class="docutils literal"><span class="pre">ValueError</span></code>, we
+raise the exception <code class="docutils literal"><span class="pre">django.http.Http404</span></code>, which, as you can imagine,
+results in a 404 &#8220;Page not found&#8221; error.</p>
+<p>Astute readers will wonder: how could we ever reach the <code class="docutils literal"><span class="pre">ValueError</span></code>
+case, anyway, given that the regular expression in our URLpattern &#8211;
+<code class="docutils literal"><span class="pre">(\d{1,2})</span></code> &#8211; captures only digits, and therefore <code class="docutils literal"><span class="pre">offset</span></code> will only
+ever be a string composed of digits? The answer is, we won&#8217;t, because
+the URLpattern provides a modest but useful level of input validation,
+<em>but</em> we still check for the <code class="docutils literal"><span class="pre">ValueError</span></code> in case this view function
+ever gets called in some other way. It&#8217;s good practice to implement view
+functions such that they don&#8217;t make any assumptions about their
+parameters. Loose coupling, remember?</p>
+</li>
+<li><p class="first">In the next line of the function, we calculate the current date/time and
+add the appropriate number of hours. We&#8217;ve already seen
+<code class="docutils literal"><span class="pre">datetime.datetime.now()</span></code> from the <code class="docutils literal"><span class="pre">current_datetime</span></code> view; the new
+concept here is that you can perform date/time arithmetic by creating a
+<code class="docutils literal"><span class="pre">datetime.timedelta</span></code> object and adding to a <code class="docutils literal"><span class="pre">datetime.datetime</span></code>
+object. Our result is stored in the variable <code class="docutils literal"><span class="pre">dt</span></code>.</p>
+<p>This line also shows why we called <code class="docutils literal"><span class="pre">int()</span></code> on <code class="docutils literal"><span class="pre">offset</span></code> &#8211; the
+<code class="docutils literal"><span class="pre">datetime.timedelta</span></code> function requires the <code class="docutils literal"><span class="pre">hours</span></code> parameter to be an
+integer.</p>
+</li>
+<li><p class="first">Next, we construct the HTML output of this view function, just as we did
+in <code class="docutils literal"><span class="pre">current_datetime</span></code>. A small difference in this line from the previous
+line is that it uses Python&#8217;s format-string capability with <em>two</em> values,
+not just one. Hence, there are two <code class="docutils literal"><span class="pre">%s</span></code> symbols in the string and a
+tuple of values to insert: <code class="docutils literal"><span class="pre">(offset,</span> <span class="pre">dt)</span></code>.</p>
+</li>
+<li><p class="first">Finally, we return an <code class="docutils literal"><span class="pre">HttpResponse</span></code> of the HTML. By now, this is old
+hat.</p>
+</li>
+</ul>
+<p>With that view function and URLconf written, start the Django development server
+(if it&#8217;s not already running), and visit <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/time/plus/3/</span></code>
+to verify it works. Then try <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/time/plus/5/</span></code>. Then
+<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/time/plus/24/</span></code>. Finally, visit
+<code class="docutils literal"><span class="pre">http://127.0.0.1:8000/time/plus/100/</span></code> to verify that the pattern in your
+URLconf only accepts one- or two-digit numbers; Django should display a &#8220;Page
+not found&#8221; error in this case, just as we saw in the section &#8220;A Quick Note
+About 404 Errors&#8221; earlier. The URL <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/time/plus/</span></code> (with
+<em>no</em> hour designation) should also throw a 404.</p>
+<div class="admonition-coding-order admonition">
+<p class="first admonition-title">Coding Order</p>
+<p>In this example, we wrote the URLpattern first and the view second, but in
+the previous examples, we wrote the view first, then the URLpattern. Which
+technique is better?</p>
+<p>Well, every developer is different.</p>
+<p>If you&#8217;re a big-picture type of person, it may make the most sense to you
+to write all of the URLpatterns for your application at the same time, at
+the start of your project, and then code up the views. This has the
+advantage of giving you a clear to-do list, and it essentially defines the
+parameter requirements for the view functions you&#8217;ll need to write.</p>
+<p>If you&#8217;re more of a bottom-up developer, you might prefer to write the
+views first, and then anchor them to URLs afterward. That&#8217;s OK, too.</p>
+<p class="last">In the end, it comes down to which technique fits your brain the best. Both
+approaches are valid.</p>
+</div>
+</div>
+<div class="section" id="django-s-pretty-error-pages">
+<h2>Django&#8217;s Pretty Error Pages<a class="headerlink" href="#django-s-pretty-error-pages" title="Permalink to this headline">¶</a></h2>
+<p>Take a moment to admire the fine Web application we&#8217;ve made so far . . . now
+let&#8217;s break it! Let&#8217;s deliberately introduce a Python error into our
+<code class="docutils literal"><span class="pre">views.py</span></code> file by commenting out the <code class="docutils literal"><span class="pre">offset</span> <span class="pre">=</span> <span class="pre">int(offset)</span></code> lines in the
+<code class="docutils literal"><span class="pre">hours_ahead</span></code> view:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">hours_ahead</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+    <span class="c"># try:</span>
+    <span class="c">#     offset = int(offset)</span>
+    <span class="c"># except ValueError:</span>
+    <span class="c">#     raise Http404()</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;html&gt;&lt;body&gt;In </span><span class="si">%s</span><span class="s"> hour(s), it will be </span><span class="si">%s</span><span class="s">.&lt;/body&gt;&lt;/html&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Load up the development server and navigate to <code class="docutils literal"><span class="pre">/time/plus/3/</span></code>. You&#8217;ll see an
+error page with a significant amount of information, including a <code class="docutils literal"><span class="pre">TypeError</span></code>
+message displayed at the very top: <code class="docutils literal"><span class="pre">&quot;unsupported</span> <span class="pre">type</span> <span class="pre">for</span> <span class="pre">timedelta</span> <span class="pre">hours</span>
+<span class="pre">component:</span> <span class="pre">str&quot;</span></code>.</p>
+<div class="figure" id="id3">
+<img alt="_images/typeerror.png" src="_images/typeerror.png" />
+<p class="caption"><span class="caption-text">Figure 2-3. Django&#8217;s error page</span></p>
+</div>
+<p>What happened? Well, the <code class="docutils literal"><span class="pre">datetime.timedelta</span></code> function expects the <code class="docutils literal"><span class="pre">hours</span></code>
+parameter to be an integer, and we commented out the bit of code that converted
+<code class="docutils literal"><span class="pre">offset</span></code> to an integer. That caused <code class="docutils literal"><span class="pre">datetime.timedelta</span></code> to raise the
+<code class="docutils literal"><span class="pre">TypeError</span></code>. It&#8217;s the typical kind of small bug that every programmer runs
+into at some point.</p>
+<p>The point of this example was to demonstrate Django&#8217;s error pages. Take some
+time to explore the error page and get to know the various bits of information
+it gives you.</p>
+<p>Here are some things to notice:</p>
+<ul>
+<li><p class="first">At the top of the page, you get the key information about the exception:
+the type of exception, any parameters to the exception (the <code class="docutils literal"><span class="pre">&quot;unsupported</span>
+<span class="pre">type&quot;</span></code> message in this case), the file in which the exception was raised,
+and the offending line number.</p>
+</li>
+<li><p class="first">Under the key exception information, the page displays the full Python
+traceback for this exception. This is similar to the standard traceback
+you get in Python&#8217;s command-line interpreter, except it&#8217;s more
+interactive. For each level (&#8220;frame&#8221;) in the stack, Django displays the
+name of the file, the function/method name, the line number, and the
+source code of that line.</p>
+<p>Click the line of source code (in dark gray), and you&#8217;ll see several
+lines from before and after the erroneous line, to give you context.</p>
+<p>Click &#8220;Local vars&#8221; under any frame in the stack to view a table of all
+local variables and their values, in that frame, at the exact point in the
+code at which the exception was raised. This debugging information can be
+a great help.</p>
+</li>
+<li><p class="first">Note the &#8220;Switch to copy-and-paste view&#8221; text under the &#8220;Traceback&#8221;
+header. Click those words, and the traceback will switch to a alternate
+version that can be easily copied and pasted. Use this when you want to
+share your exception traceback with others to get technical support &#8211;
+such as the kind folks in the Django IRC chat room or on the Django users
+mailing list.</p>
+<p>Underneath, the &#8220;Share this traceback on a public Web site&#8221; button will
+do this work for you in just one click. Click it to post the traceback to
+<a class="reference external" href="http://www.dpaste.com/">http://www.dpaste.com/</a>, where you&#8217;ll get a distinct URL that you can
+share with other people.</p>
+</li>
+<li><p class="first">Next, the &#8220;Request information&#8221; section includes a wealth of information
+about the incoming Web request that spawned the error: GET and POST
+information, cookie values, and meta information, such as CGI headers.
+Appendix G has a complete reference of all the information a request
+object contains.</p>
+<p>Below the &#8220;Request information&#8221; section, the &#8220;Settings&#8221; section lists all
+of the settings for this particular Django installation. (We&#8217;ve already
+mentioned <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code>, and we&#8217;ll show you various Django settings
+throughout the book. All the available settings are covered in detail in
+Appendix D.)</p>
+</li>
+</ul>
+<p>The Django error page is capable of displaying more information in certain
+special cases, such as the case of template syntax errors. We&#8217;ll get to those
+later, when we discuss the Django template system. For now, uncomment the
+<code class="docutils literal"><span class="pre">offset</span> <span class="pre">=</span> <span class="pre">int(offset)</span></code> lines to get the view function working properly again.</p>
+<p>Are you the type of programmer who likes to debug with the help of carefully
+placed <code class="docutils literal"><span class="pre">print</span></code> statements? You can use the Django error page to do so &#8211; just
+without the <code class="docutils literal"><span class="pre">print</span></code> statements. At any point in your view, temporarily insert
+an <code class="docutils literal"><span class="pre">assert</span> <span class="pre">False</span></code> to trigger the error page. Then, you can view the local
+variables and state of the program. Here&#8217;s an example, using the
+<code class="docutils literal"><span class="pre">hours_ahead</span></code> view:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">hours_ahead</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">Http404</span><span class="p">()</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="bp">False</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;html&gt;&lt;body&gt;In </span><span class="si">%s</span><span class="s"> hour(s), it will be </span><span class="si">%s</span><span class="s">.&lt;/body&gt;&lt;/html&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, it&#8217;s obvious that much of this information is sensitive &#8211; it exposes
+the innards of your Python code and Django configuration &#8211; and it would be
+foolish to show this information on the public Internet. A malicious person
+could use it to attempt to reverse-engineer your Web application and do nasty
+things. For that reason, the Django error page is only displayed when your
+Django project is in debug mode. We&#8217;ll explain how to deactivate debug mode
+in Chapter 13. For now, just know that every Django project is in debug mode
+automatically when you start it. (Sound familiar? The &#8220;Page not found&#8221; errors,
+described earlier in this chapter, work the same way.)</p>
+</div>
+<div class="section" id="what-s-next">
+<h2>What&#8217;s next?<a class="headerlink" href="#what-s-next" title="Permalink to this headline">¶</a></h2>
+<p>So far, we&#8217;ve been writing our view functions with HTML hard-coded directly
+in the Python code. We&#8217;ve done that to keep things simple while we demonstrated
+core concepts, but in the real world, this is nearly always a bad idea.</p>
+<p>Django ships with a simple yet powerful template engine that allows you to
+separate the design of the page from the underlying code. We&#8217;ll dive into
+Django&#8217;s template engine in the next chapter.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Chapter 2: Views and URLconfs</a><ul>
+<li><a class="reference internal" href="#your-first-django-powered-page-hello-world">Your First Django-Powered Page: Hello World</a><ul>
+<li><a class="reference internal" href="#your-first-view">Your First View</a></li>
+<li><a class="reference internal" href="#your-first-urlconf">Your First URLconf</a></li>
+<li><a class="reference internal" href="#a-quick-note-about-404-errors">A Quick Note About 404 Errors</a></li>
+<li><a class="reference internal" href="#a-quick-note-about-the-site-root">A Quick Note About The Site Root</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-django-processes-a-request">How Django Processes a Request</a></li>
+<li><a class="reference internal" href="#your-second-view-dynamic-content">Your Second View: Dynamic Content</a></li>
+<li><a class="reference internal" href="#urlconfs-and-loose-coupling">URLconfs and Loose Coupling</a></li>
+<li><a class="reference internal" href="#your-third-view-dynamic-urls">Your Third View: Dynamic URLs</a></li>
+<li><a class="reference internal" href="#django-s-pretty-error-pages">Django&#8217;s Pretty Error Pages</a></li>
+<li><a class="reference internal" href="#what-s-next">What&#8217;s next?</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="chapter_01.html" title="previous chapter">Chapter 1: Getting Started</a></li>
+      <li>Next: <a href="chapter_03.html" title="next chapter">Chapter 3: Templates</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chapter_02.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/chapter_02.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -226,12 +226,12 @@ setting, it will ensure that three default permissions -- add, change and
 delete -- are created for each Django model defined in one of your installed
 applications.
 
-These permissions will be created when you run ``manage.py migrate`` the first
-time you run ``migrate`` after adding ``django.contrib.auth`` to
-``INSTALLED_APPS``, the default permissions will be created for all
-previously-installed models, as well as for any new models being installed at
-that time. Afterward, it will create default permissions for new models each
-time you run ``manage.py migrate``.
+These permissions will be created when you run ``manage.py migrate``
+ the first time you run ``migrate`` after adding
+``django.contrib.auth`` to ``INSTALLED_APPS``, the default permissions
+will be created for all previously-installed models, as well as for any new
+models being installed at that time. Afterward, it will create default
+permissions for new models each time you run ``manage.py migrate``.
 
 Assuming you have an application with an
 :attr:`~django.db.models.Options.app_label` ``foo`` and a model named ``Bar``,

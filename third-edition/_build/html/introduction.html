@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Introduction to the third edition" href="introduction_3e.html" />
+    <link rel="prev" title="About this book" href="front_matter.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Great open source software almost always comes about because one or more
+clever developers had a problem to solve and no viable or cost effective
+solution available. Django is no exception.</p>
+<p>Adrian and Jacob have long since &#8220;retired&#8221; from the project,
+but the fundamentals of what drove them to create Django live on in the
+project. It is this solid base of real-world experience that has made Django
+as successful as it is.</p>
+<p>In recognition of their contribution, I think it best we let them introduce
+Django in their own words.</p>
+<div class="section" id="introduction-to-django">
+<h2>Introduction to Django<a class="headerlink" href="#introduction-to-django" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="by-adrian-holovaty-and-jacob-kaplan-moss-december-2009">
+<h3>By Adrian Holovaty and Jacob Kaplan-Moss - December 2009<a class="headerlink" href="#by-adrian-holovaty-and-jacob-kaplan-moss-december-2009" title="Permalink to this headline">¶</a></h3>
+<p>In the early days, Web developers wrote every page by hand. Updating a Web site
+meant editing HTML; a &#8220;redesign&#8221; involved redoing every single page, one at a
+time.</p>
+<p>As Web sites grew and became more ambitious, it quickly became obvious that
+that approach was tedious, time-consuming, and ultimately untenable. A group
+of enterprising hackers at NCSA (the National Center for Supercomputing
+Applications, where Mosaic, the first graphical Web browser, was developed)
+solved this problem by letting the Web server spawn external programs that
+could dynamically generate HTML. They called this protocol the Common Gateway
+Interface, or CGI, and it changed the Web forever.</p>
+<p>It&#8217;s hard now to imagine what a revelation CGI must have been: instead of
+treating HTML pages as simple files on disk, CGI allows you to think of your
+pages as resources generated dynamically on demand. The development of CGI
+ushered in the first generation of dynamic Web sites.</p>
+<p>However, CGI has its problems: CGI scripts need to contain a lot of repetitive
+&#8220;boilerplate&#8221; code, they make code reuse difficult, and they can be difficult
+for first-time developers to write and understand.</p>
+<p>PHP fixed many of these problems, and it took the world by storm &#8211; it&#8217;s now by
+far the most popular tool used to create dynamic Web sites, and dozens of
+similar languages and environments (ASP, JSP, etc.) followed PHP&#8217;s design
+closely. PHP&#8217;s major innovation is its ease of use: PHP code is simply embedded
+into plain HTML; the learning curve for someone who already knows HTML is
+extremely shallow.</p>
+<p>But PHP has its own problems; its very ease of use encourages sloppy,
+repetitive, ill-conceived code. Worse, PHP does little to protect programmers
+from security vulnerabilities, and thus many PHP developers found themselves
+learning about security only once it was too late.</p>
+<p>These and similar frustrations led directly to the development of the current
+crop of &#8220;third-generation&#8221; Web development frameworks. With this new explosion of Web
+development comes yet another increase in ambition; Web developers are expected
+to do more and more every day.</p>
+<p>Django was invented to meet these new ambitions.</p>
+</div>
+</div>
+<div class="section" id="django-s-history">
+<h2>Django&#8217;s History<a class="headerlink" href="#django-s-history" title="Permalink to this headline">¶</a></h2>
+<p>Django grew organically from real-world applications written by a Web
+development team in Lawrence, Kansas, USA. It was born in the fall of 2003,
+when the Web programmers at the <em>Lawrence Journal-World</em> newspaper, Adrian
+Holovaty and Simon Willison, began using Python to build applications.</p>
+<p>The World Online team, responsible for the production and maintenance of
+several local news sites, thrived in a development environment dictated by
+journalism deadlines. For the sites &#8211; including LJWorld.com, Lawrence.com and
+KUsports.com &#8211; journalists (and management) demanded that features be added
+and entire applications be built on an intensely fast schedule, often with only
+days&#8217; or hours&#8217; notice. Thus, Simon and Adrian developed a time-saving Web
+development framework out of necessity &#8211; it was the only way they could build
+maintainable applications under the extreme deadlines.</p>
+<p>In summer 2005, after having developed this framework to a point where it was
+efficiently powering most of World Online&#8217;s sites, the team, which now included
+Jacob Kaplan-Moss, decided to release the framework as open source software.
+They released it in July 2005 and named it Django, after the jazz guitarist
+Django Reinhardt.</p>
+<p>This history is relevant because it helps explain two key things. The first is
+Django&#8217;s &#8220;sweet spot.&#8221; Because Django was born in a news environment, it offers
+several features (such as its admin site, covered in Chapter 6) that are
+particularly well suited for &#8220;content&#8221; sites &#8211; sites like Amazon.com,
+craigslist.org, and washingtonpost.com that offer dynamic, database-driven
+information. Don&#8217;t let that turn you off, though &#8211; although Django is
+particularly good for developing those sorts of sites, that doesn&#8217;t preclude it
+from being an effective tool for building any sort of dynamic Web site.
+(There&#8217;s a difference between being <em>particularly effective</em> at something and
+being <em>ineffective</em> at other things.)</p>
+<p>The second matter to note is how Django&#8217;s origins have shaped the culture of
+its open source community. Because Django was extracted from real-world code,
+rather than being an academic exercise or commercial product, it is acutely
+focused on solving Web development problems that Django&#8217;s developers themselves
+have faced &#8211; and continue to face. As a result, Django itself is actively
+improved on an almost daily basis. The framework&#8217;s maintainers have a vested
+interest in making sure Django saves developers time, produces applications
+that are easy to maintain and performs well under load.</p>
+<p>Django lets you build deep, dynamic, interesting sites in an extremely short
+time. Django is designed to let you focus on the fun, interesting parts of
+your job while easing the pain of the repetitive bits. In doing so, it
+provides high-level abstractions of common Web development patterns, shortcuts
+for frequent programming tasks, and clear conventions on how to solve
+problems. At the same time, Django tries to stay out of your way, letting you
+work outside the scope of the framework as needed. We wrote this book because
+we firmly believe that Django makes Web development better. It&#8217;s designed to
+quickly get you moving on your own Django projects, and then ultimately teach
+you everything you need to know to successfully design, develop, and deploy a
+site that you&#8217;ll be proud of.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction</a><ul>
+<li><a class="reference internal" href="#introduction-to-django">Introduction to Django</a><ul>
+<li><a class="reference internal" href="#by-adrian-holovaty-and-jacob-kaplan-moss-december-2009">By Adrian Holovaty and Jacob Kaplan-Moss - December 2009</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#django-s-history">Django&#8217;s History</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="front_matter.html" title="previous chapter">About this book</a></li>
+      <li>Next: <a href="introduction_3e.html" title="next chapter">Introduction to the third edition</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/introduction.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/introduction.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,844 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Chapter 9: Advanced Models &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Chapter 10: Generic Views" href="chapter_10.html" />
+    <link rel="prev" title="Chapter 8: Advanced Templates" href="chapter_08.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="chapter-9-advanced-models">
+<h1>Chapter 9: Advanced Models<a class="headerlink" href="#chapter-9-advanced-models" title="Permalink to this headline">¶</a></h1>
+<p>In Chapter 4, we presented an introduction to Django&#8217;s database layer &#8211;
+how to define models and how to use the database API to create, retrieve,
+update and delete records. In this chapter, we&#8217;ll introduce you to some more
+advanced features of this part of Django.</p>
+<div class="section" id="related-objects">
+<h2>Related Objects<a class="headerlink" href="#related-objects" title="Permalink to this headline">¶</a></h2>
+<p>Recall our book models from Chapter 4:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span> <span class="nc">Publisher</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">city</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+    <span class="n">state_province</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="n">country</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">website</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">URLField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+<span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">first_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="n">last_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">EmailField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">first_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_name</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Book</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">authors</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">Author</span><span class="p">)</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Publisher</span><span class="p">)</span>
+    <span class="n">publication_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span>
+</pre></div>
+</div>
+<p>As we explained in Chapter 4, accessing the value for a particular field on
+a database object is as straightforward as using an attribute. For example,
+to determine the title of the book with ID 50, we&#8217;d do the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mysite.books.models</span> <span class="kn">import</span> <span class="n">Book</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Book</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">title</span>
+<span class="go">&#39;The Django Book&#39;</span>
+</pre></div>
+</div>
+<p>But one thing we didn&#8217;t mention previously is that related objects &#8211; fields
+expressed as either a <code class="docutils literal"><span class="pre">ForeignKey</span></code> or <code class="docutils literal"><span class="pre">ManyToManyField</span></code> &#8211; act slightly
+differently.</p>
+<div class="section" id="accessing-foreign-key-values">
+<h3>Accessing Foreign Key Values<a class="headerlink" href="#accessing-foreign-key-values" title="Permalink to this headline">¶</a></h3>
+<p>When you access a field that&#8217;s a <code class="docutils literal"><span class="pre">ForeignKey</span></code>, you&#8217;ll get the
+related model object. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Book</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">publisher</span>
+<span class="go">&lt;Publisher: Apress Publishing&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">publisher</span><span class="o">.</span><span class="n">website</span>
+<span class="go">&#39;http://www.apress.com/&#39;</span>
+</pre></div>
+</div>
+<p>With <code class="docutils literal"><span class="pre">ForeignKey</span></code> fields, it works the other way, too, but it&#8217;s slightly
+different due to the non-symmetrical nature of the relationship. To get a list
+of books for a given publisher, use <code class="docutils literal"><span class="pre">publisher.book_set.all()</span></code>, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress Publishing&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">book_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="go">[&lt;Book: The Django Book&gt;, &lt;Book: Dive Into Python&gt;, ...]</span>
+</pre></div>
+</div>
+<p>Behind the scenes, <code class="docutils literal"><span class="pre">book_set</span></code> is just a <code class="docutils literal"><span class="pre">QuerySet</span></code> (as covered in
+Chapter 4), and it can be filtered and sliced like any other <code class="docutils literal"><span class="pre">QuerySet</span></code>.
+For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress Publishing&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">book_set</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">title__icontains</span><span class="o">=</span><span class="s">&#39;django&#39;</span><span class="p">)</span>
+<span class="go">[&lt;Book: The Django Book&gt;, &lt;Book: Pro Django&gt;]</span>
+</pre></div>
+</div>
+<p>The attribute name <code class="docutils literal"><span class="pre">book_set</span></code> is generated by appending the lower case
+model name to <code class="docutils literal"><span class="pre">_set</span></code>.</p>
+</div>
+<div class="section" id="accessing-many-to-many-values">
+<h3>Accessing Many-to-Many Values<a class="headerlink" href="#accessing-many-to-many-values" title="Permalink to this headline">¶</a></h3>
+<p>Many-to-many values work like foreign-key values, except we deal with
+<code class="docutils literal"><span class="pre">QuerySet</span></code> values instead of model instances. For example, here&#8217;s how to
+view the authors for a book:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Book</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">authors</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="go">[&lt;Author: Adrian Holovaty&gt;, &lt;Author: Jacob Kaplan-Moss&gt;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">authors</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">first_name</span><span class="o">=</span><span class="s">&#39;Adrian&#39;</span><span class="p">)</span>
+<span class="go">[&lt;Author: Adrian Holovaty&gt;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">authors</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">first_name</span><span class="o">=</span><span class="s">&#39;Adam&#39;</span><span class="p">)</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<p>It works in reverse, too. To view all of the books for an author, use
+<code class="docutils literal"><span class="pre">author.book_set</span></code>, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Author</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">first_name</span><span class="o">=</span><span class="s">&#39;Adrian&#39;</span><span class="p">,</span> <span class="n">last_name</span><span class="o">=</span><span class="s">&#39;Holovaty&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">book_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="go">[&lt;Book: The Django Book&gt;, &lt;Book: Adrian&#39;s Other Book&gt;]</span>
+</pre></div>
+</div>
+<p>Here, as with <code class="docutils literal"><span class="pre">ForeignKey</span></code> fields, the attribute name <code class="docutils literal"><span class="pre">book_set</span></code> is
+generated by appending the lower case model name to <code class="docutils literal"><span class="pre">_set</span></code>.</p>
+</div>
+</div>
+<div class="section" id="managers">
+<h2>Managers<a class="headerlink" href="#managers" title="Permalink to this headline">¶</a></h2>
+<p>In the statement <code class="docutils literal"><span class="pre">Book.objects.all()</span></code>, <code class="docutils literal"><span class="pre">objects</span></code> is a special attribute
+through which you query your database. In Chapter 4, we briefly identified this
+as the model&#8217;s <em>manager</em>. Now it&#8217;s time to dive a bit deeper into what managers
+are and how you can use them.</p>
+<p>In short, a model&#8217;s manager is an object through which Django models perform
+database queries. Each Django model has at least one manager, and you can
+create custom managers in order to customize database access.</p>
+<p>There are two reasons you might want to create a custom manager: to add extra
+manager methods, and/or to modify the initial <code class="docutils literal"><span class="pre">QuerySet</span></code> the manager
+returns.</p>
+<div class="section" id="adding-extra-manager-methods">
+<h3>Adding Extra Manager Methods<a class="headerlink" href="#adding-extra-manager-methods" title="Permalink to this headline">¶</a></h3>
+<p>Adding extra manager methods is the preferred way to add &#8220;table-level&#8221;
+functionality to your models. (For &#8220;row-level&#8221; functionality &#8211; i.e., functions
+that act on a single instance of a model object &#8211; use model methods, which are
+explained later in this chapter.)</p>
+<p>For example, let&#8217;s give our <code class="docutils literal"><span class="pre">Book</span></code> model a manager method <code class="docutils literal"><span class="pre">title_count()</span></code>
+that takes a keyword and returns the number of books that have a title
+containing that keyword. (This example is slightly contrived, but it
+demonstrates how managers work.)</p>
+<pre class="literal-block">
+# models.py
+
+from django.db import models
+
+# ... Author and Publisher models here ...
+
+<strong>class BookManager(models.Manager):</strong>
+    <strong>def title_count(self, keyword):</strong>
+        <strong>return self.filter(title__icontains=keyword).count()</strong>
+
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+    authors = models.ManyToManyField(Author)
+    publisher = models.ForeignKey(Publisher)
+    publication_date = models.DateField()
+    num_pages = models.IntegerField(blank=True, null=True)
+    <strong>objects = BookManager()</strong>
+
+    def __str__(self):
+        return self.title
+</pre>
+<p>With this manager in place, we can now do this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Book</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">title_count</span><span class="p">(</span><span class="s">&#39;django&#39;</span><span class="p">)</span>
+<span class="go">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Book</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">title_count</span><span class="p">(</span><span class="s">&#39;python&#39;</span><span class="p">)</span>
+<span class="go">18</span>
+</pre></div>
+</div>
+<p>Here are some notes about the code:</p>
+<ul class="simple">
+<li>We&#8217;ve created a <code class="docutils literal"><span class="pre">BookManager</span></code> class that extends
+<code class="docutils literal"><span class="pre">django.db.models.Manager</span></code>. This has a single method,
+<code class="docutils literal"><span class="pre">title_count()</span></code>, which does the calculation. Note that the method uses
+<code class="docutils literal"><span class="pre">self.filter()</span></code>, where <code class="docutils literal"><span class="pre">self</span></code> refers to the manager itself.</li>
+<li>We&#8217;ve assigned <code class="docutils literal"><span class="pre">BookManager()</span></code> to the <code class="docutils literal"><span class="pre">objects</span></code> attribute on the
+model. This has the effect of replacing the &#8220;default&#8221; manager for the
+model, which is called <code class="docutils literal"><span class="pre">objects</span></code> and is automatically created if you
+don&#8217;t specify a custom manager. We call it <code class="docutils literal"><span class="pre">objects</span></code> rather than
+something else, so as to be consistent with automatically created
+managers.</li>
+</ul>
+<p>Why would we want to add a method such as <code class="docutils literal"><span class="pre">title_count()</span></code>? To encapsulate
+commonly executed queries so that we don&#8217;t have to duplicate code.</p>
+</div>
+<div class="section" id="modifying-initial-manager-querysets">
+<h3>Modifying Initial Manager QuerySets<a class="headerlink" href="#modifying-initial-manager-querysets" title="Permalink to this headline">¶</a></h3>
+<p>A manager&#8217;s base <code class="docutils literal"><span class="pre">QuerySet</span></code> returns all objects in the system. For
+example, <code class="docutils literal"><span class="pre">Book.objects.all()</span></code> returns all books in the book database.</p>
+<p>You can override a manager&#8217;s base <code class="docutils literal"><span class="pre">QuerySet</span></code> by overriding the
+<code class="docutils literal"><span class="pre">Manager.get_queryset()</span></code> method. <code class="docutils literal"><span class="pre">get_queryset()</span></code> should return a
+<code class="docutils literal"><span class="pre">QuerySet</span></code> with the properties you require.</p>
+<p>For example, the following model has <em>two</em> managers &#8211; one that returns
+all objects, and one that returns only the books by Roald Dahl.</p>
+<pre class="literal-block">
+from django.db import models
+
+<strong># First, define the Manager subclass.</strong>
+<strong>class DahlBookManager(models.Manager):</strong>
+    <strong>def get_queryset(self):</strong>
+        <strong>return super(DahlBookManager, self).get_queryset().filter(author='Roald Dahl')</strong>
+
+<strong># Then hook it into the Book model explicitly.</strong>
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+    author = models.CharField(max_length=50)
+    # ...
+
+    <strong>objects = models.Manager() # The default manager.</strong>
+    <strong>dahl_objects = DahlBookManager() # The Dahl-specific manager.</strong>
+</pre>
+<p>With this sample model, <code class="docutils literal"><span class="pre">Book.objects.all()</span></code> will return all books in the
+database, but <code class="docutils literal"><span class="pre">Book.dahl_objects.all()</span></code> will only return the ones written by
+Roald Dahl. Note that we explicitly set <code class="docutils literal"><span class="pre">objects</span></code> to a vanilla <code class="docutils literal"><span class="pre">Manager</span></code>
+instance, because if we hadn&#8217;t, the only available manager would be
+<code class="docutils literal"><span class="pre">dahl_objects</span></code>.</p>
+<p>Of course, because <code class="docutils literal"><span class="pre">get_queryset()</span></code> returns a <code class="docutils literal"><span class="pre">QuerySet</span></code> object, you can
+use <code class="docutils literal"><span class="pre">filter()</span></code>, <code class="docutils literal"><span class="pre">exclude()</span></code> and all the other <code class="docutils literal"><span class="pre">QuerySet</span></code> methods on it.
+So these statements are all legal:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Book</span><span class="o">.</span><span class="n">dahl_objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="n">Book</span><span class="o">.</span><span class="n">dahl_objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;Matilda&#39;</span><span class="p">)</span>
+<span class="n">Book</span><span class="o">.</span><span class="n">dahl_objects</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This example also pointed out another interesting technique: using multiple
+managers on the same model. You can attach as many <code class="docutils literal"><span class="pre">Manager()</span></code> instances to
+a model as you&#8217;d like. This is an easy way to define common &#8220;filters&#8221; for your
+models.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MaleManager</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Manager</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">MaleManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">sex</span><span class="o">=</span><span class="s">&#39;M&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">FemaleManager</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Manager</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">FemaleManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">sex</span><span class="o">=</span><span class="s">&#39;F&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">first_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">last_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">sex</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">((</span><span class="s">&#39;M&#39;</span><span class="p">,</span> <span class="s">&#39;Male&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;F&#39;</span><span class="p">,</span> <span class="s">&#39;Female&#39;</span><span class="p">)))</span>
+    <span class="n">people</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">Manager</span><span class="p">()</span>
+    <span class="n">men</span> <span class="o">=</span> <span class="n">MaleManager</span><span class="p">()</span>
+    <span class="n">women</span> <span class="o">=</span> <span class="n">FemaleManager</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This example allows you to request <code class="docutils literal"><span class="pre">Person.men.all()</span></code>, <code class="docutils literal"><span class="pre">Person.women.all()</span></code>,
+and <code class="docutils literal"><span class="pre">Person.people.all()</span></code>, yielding predictable results.</p>
+<p>If you use custom <code class="docutils literal"><span class="pre">Manager</span></code> objects, take note that the first
+<code class="docutils literal"><span class="pre">Manager</span></code> Django encounters (in the order in which they&#8217;re defined
+in the model) has a special status. Django interprets this first
+<code class="docutils literal"><span class="pre">Manager</span></code> defined in a class as the &#8220;default&#8221; <code class="docutils literal"><span class="pre">Manager</span></code>, and
+several parts of Django (though not the admin application) will use
+that <code class="docutils literal"><span class="pre">Manager</span></code> exclusively for that model. As a result, it&#8217;s often a
+good idea to be careful in your choice of default manager, in order to
+avoid a situation where overriding of <code class="docutils literal"><span class="pre">get_queryset()</span></code> results in
+an inability to retrieve objects you&#8217;d like to work with.</p>
+</div>
+</div>
+<div class="section" id="model-methods">
+<h2>Model methods<a class="headerlink" href="#model-methods" title="Permalink to this headline">¶</a></h2>
+<p>Define custom methods on a model to add custom &#8220;row-level&#8221; functionality to your
+objects. Whereas managers are intended to do &#8220;table-wide&#8221; things, model methods
+should act on a particular model instance.</p>
+<p>This is a valuable technique for keeping business logic in one place &#8211; the
+model.</p>
+<p>An example is the easiest way to explain this. Here&#8217;s a model with a few custom
+methods:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">first_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">last_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">birth_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">baby_boomer_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Returns the person&#39;s baby-boomer status.&quot;</span>
+        <span class="kn">import</span> <span class="nn">datetime</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">birth_date</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">1945</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s">&quot;Pre-boomer&quot;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">birth_date</span> <span class="o">&lt;</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">1965</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s">&quot;Baby boomer&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;Post-boomer&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_get_full_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Returns the person&#39;s full name.&quot;</span>
+        <span class="k">return</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">first_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_name</span><span class="p">)</span>
+    <span class="n">full_name</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_get_full_name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The model instance reference in Appendix A has a complete list
+of methods automatically given to each model.
+You can override most of these &#8211; see below &#8211; but there are a couple that you&#8217;ll almost always want to define:</p>
+<dl class="docutils">
+<dt><code class="xref py py-meth docutils literal"><span class="pre">__str__()</span></code></dt>
+<dd><p class="first">A Python &#8220;magic method&#8221; that returns a unicode &#8220;representation&#8221; of any
+object. This is what Python and Django will use whenever a model
+instance needs to be coerced and displayed as a plain string. Most
+notably, this happens when you display an object in an interactive
+console or in the admin.</p>
+<p class="last">You&#8217;ll always want to define this method; the default isn&#8217;t very helpful
+at all.</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal"><span class="pre">get_absolute_url()</span></code></dt>
+<dd><p class="first">This tells Django how to calculate the URL for an object. Django uses
+this in its admin interface, and any time it needs to figure out a URL
+for an object.</p>
+<p class="last">Any object that has a URL that uniquely identifies it should define this
+method.</p>
+</dd>
+</dl>
+<div class="section" id="overriding-predefined-model-methods">
+<span id="overriding-model-methods"></span><h3>Overriding predefined model methods<a class="headerlink" href="#overriding-predefined-model-methods" title="Permalink to this headline">¶</a></h3>
+<p>There&#8217;s another set of model methods that
+encapsulate a bunch of database behavior that you&#8217;ll want to customize. In
+particular you&#8217;ll often want to change the way <code class="xref py py-meth docutils literal"><span class="pre">save()</span></code> and
+<code class="xref py py-meth docutils literal"><span class="pre">delete()</span></code> work.</p>
+<p>You&#8217;re free to override these methods (and any other model method) to alter
+behavior.</p>
+<p>A classic use-case for overriding the built-in methods is if you want something
+to happen whenever you save an object. For example (see
+<code class="xref py py-meth docutils literal"><span class="pre">save()</span></code> for documentation of the parameters it accepts):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span> <span class="nc">Blog</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">tagline</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">do_something</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Blog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="c"># Call the &quot;real&quot; save() method.</span>
+        <span class="n">do_something_else</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can also prevent saving:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span> <span class="nc">Blog</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">tagline</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">&quot;Yoko Ono&#39;s blog&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c"># Yoko shall never have her own blog!</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">Blog</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="c"># Call the &quot;real&quot; save() method.</span>
+</pre></div>
+</div>
+<p>It&#8217;s important to remember to call the superclass method &#8211; that&#8217;s
+that <code class="docutils literal"><span class="pre">super(Blog,</span> <span class="pre">self).save(*args,</span> <span class="pre">**kwargs)</span></code> business &#8211; to ensure
+that the object still gets saved into the database. If you forget to
+call the superclass method, the default behavior won&#8217;t happen and the
+database won&#8217;t get touched.</p>
+<p>It&#8217;s also important that you pass through the arguments that can be
+passed to the model method &#8211; that&#8217;s what the <code class="docutils literal"><span class="pre">*args,</span> <span class="pre">**kwargs</span></code> bit
+does. Django will, from time to time, extend the capabilities of
+built-in model methods, adding new arguments. If you use <code class="docutils literal"><span class="pre">*args,</span>
+<span class="pre">**kwargs</span></code> in your method definitions, you are guaranteed that your
+code will automatically support those arguments when they are added.</p>
+<div class="admonition-overridden-model-methods-are-not-called-on-bulk-operations admonition">
+<p class="first admonition-title">Overridden model methods are not called on bulk operations</p>
+<p>Note that the <code class="xref py py-meth docutils literal"><span class="pre">delete()</span></code> method for an object is not
+necessarily called when deleting objects in bulk using a
+QuerySet. To ensure customized delete logic
+gets executed, you can use <code class="xref py py-data docutils literal"><span class="pre">pre_delete</span></code>
+and/or <code class="xref py py-data docutils literal"><span class="pre">post_delete</span></code> signals.</p>
+<p class="last">Unfortunately, there isn&#8217;t a workaround when
+<code class="xref py py-meth docutils literal"><span class="pre">creating</span></code> or
+<code class="xref py py-meth docutils literal"><span class="pre">updating</span></code> objects in bulk,
+since none of <code class="xref py py-meth docutils literal"><span class="pre">save()</span></code>,
+<code class="xref py py-data docutils literal"><span class="pre">pre_save</span></code>, and
+<code class="xref py py-data docutils literal"><span class="pre">post_save</span></code> are called.</p>
+</div>
+</div>
+</div>
+<div class="section" id="executing-raw-sql-queries">
+<h2>Executing Raw SQL Queries<a class="headerlink" href="#executing-raw-sql-queries" title="Permalink to this headline">¶</a></h2>
+<p>When the model query APIs don&#8217;t go far enough, you
+can fall back to writing raw SQL. Django gives you two ways of performing raw
+SQL queries: you can use <a class="reference internal" href="#Manager.raw" title="Manager.raw"><code class="xref py py-meth docutils literal"><span class="pre">Manager.raw()</span></code></a> to <a class="reference internal" href="#performing-raw-queries">perform raw queries and
+return model instances</a>, or you can avoid the model layer entirely and
+<a class="reference internal" href="#executing-custom-sql-directly">execute custom SQL directly</a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">You should be very careful whenever you write raw SQL. Every time you use
+it, you should properly escape any parameters that the user can control
+by using <code class="docutils literal"><span class="pre">params</span></code> in order to protect against SQL injection attacks.</p>
+</div>
+</div>
+<div class="section" id="performing-raw-queries">
+<span id="executing-raw-queries"></span><h2>Performing raw queries<a class="headerlink" href="#performing-raw-queries" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">raw()</span></code> manager method can be used to perform raw SQL queries that
+return model instances:</p>
+<dl class="method">
+<dt id="Manager.raw">
+<code class="descclassname">Manager.</code><code class="descname">raw</code><span class="sig-paren">(</span><em>raw_query</em>, <em>params=None</em>, <em>translations=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Manager.raw" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>This method takes a raw SQL query, executes it, and returns a
+<code class="docutils literal"><span class="pre">django.db.models.query.RawQuerySet</span></code> instance. This <code class="docutils literal"><span class="pre">RawQuerySet</span></code> instance
+can be iterated over just like a normal
+<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code> to provide object instances.</p>
+<p>This is best illustrated with an example. Suppose you have the following model:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">first_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">last_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="n">birth_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You could then execute custom SQL like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT * FROM myapp_person&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="go">John Smith</span>
+<span class="go">Jane Jones</span>
+</pre></div>
+</div>
+<p>Of course, this example isn&#8217;t very exciting &#8211; it&#8217;s exactly the same as
+running <code class="docutils literal"><span class="pre">Person.objects.all()</span></code>. However, <code class="docutils literal"><span class="pre">raw()</span></code> has a bunch of other
+options that make it very powerful.</p>
+<div class="admonition-model-table-names admonition">
+<p class="first admonition-title">Model table names</p>
+<p>Where&#8217;d the name of the <code class="docutils literal"><span class="pre">Person</span></code> table come from in that example?</p>
+<p>By default, Django figures out a database table name by joining the
+model&#8217;s &#8220;app label&#8221; &#8211; the name you used in <code class="docutils literal"><span class="pre">manage.py</span> <span class="pre">startapp</span></code> &#8211; to
+the model&#8217;s class name, with an underscore between them. In the example
+we&#8217;ve assumed that the <code class="docutils literal"><span class="pre">Person</span></code> model lives in an app named <code class="docutils literal"><span class="pre">myapp</span></code>,
+so its table would be <code class="docutils literal"><span class="pre">myapp_person</span></code>.</p>
+<p class="last">For more details check out the documentation for the
+<code class="xref py py-attr docutils literal"><span class="pre">db_table</span></code> option, which also lets you manually set the
+database table name.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">No checking is done on the SQL statement that is passed in to <code class="docutils literal"><span class="pre">.raw()</span></code>.
+Django expects that the statement will return a set of rows from the
+database, but does nothing to enforce that. If the query does not
+return rows, a (possibly cryptic) error will result.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you are performing queries on MySQL, note that MySQL&#8217;s silent type coercion
+may cause unexpected results when mixing types. If you query on a string
+type column, but with an integer value, MySQL will coerce the types of all values
+in the table to an integer before performing the comparison. For example, if your
+table contains the values <code class="docutils literal"><span class="pre">'abc'</span></code>, <code class="docutils literal"><span class="pre">'def'</span></code> and you query for <code class="docutils literal"><span class="pre">WHERE</span> <span class="pre">mycolumn=0</span></code>,
+both rows will match. To prevent this, perform the correct typecasting
+before using the value in a query.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">While a <code class="docutils literal"><span class="pre">RawQuerySet</span></code> instance can be iterated over like a normal
+<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code>, <code class="docutils literal"><span class="pre">RawQuerySet</span></code> doesn&#8217;t
+implement all methods you can use with <code class="docutils literal"><span class="pre">QuerySet</span></code>. For example,
+<code class="docutils literal"><span class="pre">__bool__()</span></code> and <code class="docutils literal"><span class="pre">__len__()</span></code> are not defined in <code class="docutils literal"><span class="pre">RawQuerySet</span></code>, and
+thus all <code class="docutils literal"><span class="pre">RawQuerySet</span></code> instances are considered <code class="docutils literal"><span class="pre">True</span></code>. The reason
+these methods are not implemented in <code class="docutils literal"><span class="pre">RawQuerySet</span></code> is that implementing
+them without internal caching would be a performance drawback and adding
+such caching would be backward incompatible.</p>
+</div>
+<div class="section" id="mapping-query-fields-to-model-fields">
+<h3>Mapping query fields to model fields<a class="headerlink" href="#mapping-query-fields-to-model-fields" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">raw()</span></code> automatically maps fields in the query to fields on the model.</p>
+<p>The order of fields in your query doesn&#8217;t matter. In other words, both
+of the following queries work identically:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT id, first_name, last_name, birth_date FROM myapp_person&#39;</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT last_name, birth_date, first_name, id FROM myapp_person&#39;</span><span class="p">)</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>Matching is done by name. This means that you can use SQL&#8217;s <code class="docutils literal"><span class="pre">AS</span></code> clauses to
+map fields in the query to model fields. So if you had some other table that
+had <code class="docutils literal"><span class="pre">Person</span></code> data in it, you could easily map it into <code class="docutils literal"><span class="pre">Person</span></code> instances:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;&#39;&#39;SELECT first AS first_name,</span>
+<span class="gp">... </span><span class="s">                             last AS last_name,</span>
+<span class="gp">... </span><span class="s">                             bd AS birth_date,</span>
+<span class="gp">... </span><span class="s">                             pk AS id,</span>
+<span class="gp">... </span><span class="s">                      FROM some_other_table&#39;&#39;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As long as the names match, the model instances will be created correctly.</p>
+<p>Alternatively, you can map fields in the query to model fields using the
+<code class="docutils literal"><span class="pre">translations</span></code> argument to <code class="docutils literal"><span class="pre">raw()</span></code>. This is a dictionary mapping names of
+fields in the query to names of fields on the model. For example, the above
+query could also be written:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">name_map</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;first&#39;</span><span class="p">:</span> <span class="s">&#39;first_name&#39;</span><span class="p">,</span> <span class="s">&#39;last&#39;</span><span class="p">:</span> <span class="s">&#39;last_name&#39;</span><span class="p">,</span> <span class="s">&#39;bd&#39;</span><span class="p">:</span> <span class="s">&#39;birth_date&#39;</span><span class="p">,</span> <span class="s">&#39;pk&#39;</span><span class="p">:</span> <span class="s">&#39;id&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT * FROM some_other_table&#39;</span><span class="p">,</span> <span class="n">translations</span><span class="o">=</span><span class="n">name_map</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="index-lookups">
+<h3>Index lookups<a class="headerlink" href="#index-lookups" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">raw()</span></code> supports indexing, so if you need only the first result you can
+write:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">first_person</span> <span class="o">=</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT * FROM myapp_person&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>However, the indexing and slicing are not performed at the database level. If
+you have a large number of <code class="docutils literal"><span class="pre">Person</span></code> objects in your database, it is more
+efficient to limit the query at the SQL level:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">first_person</span> <span class="o">=</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT * FROM myapp_person LIMIT 1&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="deferring-model-fields">
+<h3>Deferring model fields<a class="headerlink" href="#deferring-model-fields" title="Permalink to this headline">¶</a></h3>
+<p>Fields may also be left out:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">people</span> <span class="o">=</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT id, first_name FROM myapp_person&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">Person</span></code> objects returned by this query will be deferred model instances
+(see <code class="xref py py-meth docutils literal"><span class="pre">defer()</span></code>). This means that the
+fields that are omitted from the query will be loaded on demand. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT id, first_name FROM myapp_person&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">first_name</span><span class="p">,</span> <span class="c"># This will be retrieved by the original query</span>
+<span class="gp">... </span>          <span class="n">p</span><span class="o">.</span><span class="n">last_name</span><span class="p">)</span> <span class="c"># This will be retrieved on demand</span>
+<span class="gp">...</span>
+<span class="go">John Smith</span>
+<span class="go">Jane Jones</span>
+</pre></div>
+</div>
+<p>From outward appearances, this looks like the query has retrieved both
+the first name and last name. However, this example actually issued 3
+queries. Only the first names were retrieved by the raw() query &#8211; the
+last names were both retrieved on demand when they were printed.</p>
+<p>There is only one field that you can&#8217;t leave out - the primary key
+field. Django uses the primary key to identify model instances, so it
+must always be included in a raw query. An <code class="docutils literal"><span class="pre">InvalidQuery</span></code> exception
+will be raised if you forget to include the primary key.</p>
+</div>
+<div class="section" id="adding-annotations">
+<h3>Adding annotations<a class="headerlink" href="#adding-annotations" title="Permalink to this headline">¶</a></h3>
+<p>You can also execute queries containing fields that aren&#8217;t defined on the
+model. For example, we could use <a class="reference external" href="http://www.postgresql.org/docs/current/static/functions-datetime.html">PostgreSQL&#8217;s age() function</a> to get a list
+of people with their ages calculated by the database:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">people</span> <span class="o">=</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT *, age(birth_date) AS age FROM myapp_person&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">people</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> is </span><span class="si">%s</span><span class="s">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">first_name</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">age</span><span class="p">))</span>
+<span class="go">John is 37.</span>
+<span class="go">Jane is 42.</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="passing-parameters-into-raw">
+<h3>Passing parameters into <code class="docutils literal"><span class="pre">raw()</span></code><a class="headerlink" href="#passing-parameters-into-raw" title="Permalink to this headline">¶</a></h3>
+<p>If you need to perform parameterized queries, you can use the <code class="docutils literal"><span class="pre">params</span></code>
+argument to <code class="docutils literal"><span class="pre">raw()</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">lname</span> <span class="o">=</span> <span class="s">&#39;Doe&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="s">&#39;SELECT * FROM myapp_person WHERE last_name = </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">lname</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">params</span></code> is a list or dictionary of parameters. You&#8217;ll use <code class="docutils literal"><span class="pre">%s</span></code>
+placeholders in the query string for a list, or <code class="docutils literal"><span class="pre">%(key)s</span></code>
+placeholders for a dictionary (where <code class="docutils literal"><span class="pre">key</span></code> is replaced by a
+dictionary key, of course), regardless of your database engine.  Such
+placeholders will be replaced with parameters from the <code class="docutils literal"><span class="pre">params</span></code>
+argument.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Dictionary params are not supported with the SQLite backend; with
+this backend, you must pass parameters as a list.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p><strong>Do not use string formatting on raw queries!</strong></p>
+<p>It&#8217;s tempting to write the above query as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">query</span> <span class="o">=</span> <span class="s">&#39;SELECT * FROM myapp_person WHERE last_name = </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">raw</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Don&#8217;t.</strong></p>
+<p class="last">Using the <code class="docutils literal"><span class="pre">params</span></code> argument completely protects you from <a class="reference external" href="http://en.wikipedia.org/wiki/SQL_injection">SQL injection
+attacks</a>, a common exploit where attackers inject arbitrary SQL into
+your database. If you use string interpolation, sooner or later you&#8217;ll
+fall victim to SQL injection. As long as you remember to always use the
+<code class="docutils literal"><span class="pre">params</span></code> argument you&#8217;ll be protected.</p>
+</div>
+</div>
+</div>
+<div class="section" id="executing-custom-sql-directly">
+<span id="executing-custom-sql"></span><h2>Executing custom SQL directly<a class="headerlink" href="#executing-custom-sql-directly" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes even <a class="reference internal" href="#Manager.raw" title="Manager.raw"><code class="xref py py-meth docutils literal"><span class="pre">Manager.raw()</span></code></a> isn&#8217;t quite enough: you might need to
+perform queries that don&#8217;t map cleanly to models, or directly execute
+<code class="docutils literal"><span class="pre">UPDATE</span></code>, <code class="docutils literal"><span class="pre">INSERT</span></code>, or <code class="docutils literal"><span class="pre">DELETE</span></code> queries.</p>
+<p>In these cases, you can always access the database directly, routing around
+the model layer entirely.</p>
+<p>The object <code class="docutils literal"><span class="pre">django.db.connection</span></code> represents the default database
+connection. To use the database connection, call <code class="docutils literal"><span class="pre">connection.cursor()</span></code> to
+get a cursor object. Then, call <code class="docutils literal"><span class="pre">cursor.execute(sql,</span> <span class="pre">[params])</span></code> to execute
+the SQL and <code class="docutils literal"><span class="pre">cursor.fetchone()</span></code> or <code class="docutils literal"><span class="pre">cursor.fetchall()</span></code> to return the
+resulting rows.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
+
+<span class="k">def</span> <span class="nf">my_custom_sql</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;UPDATE bar SET foo = 1 WHERE baz = </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">baz</span><span class="p">])</span>
+
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT foo FROM bar WHERE baz = </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">baz</span><span class="p">])</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">row</span>
+</pre></div>
+</div>
+<p>Note that if you want to include literal percent signs in the query, you have to
+double them in the case you are passing parameters:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT foo FROM bar WHERE baz = &#39;30%&#39;&quot;</span><span class="p">)</span>
+<span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT foo FROM bar WHERE baz = &#39;30</span><span class="si">%%</span><span class="s">&#39; AND id = </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>If you are using more than one database, you can
+use <code class="docutils literal"><span class="pre">django.db.connections</span></code> to obtain the connection (and cursor) for a
+specific database. <code class="docutils literal"><span class="pre">django.db.connections</span></code> is a dictionary-like
+object that allows you to retrieve a specific connection using its
+alias:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connections</span>
+<span class="n">cursor</span> <span class="o">=</span> <span class="n">connections</span><span class="p">[</span><span class="s">&#39;my_db_alias&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<span class="c"># Your code here...</span>
+</pre></div>
+</div>
+<p>By default, the Python DB API will return results without their field
+names, which means you end up with a <code class="docutils literal"><span class="pre">list</span></code> of values, rather than a
+<code class="docutils literal"><span class="pre">dict</span></code>. At a small performance cost, you can return results as a
+<code class="docutils literal"><span class="pre">dict</span></code> by using something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">dictfetchall</span><span class="p">(</span><span class="n">cursor</span><span class="p">):</span>
+    <span class="s">&quot;Returns all rows from a cursor as a dict&quot;</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="n">col</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">desc</span><span class="p">],</span> <span class="n">row</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="p">]</span>
+</pre></div>
+</div>
+<p>Here is an example of the difference between the two:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT id, parent_id FROM test LIMIT 2&quot;</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="go">((54360982L, None), (54360880L, None))</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;SELECT id, parent_id FROM test LIMIT 2&quot;</span><span class="p">);</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dictfetchall</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+<span class="go">[{&#39;parent_id&#39;: None, &#39;id&#39;: 54360982L}, {&#39;parent_id&#39;: None, &#39;id&#39;: 54360880L}]</span>
+</pre></div>
+</div>
+<div class="section" id="connections-and-cursors">
+<h3>Connections and cursors<a class="headerlink" href="#connections-and-cursors" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">connection</span></code> and <code class="docutils literal"><span class="pre">cursor</span></code> mostly implement the standard Python DB-API
+described in <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0249"><strong>PEP 249</strong></a>, except when it comes to transaction handling.</p>
+<p>If you&#8217;re not familiar with the Python DB-API, note that the SQL statement in
+<code class="docutils literal"><span class="pre">cursor.execute()</span></code> uses placeholders, <code class="docutils literal"><span class="pre">&quot;%s&quot;</span></code>, rather than adding
+parameters directly within the SQL. If you use this technique, the underlying
+database library will automatically escape your parameters as necessary.</p>
+<p>Also note that Django expects the <code class="docutils literal"><span class="pre">&quot;%s&quot;</span></code> placeholder, <em>not</em> the <code class="docutils literal"><span class="pre">&quot;?&quot;</span></code>
+placeholder, which is used by the SQLite Python bindings. This is for the sake
+of consistency and sanity.</p>
+<p>Using a cursor as a context manager:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span> <span class="k">as</span> <span class="n">c</span><span class="p">:</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>is equivalent to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h3>Adding extra Manager methods<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>Adding extra <code class="docutils literal"><span class="pre">Manager</span></code> methods is the preferred way to add &#8220;table-level&#8221;
+functionality to your models. (For &#8220;row-level&#8221; functionality &#8211; i.e., functions
+that act on a single instance of a model object &#8211; use Model methods, not custom <code class="docutils literal"><span class="pre">Manager</span></code> methods.)</p>
+<p>A custom <code class="docutils literal"><span class="pre">Manager</span></code> method can return anything you want. It doesn&#8217;t have to
+return a <code class="docutils literal"><span class="pre">QuerySet</span></code>.</p>
+<p>For example, this custom <code class="docutils literal"><span class="pre">Manager</span></code> offers a method <code class="docutils literal"><span class="pre">with_counts()</span></code>, which
+returns a list of all <code class="docutils literal"><span class="pre">OpinionPoll</span></code> objects, each with an extra
+<code class="docutils literal"><span class="pre">num_responses</span></code> attribute that is the result of an aggregate query:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span> <span class="nc">PollManager</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Manager</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">with_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT p.id, p.question, p.poll_date, COUNT(*)</span>
+<span class="s">            FROM polls_opinionpoll p, polls_response r</span>
+<span class="s">            WHERE p.id = r.poll_id</span>
+<span class="s">            GROUP BY p.id, p.question, p.poll_date</span>
+<span class="s">            ORDER BY p.poll_date DESC&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">result_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">question</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">poll_date</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">num_responses</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">result_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result_list</span>
+
+<span class="k">class</span> <span class="nc">OpinionPoll</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">question</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="n">poll_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">()</span>
+    <span class="n">objects</span> <span class="o">=</span> <span class="n">PollManager</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Response</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">poll</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">OpinionPoll</span><span class="p">)</span>
+    <span class="n">person_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>With this example, you&#8217;d use <code class="docutils literal"><span class="pre">OpinionPoll.objects.with_counts()</span></code> to return
+that list of <code class="docutils literal"><span class="pre">OpinionPoll</span></code> objects with <code class="docutils literal"><span class="pre">num_responses</span></code> attributes.</p>
+<p>Another thing to note about this example is that <code class="docutils literal"><span class="pre">Manager</span></code> methods can
+access <code class="docutils literal"><span class="pre">self.model</span></code> to get the model class to which they&#8217;re attached.</p>
+</div>
+</div>
+<div class="section" id="what-s-next">
+<h2>What&#8217;s Next?<a class="headerlink" href="#what-s-next" title="Permalink to this headline">¶</a></h2>
+<p>In the next chapter, we&#8217;ll show you Django&#8217;s &#8220;generic views&#8221; framework, which
+lets you save time in building Web sites that follow common patterns.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Chapter 9: Advanced Models</a><ul>
+<li><a class="reference internal" href="#related-objects">Related Objects</a><ul>
+<li><a class="reference internal" href="#accessing-foreign-key-values">Accessing Foreign Key Values</a></li>
+<li><a class="reference internal" href="#accessing-many-to-many-values">Accessing Many-to-Many Values</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#managers">Managers</a><ul>
+<li><a class="reference internal" href="#adding-extra-manager-methods">Adding Extra Manager Methods</a></li>
+<li><a class="reference internal" href="#modifying-initial-manager-querysets">Modifying Initial Manager QuerySets</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#model-methods">Model methods</a><ul>
+<li><a class="reference internal" href="#overriding-predefined-model-methods">Overriding predefined model methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#executing-raw-sql-queries">Executing Raw SQL Queries</a></li>
+<li><a class="reference internal" href="#performing-raw-queries">Performing raw queries</a><ul>
+<li><a class="reference internal" href="#mapping-query-fields-to-model-fields">Mapping query fields to model fields</a></li>
+<li><a class="reference internal" href="#index-lookups">Index lookups</a></li>
+<li><a class="reference internal" href="#deferring-model-fields">Deferring model fields</a></li>
+<li><a class="reference internal" href="#adding-annotations">Adding annotations</a></li>
+<li><a class="reference internal" href="#passing-parameters-into-raw">Passing parameters into <code class="docutils literal"><span class="pre">raw()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#executing-custom-sql-directly">Executing custom SQL directly</a><ul>
+<li><a class="reference internal" href="#connections-and-cursors">Connections and cursors</a></li>
+<li><a class="reference internal" href="#id5">Adding extra Manager methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-s-next">What&#8217;s Next?</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="chapter_08.html" title="previous chapter">Chapter 8: Advanced Templates</a></li>
+      <li>Next: <a href="chapter_10.html" title="next chapter">Chapter 10: Generic Views</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chapter_09.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/chapter_09.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

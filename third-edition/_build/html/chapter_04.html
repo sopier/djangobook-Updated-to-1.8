@@ -1,0 +1,1245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Chapter 4: Models &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Chapter 5: The Django Admin Site" href="chapter_05.html" />
+    <link rel="prev" title="Chapter 3: Templates" href="chapter_03.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="chapter-4-models">
+<h1>Chapter 4: Models<a class="headerlink" href="#chapter-4-models" title="Permalink to this headline">¶</a></h1>
+<p>In Chapter 2, we covered the fundamentals of building dynamic Web sites
+with Django: setting up views and URLconfs. As we explained, a view is
+responsible for doing <em>some arbitrary logic</em>, and then returning a response. In
+one of the examples, our arbitrary logic was to calculate the current date and
+time.</p>
+<p>In modern Web applications, the arbitrary logic often involves interacting
+with a database. Behind the scenes, a <em>database-driven Web site</em> connects to
+a database server, retrieves some data out of it, and displays that data on a
+Web page. The site might also provide ways for site visitors to populate the
+database on their own.</p>
+<p>Many complex Web sites provide some combination of the two. Amazon.com, for
+instance, is a great example of a database-driven site. Each product page is
+essentially a query into Amazon&#8217;s product database formatted as HTML, and when
+you post a customer review, it gets inserted into the database of reviews.</p>
+<p>Django is well suited for making database-driven Web sites, because it comes
+with easy yet powerful tools for performing database queries using Python. This
+chapter explains that functionality: Django&#8217;s database layer.</p>
+<p>(Note: While it&#8217;s not strictly necessary to know basic relational database
+theory and SQL in order to use Django&#8217;s database layer, it&#8217;s highly
+recommended. An introduction to those concepts is beyond the scope of this
+book, but keep reading even if you&#8217;re a database newbie. You&#8217;ll probably be
+able to follow along and grasp concepts based on the context.)</p>
+<div class="section" id="the-dumb-way-to-do-database-queries-in-views">
+<h2>The &#8220;Dumb&#8221; Way to Do Database Queries in Views<a class="headerlink" href="#the-dumb-way-to-do-database-queries-in-views" title="Permalink to this headline">¶</a></h2>
+<p>Just as Chapter 2 detailed a &#8220;dumb&#8221; way to produce output within a
+view (by hard-coding the text directly within the view), there&#8217;s a &#8220;dumb&#8221; way to
+retrieve data from a database in a view. It&#8217;s simple: just use any existing
+Python library to execute an SQL query and do something with the results.</p>
+<p>In this example view, we use the <code class="docutils literal"><span class="pre">MySQLdb</span></code> library (available via
+<a class="reference external" href="http://www.djangoproject.com/r/python-mysql/">http://www.djangoproject.com/r/python-mysql/</a>) to connect to a MySQL database,
+retrieve some records, and feed them to a template for display as a Web page:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render</span>
+<span class="kn">import</span> <span class="nn">MySQLdb</span>
+
+<span class="k">def</span> <span class="nf">book_list</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s">&#39;me&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s">&#39;mydb&#39;</span><span class="p">,</span> <span class="n">passwd</span><span class="o">=</span><span class="s">&#39;secret&#39;</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">&#39;localhost&#39;</span><span class="p">)</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;SELECT name FROM books ORDER BY name&#39;</span><span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;book_list.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;names&#39;</span><span class="p">:</span> <span class="n">names</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>This approach works, but some problems should jump out at you immediately:</p>
+<ul class="simple">
+<li>We&#8217;re hard-coding the database connection parameters. Ideally, these
+parameters would be stored in the Django configuration.</li>
+<li>We&#8217;re having to write a fair bit of boilerplate code: creating a
+connection, creating a cursor, executing a statement, and closing the
+connection. Ideally, all we&#8217;d have to do is specify which results we
+wanted.</li>
+<li>It ties us to MySQL. If, down the road, we switch from MySQL to
+PostgreSQL, we&#8217;ll have to use a different database adapter (e.g.,
+<code class="docutils literal"><span class="pre">psycopg</span></code> rather than <code class="docutils literal"><span class="pre">MySQLdb</span></code>), alter the connection parameters,
+and &#8211; depending on the nature of the SQL statement &#8211; possibly rewrite
+the SQL. Ideally, the database server we&#8217;re using would be abstracted, so
+that a database server change could be made in a single place. (This
+feature is particularly relevant if you&#8217;re building an open-source Django
+application that you want to be used by as many people as possible.)</li>
+</ul>
+<p>As you might expect, Django&#8217;s database layer aims to solve these problems.
+Here&#8217;s a sneak preview of how the previous view can be rewritten using Django&#8217;s
+database API:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render</span>
+<span class="kn">from</span> <span class="nn">books.models</span> <span class="kn">import</span> <span class="n">Book</span>
+
+<span class="k">def</span> <span class="nf">book_list</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">books</span> <span class="o">=</span> <span class="n">Book</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;book_list.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;books&#39;</span><span class="p">:</span> <span class="n">books</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>We&#8217;ll explain this code a little later in the chapter. For now, just get a
+feel for how it looks.</p>
+</div>
+<div class="section" id="configuring-the-database">
+<h2>Configuring the Database<a class="headerlink" href="#configuring-the-database" title="Permalink to this headline">¶</a></h2>
+<p>With all of that philosophy in mind, let&#8217;s start exploring Django&#8217;s database
+layer. First,  lets explore the initial configuration that was added to
+<code class="docutils literal"><span class="pre">settings.py</span></code> when we created the application:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Database</span>
+<span class="c"># https://docs.djangoproject.com/en/1.8/ref/settings/#databases</span>
+
+<span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s">&#39;django.db.backends.sqlite3&#39;</span><span class="p">,</span>
+        <span class="s">&#39;NAME&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BASE_DIR</span><span class="p">,</span> <span class="s">&#39;db.sqlite3&#39;</span><span class="p">),</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The default setup is pretty simple. Here&#8217;s a rundown of each setting.</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">ENGINE</span></code> tells Django which database engine to use. As we are using SQLite
+in the examples in this book, we will leave it to the default
+<code class="docutils literal"><span class="pre">django.db.backends.sqlite3</span></code></p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">NAME</span></code> tells Django the name of your database. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>&#39;NAME&#39;: &#39;mydb&#39;,
+</pre></div>
+</div>
+<p>Since we&#8217;re using SQLite, <code class="docutils literal"><span class="pre">startproject</span></code> created a full filesystem path to the database
+file for us.</p>
+</li>
+</ul>
+<p>This is it for the default setup - you don&#8217;t need to change anything to run
+the code in this book, I have included this simply to give you an idea of how
+simple it is to configure databases in Django.</p>
+<p>For a detailed description on how to set up the various databases supported by
+Django, see Chapter 23.</p>
+<p>Just to make sure our SQLite database is good to go (or to test another database connection if you have decided to go down that path), in the shell, type these commands to test your database configuration:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">connection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If nothing happens, then your database is configured properly. Otherwise, check
+the error message for clues about what&#8217;s wrong. Table 5-2 shows some common errors.</p>
+<table border="1" class="docutils" id="id1">
+<caption><span class="caption-text">Table 5-2. Database Configuration Error Messages</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="55%" />
+<col width="45%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Error Message</th>
+<th class="head">Solution</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>You haven&#8217;t set the ENGINE setting yet.</td>
+<td>Set the <code class="docutils literal"><span class="pre">ENGINE</span></code> setting to
+something other than an empty string. Valid
+values are in Table 5-1.</td>
+</tr>
+<tr class="row-odd"><td>Environment variable DJANGO_SETTINGS_MODULE is undefined.</td>
+<td>Run the command <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">shell</span></code>
+rather than <code class="docutils literal"><span class="pre">python</span></code>.</td>
+</tr>
+<tr class="row-even"><td>Error loading _____ module: No module named _____.</td>
+<td>You haven&#8217;t installed the appropriate
+database-specific adapter (e.g., <code class="docutils literal"><span class="pre">psycopg</span></code>
+or <code class="docutils literal"><span class="pre">MySQLdb</span></code>). Adapters are <em>not</em> bundled
+with Django, so it&#8217;s your responsibility to
+download and install them on your own.</td>
+</tr>
+<tr class="row-odd"><td>_____ isn&#8217;t an available database backend.</td>
+<td>Set your <code class="docutils literal"><span class="pre">ENGINE</span></code> setting to
+one of the valid engine settings described
+previously. Perhaps you made a typo?</td>
+</tr>
+<tr class="row-even"><td>database _____ does not exist</td>
+<td>Change the <code class="docutils literal"><span class="pre">NAME</span></code> setting to
+point to a database that exists, or
+execute the appropriate
+<code class="docutils literal"><span class="pre">CREATE</span> <span class="pre">DATABASE</span></code> statement in order to
+create it.</td>
+</tr>
+<tr class="row-odd"><td>role _____ does not exist</td>
+<td>Change the <code class="docutils literal"><span class="pre">USER</span></code> setting to point
+to a user that exists, or create the user
+in your database.</td>
+</tr>
+<tr class="row-even"><td>could not connect to server</td>
+<td>Make sure <code class="docutils literal"><span class="pre">HOST</span></code> and
+<code class="docutils literal"><span class="pre">PORT</span></code> are set correctly, and
+make sure the database server is running.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="your-first-app">
+<h2>Your First App<a class="headerlink" href="#your-first-app" title="Permalink to this headline">¶</a></h2>
+<p>Now that you&#8217;ve verified the connection is working, it&#8217;s time to create a
+<em>Django app</em> &#8211; a bundle of Django code, including models and views, that
+lives together in a single Python package and represents a full Django
+application.</p>
+<p>It&#8217;s worth explaining the terminology here, because this tends to trip up
+beginners. We&#8217;d already created a <em>project</em>, in Chapter 1, so what&#8217;s the
+difference between a <em>project</em> and an <em>app</em>? The difference is that of
+configuration vs. code:</p>
+<ul>
+<li><p class="first">A project is an instance of a certain set of Django apps, plus the
+configuration for those apps.</p>
+<p>Technically, the only requirement of a project is that it supplies a
+settings file, which defines the database connection information, the
+list of installed apps, the <code class="docutils literal"><span class="pre">DIRS</span></code>, and so forth.</p>
+</li>
+<li><p class="first">An app is a portable set of Django functionality, usually including
+models and views, that lives together in a single Python package.</p>
+<p>For example, Django comes with a number of apps, such as the automatic admin
+interface. A key thing to note about these apps is that they&#8217;re portable and
+reusable across multiple projects.</p>
+</li>
+</ul>
+<p>There are very few hard-and-fast rules about how you fit your Django code into
+this scheme. If you&#8217;re building a simple Web site, you may use only a single
+app. If you&#8217;re building a complex Web site with several unrelated pieces such
+as an e-commerce system and a message board, you&#8217;ll probably want to split
+those into separate apps so that you&#8217;ll be able to reuse them individually in
+the future.</p>
+<p>Indeed, you don&#8217;t necessarily need to create apps at all, as evidenced by the
+example view functions we&#8217;ve created so far in this book. In those cases, we
+simply created a file called <code class="docutils literal"><span class="pre">views.py</span></code>, filled it with view functions, and
+pointed our URLconf at those functions. No &#8220;apps&#8221; were needed.</p>
+<p>However, there&#8217;s one requirement regarding the app convention: if you&#8217;re using
+Django&#8217;s database layer (models), you must create a Django app. Models must
+live within apps. Thus, in order to start writing our models, we&#8217;ll need to
+create a new app.</p>
+<p>Within the <code class="docutils literal"><span class="pre">mysite</span></code> project directory, type this command to create a
+<code class="docutils literal"><span class="pre">books</span></code> app:</p>
+<div class="highlight-python"><div class="highlight"><pre>python manage.py startapp books
+</pre></div>
+</div>
+<p>This command does not produce any output, but it does create a <code class="docutils literal"><span class="pre">books</span></code>
+directory within the <code class="docutils literal"><span class="pre">mysite</span></code> directory. Let&#8217;s look at the contents
+of that directory:</p>
+<div class="highlight-python"><div class="highlight"><pre>books/
+    /migrations
+    __init__.py
+    admin.py
+    models.py
+    tests.py
+    views.py
+</pre></div>
+</div>
+<p>These files will contain the models and views for this app.</p>
+<p>Have a look at <code class="docutils literal"><span class="pre">models.py</span></code> and <code class="docutils literal"><span class="pre">views.py</span></code> in your favorite text editor.
+Both files are empty, except for comments and an import in <code class="docutils literal"><span class="pre">models.py</span></code>. This
+is the blank slate for your Django app.</p>
+</div>
+<div class="section" id="defining-models-in-python">
+<h2>Defining Models in Python<a class="headerlink" href="#defining-models-in-python" title="Permalink to this headline">¶</a></h2>
+<p>As we discussed earlier in this chapter, the &#8220;M&#8221; in &#8220;MTV&#8221; stands for &#8220;Model.&#8221; A
+Django model is a description of the data in your database, represented as
+Python code. It&#8217;s your data layout &#8211; the equivalent of your SQL <code class="docutils literal"><span class="pre">CREATE</span>
+<span class="pre">TABLE</span></code> statements &#8211; except it&#8217;s in Python instead of SQL, and it includes
+more than just database column definitions. Django uses a model to execute SQL
+code behind the scenes and return convenient Python data structures representing
+the rows in your database tables. Django also uses models to represent
+higher-level concepts that SQL can&#8217;t necessarily handle.</p>
+<p>If you&#8217;re familiar with databases, your immediate thought might be, &#8220;Isn&#8217;t it
+redundant to define data models in Python instead of in SQL?&#8221; Django works the
+way it does for several reasons:</p>
+<ul>
+<li><p class="first">Introspection requires overhead and is imperfect. In order to provide
+convenient data-access APIs, Django needs to know the
+database layout <em>somehow</em>, and there are two ways of accomplishing this.
+The first way would be to explicitly describe the data in Python, and the
+second way would be to introspect the database at runtime to determine
+the data models.</p>
+<p>This second way seems cleaner, because the metadata about your tables
+lives in only one place, but it introduces a few problems. First,
+introspecting a database at runtime obviously requires overhead. If the
+framework had to introspect the database each time it processed a
+request, or even only when the Web server was initialized, this would
+incur an unacceptable level of overhead. (While some believe that level
+of overhead is acceptable, Django&#8217;s developers aim to trim as much
+framework overhead as possible.) Second, some databases, notably older
+versions of MySQL, do not store sufficient metadata for accurate and
+complete introspection.</p>
+</li>
+<li><p class="first">Writing Python is fun, and keeping everything in Python limits the number
+of times your brain has to do a &#8220;context switch.&#8221; It helps productivity
+if you keep yourself in a single programming environment/mentality for as
+long as possible. Having to write SQL, then Python, and then SQL again is
+disruptive.</p>
+</li>
+<li><p class="first">Having data models stored as code rather than in your database makes it
+easier to keep your models under version control. This way, you can
+easily keep track of changes to your data layouts.</p>
+</li>
+<li><p class="first">SQL allows for only a certain level of metadata about a data layout. Most
+database systems, for example, do not provide a specialized data type for
+representing email addresses or URLs. Django models do. The advantage of
+higher-level data types is higher productivity and more reusable code.</p>
+</li>
+<li><p class="first">SQL is inconsistent across database platforms. If you&#8217;re distributing a
+Web application, for example, it&#8217;s much more pragmatic to distribute a
+Python module that describes your data layout than separate sets of
+<code class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></code> statements for MySQL, PostgreSQL, and SQLite.</p>
+</li>
+</ul>
+<p>A drawback of this approach, however, is that it&#8217;s possible for the Python code
+to get out of sync with what&#8217;s actually in the database. If you make changes to
+a Django model, you&#8217;ll need to make the same changes inside your database to
+keep your database consistent with the model. I&#8217;ll show you how to handle this
+problem when we discuss <em>migrations</em> later in this chapter.</p>
+<p>Finally, we should note that Django includes a utility that can generate models
+by introspecting an existing database. This is useful for quickly getting up
+and running with legacy data. We&#8217;ll cover this in Chapter 23.</p>
+</div>
+<div class="section" id="your-first-model">
+<h2>Your First Model<a class="headerlink" href="#your-first-model" title="Permalink to this headline">¶</a></h2>
+<p>As an ongoing example in this chapter and the next chapter, we&#8217;ll focus on a
+basic book/author/publisher data layout. We use this as our example because the
+conceptual relationships between books, authors, and publishers are well known,
+and this is a common data layout used in introductory SQL textbooks. You&#8217;re
+also reading a book that was written by authors and produced by a publisher!</p>
+<p>We&#8217;ll suppose the following concepts, fields, and relationships:</p>
+<ul class="simple">
+<li>An author has a first name, a last name and an email address.</li>
+<li>A publisher has a name, a street address, a city, a state/province, a
+country, and a Web site.</li>
+<li>A book has a title and a publication date. It also has one or more
+authors (a many-to-many relationship with authors) and a single publisher
+(a one-to-many relationship &#8211; aka foreign key &#8211; to publishers).</li>
+</ul>
+<p>The first step in using this database layout with Django is to express it as
+Python code. In the <code class="docutils literal"><span class="pre">models.py</span></code> file that was created by the <code class="docutils literal"><span class="pre">startapp</span></code>
+command, enter the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span> <span class="nc">Publisher</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">city</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+    <span class="n">state_province</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="n">country</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">website</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">URLField</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">first_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="n">last_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">EmailField</span><span class="p">()</span>
+
+<span class="k">class</span> <span class="nc">Book</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="n">authors</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">Author</span><span class="p">)</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Publisher</span><span class="p">)</span>
+    <span class="n">publication_date</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Let&#8217;s quickly examine this code to cover the basics. The first thing to notice
+is that each model is represented by a Python class that is a subclass of
+<code class="docutils literal"><span class="pre">django.db.models.Model</span></code>. The parent class, <code class="docutils literal"><span class="pre">Model</span></code>, contains all the
+machinery necessary to make these objects capable of interacting with a
+database &#8211; and that leaves our models responsible solely for defining their
+fields, in a nice and compact syntax. Believe it or not, this is all the code
+we need to write to have basic data access with Django.</p>
+<p>Each model generally corresponds to a single database table, and each attribute
+on a model generally corresponds to a column in that database table. The
+attribute name corresponds to the column&#8217;s name, and the type of field (e.g.,
+<code class="docutils literal"><span class="pre">CharField</span></code>) corresponds to the database column type (e.g., <code class="docutils literal"><span class="pre">varchar</span></code>). For
+example, the <code class="docutils literal"><span class="pre">Publisher</span></code> model is equivalent to the following table (assuming
+PostgreSQL <code class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></code> syntax):</p>
+<div class="highlight-python"><div class="highlight"><pre>CREATE TABLE &quot;books_publisher&quot; (
+    &quot;id&quot; serial NOT NULL PRIMARY KEY,
+    &quot;name&quot; varchar(30) NOT NULL,
+    &quot;address&quot; varchar(50) NOT NULL,
+    &quot;city&quot; varchar(60) NOT NULL,
+    &quot;state_province&quot; varchar(30) NOT NULL,
+    &quot;country&quot; varchar(50) NOT NULL,
+    &quot;website&quot; varchar(200) NOT NULL
+);
+</pre></div>
+</div>
+<p>Indeed, Django can generate that <code class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></code> statement automatically, as
+we&#8217;ll show you in a moment.</p>
+<p>The exception to the one-class-per-database-table rule is the case of
+many-to-many relationships. In our example models, <code class="docutils literal"><span class="pre">Book</span></code> has a
+<code class="docutils literal"><span class="pre">ManyToManyField</span></code> called <code class="docutils literal"><span class="pre">authors</span></code>. This designates that a book has one or
+many authors, but the <code class="docutils literal"><span class="pre">Book</span></code> database table doesn&#8217;t get an <code class="docutils literal"><span class="pre">authors</span></code>
+column. Rather, Django creates an additional table &#8211; a many-to-many &#8220;join
+table&#8221; &#8211; that handles the mapping of books to authors.</p>
+<p>For a full list of field types and model syntax options, see Appendix B.</p>
+<p>Finally, note we haven&#8217;t explicitly defined a primary key in any of these
+models. Unless you instruct it otherwise, Django automatically gives every
+model an auto-incrementing integer primary key field called <code class="docutils literal"><span class="pre">id</span></code>. Each Django
+model is required to have a single-column primary key.</p>
+</div>
+<div class="section" id="installing-the-model">
+<h2>Installing the Model<a class="headerlink" href="#installing-the-model" title="Permalink to this headline">¶</a></h2>
+<p>We&#8217;ve written the code; now let&#8217;s create the tables in our database. In order
+to do that, the first step is to <em>activate</em> these models in our Django project.
+We do that by adding the <code class="docutils literal"><span class="pre">books</span></code> app to the list of &#8220;installed apps&#8221; in the
+settings file.</p>
+<p>Edit the <code class="docutils literal"><span class="pre">settings.py</span></code> file again, and look for the <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>
+setting. <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code> tells Django which apps are activated for a given
+project. By default, it looks something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">(</span>
+<span class="s">&#39;django.contrib.admin&#39;</span><span class="p">,</span>
+<span class="s">&#39;django.contrib.auth&#39;</span><span class="p">,</span>
+<span class="s">&#39;django.contrib.contenttypes&#39;</span><span class="p">,</span>
+<span class="s">&#39;django.contrib.sessions&#39;</span><span class="p">,</span>
+<span class="s">&#39;django.contrib.messages&#39;</span><span class="p">,</span>
+<span class="s">&#39;django.contrib.staticfiles&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Temporarily comment out all six of those strings by putting a hash character
+(<code class="docutils literal"><span class="pre">#</span></code>) in front of them. (They&#8217;re included by default as a common-case
+convenience, but we&#8217;ll activate and discuss them in subsequent chapters.)
+While you&#8217;re at it, comment out the default <code class="docutils literal"><span class="pre">MIDDLEWARE_CLASSES</span></code> setting, too;
+the default values in <code class="docutils literal"><span class="pre">MIDDLEWARE_CLASSES</span></code> depend on some of the apps we
+just commented out. Then, add  <code class="docutils literal"><span class="pre">'books'</span></code> to the <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>
+list, so the setting ends up looking like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>INSTALLED_APPS = (
+  # &#39;django.contrib.admin&#39;,
+  # &#39;django.contrib.auth&#39;,
+  # &#39;django.contrib.contenttypes&#39;,
+  # &#39;django.contrib.sessions&#39;,
+  # &#39;django.contrib.messages&#39;,
+  # &#39;django.contrib.staticfiles&#39;,
+  &#39;books&#39;,
+  )
+
+  MIDDLEWARE_CLASSES = (
+    #  &#39;django.contrib.sessions.middleware.SessionMiddleware&#39;,
+    #  &#39;django.middleware.common.CommonMiddleware&#39;,
+    #  &#39;django.middleware.csrf.CsrfViewMiddleware&#39;,
+    #  &#39;django.contrib.auth.middleware.AuthenticationMiddleware&#39;,
+    #  &#39;django.contrib.auth.middleware.SessionAuthenticationMiddleware&#39;,
+    #  &#39;django.contrib.messages.middleware.MessageMiddleware&#39;,
+    #  &#39;django.middleware.clickjacking.XFrameOptionsMiddleware&#39;,
+    #  &#39;django.middleware.security.SecurityMiddleware&#39;,
+  )
+</pre></div>
+</div>
+<p>(As we mentioned last chapter when setting <code class="docutils literal"><span class="pre">DIRS</span></code>, you&#8217;ll need to be
+sure to include the trailing comma in <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>, because it&#8217;s a
+single-element tuple. By the way, it is best practice to put a comma
+after <em>every</em> element of a tuple, regardless of whether the tuple has only a
+single element. This avoids the issue of forgetting commas, and there&#8217;s no
+penalty for using that extra comma.)</p>
+<p><code class="docutils literal"><span class="pre">'books'</span></code> refers to the <code class="docutils literal"><span class="pre">books</span></code> app we&#8217;re working on. Each app in
+<code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code> is represented by its full Python path &#8211; that is, the path
+of packages, separated by dots, leading to the app package.</p>
+<p>Now that the Django app has been activated in the settings file, we can create
+the database tables in our database. First, let&#8217;s validate the models by
+running this command:</p>
+<div class="highlight-python"><div class="highlight"><pre>python manage.py check
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">check</span></code> command runs the Django system check framework - a set of static
+checks for validating Django projects. If all is well, you&#8217;ll see the message
+<code class="docutils literal"><span class="pre">System</span> <span class="pre">check</span> <span class="pre">identified</span> <span class="pre">no</span> <span class="pre">issues</span> <span class="pre">(0</span> <span class="pre">silenced)</span></code>. If you don&#8217;t, make sure
+you typed in the model code correctly. The error output should give you
+helpful information about what was wrong with the code.</p>
+<p>Any time you think you have problems with your models, run
+<code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">check</span></code>. It tends to catch all the common model problems.</p>
+<p>If your models are valid, run the following command to tell Django that you
+have made some changes to your models (in this case, you have made a new
+one):</p>
+<div class="highlight-python"><div class="highlight"><pre>python manage.py makemigrations books
+</pre></div>
+</div>
+<p>You should see something similar to the following:</p>
+<div class="highlight-python"><div class="highlight"><pre>Migrations for &#39;books&#39;:
+  0001_initial.py:
+    - Create model Author
+    - Create model Book
+    - Create model Publisher
+    - Add field publisher to book
+</pre></div>
+</div>
+<p>Migrations are how Django stores changes to your models (and thus your
+database schema) - they’re just files on disk. In this instance, you will find
+a file names <code class="docutils literal"><span class="pre">0001_initial.py</span></code> in the &#8216;migrations&#8217; folder of the <code class="docutils literal"><span class="pre">books</span></code>
+app.</p>
+<p>The <code class="docutils literal"><span class="pre">migrate</span></code> command will take your latest migration file and update your
+database schema automatically, but first, let’s see what SQL that migration
+would run. The <code class="docutils literal"><span class="pre">sqlmigrate</span></code> command takes migration names and returns their
+SQL:</p>
+<div class="highlight-python"><div class="highlight"><pre>python manage.py sqlmigrate books 0001
+</pre></div>
+</div>
+<p>You should see something similar to the following (reformatted for
+readability):</p>
+<div class="highlight-python"><div class="highlight"><pre>BEGIN;
+
+CREATE TABLE &quot;books_author&quot; (
+    &quot;id&quot; integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    &quot;first_name&quot; varchar(30) NOT NULL,
+    &quot;last_name&quot; varchar(40) NOT NULL,
+    &quot;email&quot; varchar(254) NOT NULL
+);
+CREATE TABLE &quot;books_book&quot; (
+    &quot;id&quot; integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    &quot;title&quot; varchar(100) NOT NULL,
+    &quot;publication_date&quot; date NOT NULL
+);
+CREATE TABLE &quot;books_book_authors&quot; (
+    &quot;id&quot; integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    &quot;book_id&quot; integer NOT NULL REFERENCES &quot;books_book&quot; (&quot;id&quot;),
+    &quot;author_id&quot; integer NOT NULL REFERENCES &quot;books_author&quot; (&quot;id&quot;),
+    UNIQUE (&quot;book_id&quot;, &quot;author_id&quot;)
+);
+CREATE TABLE &quot;books_publisher&quot; (
+    &quot;id&quot; integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    &quot;name&quot; varchar(30) NOT NULL,
+    &quot;address&quot; varchar(50) NOT NULL,
+    &quot;city&quot; varchar(60) NOT NULL,
+    &quot;state_province&quot; varchar(30) NOT NULL,
+    &quot;country&quot; varchar(50) NOT NULL,
+    &quot;website&quot; varchar(200) NOT NULL
+);
+CREATE TABLE &quot;books_book__new&quot; (
+    &quot;id&quot; integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    &quot;title&quot; varchar(100) NOT NULL,
+    &quot;publication_date&quot; date NOT NULL,
+    &quot;publisher_id&quot; integer NOT NULL REFERENCES
+    &quot;books_publisher&quot; (&quot;id&quot;)
+);
+
+INSERT INTO &quot;books_book__new&quot; (&quot;id&quot;, &quot;publisher_id&quot;, &quot;title&quot;,
+&quot;publication_date&quot;) SELECT &quot;id&quot;, NULL, &quot;title&quot;, &quot;publication_date&quot; FROM
+&quot;books_book&quot;;
+
+DROP TABLE &quot;books_book&quot;;
+
+ALTER TABLE &quot;books_book__new&quot; RENAME TO &quot;books_book&quot;;
+
+CREATE INDEX &quot;books_book_2604cbea&quot; ON &quot;books_book&quot; (&quot;publisher_id&quot;);
+
+COMMIT;
+</pre></div>
+</div>
+<p>Note the following:</p>
+<ul class="simple">
+<li>Table names are automatically generated by combining the name of the app
+(<code class="docutils literal"><span class="pre">books</span></code>) and the lowercase name of the model (<code class="docutils literal"><span class="pre">publisher</span></code>,
+<code class="docutils literal"><span class="pre">book</span></code>, and <code class="docutils literal"><span class="pre">author</span></code>). You can override this behavior, as detailed
+in Appendix B.</li>
+<li>As we mentioned earlier, Django adds a primary key for each table
+automatically &#8211; the <code class="docutils literal"><span class="pre">id</span></code> fields. You can override this, too.</li>
+<li>By convention, Django appends <code class="docutils literal"><span class="pre">&quot;_id&quot;</span></code> to the foreign key field name. As
+you might have guessed, you can override this behavior, too.</li>
+<li>The foreign key relationship is made explicit by a <code class="docutils literal"><span class="pre">REFERENCES</span></code>
+statement.</li>
+<li>These <code class="docutils literal"><span class="pre">CREATE</span> <span class="pre">TABLE</span></code> statements are tailored to the database you&#8217;re
+using, so database-specific field types such as <code class="docutils literal"><span class="pre">auto_increment</span></code>
+(MySQL), <code class="docutils literal"><span class="pre">serial</span></code> (PostgreSQL), or <code class="docutils literal"><span class="pre">integer</span> <span class="pre">primary</span> <span class="pre">key</span></code> (SQLite) are
+handled for you automatically. The same goes for quoting of column names
+(e.g., using double quotes or single quotes). This example output is in
+PostgreSQL syntax.</li>
+</ul>
+<p>The <code class="docutils literal"><span class="pre">sqlmigrate</span></code> command doesn&#8217;t actually create the tables or otherwise touch
+your database &#8211; it just prints output to the screen so you can see what SQL
+Django would execute if you asked it. If you wanted to, you could copy and
+paste this SQL into your database client, however Django
+provides an easier way of committing the SQL to the database: the <code class="docutils literal"><span class="pre">migrate</span></code>
+command:</p>
+<div class="highlight-python"><div class="highlight"><pre>python manage.py migrate
+</pre></div>
+</div>
+<p>Run that command, and you&#8217;ll see something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>Operations to perform:
+  Apply all migrations: books
+Running migrations:
+  Rendering model states... DONE
+  Applying books.0001_initial... OK
+</pre></div>
+</div>
+<p>Migrations are Django&#8217;s way of propagating changes you make to your models
+(adding a field, deleting a model, etc.) into your database schema. They&#8217;re
+designed to be mostly automatic, however there are some caveats. For more
+information on migrations, see Chapter 23.</p>
+</div>
+<div class="section" id="basic-data-access">
+<h2>Basic Data Access<a class="headerlink" href="#basic-data-access" title="Permalink to this headline">¶</a></h2>
+<p>Once you&#8217;ve created a model, Django automatically provides a high-level Python
+API for working with those models. Try it out by running
+<code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">shell</span></code> and typing the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">books.models</span> <span class="kn">import</span> <span class="n">Publisher</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p1</span> <span class="o">=</span> <span class="n">Publisher</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress&#39;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s">&#39;2855 Telegraph Avenue&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">city</span><span class="o">=</span><span class="s">&#39;Berkeley&#39;</span><span class="p">,</span> <span class="n">state_province</span><span class="o">=</span><span class="s">&#39;CA&#39;</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="s">&#39;U.S.A.&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">website</span><span class="o">=</span><span class="s">&#39;http://www.apress.com/&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p1</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p2</span> <span class="o">=</span> <span class="n">Publisher</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;O&#39;Reilly&quot;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s">&#39;10 Fawcett St.&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">city</span><span class="o">=</span><span class="s">&#39;Cambridge&#39;</span><span class="p">,</span> <span class="n">state_province</span><span class="o">=</span><span class="s">&#39;MA&#39;</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="s">&#39;U.S.A.&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">website</span><span class="o">=</span><span class="s">&#39;http://www.oreilly.com/&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p2</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">publisher_list</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">publisher_list</span>
+<span class="go">[&lt;Publisher: Publisher object&gt;, &lt;Publisher: Publisher object&gt;]</span>
+</pre></div>
+</div>
+<p>These few lines of code accomplish quite a bit. Here are the highlights:</p>
+<ul class="simple">
+<li>First, we import our <code class="docutils literal"><span class="pre">Publisher</span></code> model class. This lets us interact
+with the database table that contains publishers.</li>
+<li>We create a <code class="docutils literal"><span class="pre">Publisher</span></code> object by instantiating it with values for
+each field &#8211; <code class="docutils literal"><span class="pre">name</span></code>, <code class="docutils literal"><span class="pre">address</span></code>, etc.</li>
+<li>To save the object to the database, call its <code class="docutils literal"><span class="pre">save()</span></code> method. Behind
+the scenes, Django executes an SQL <code class="docutils literal"><span class="pre">INSERT</span></code> statement here.</li>
+<li>To retrieve publishers from the database, use the attribute
+<code class="docutils literal"><span class="pre">Publisher.objects</span></code>, which you can think of as a set of all publishers.
+Fetch a list of <em>all</em> <code class="docutils literal"><span class="pre">Publisher</span></code> objects in the database with the
+statement <code class="docutils literal"><span class="pre">Publisher.objects.all()</span></code>. Behind the scenes, Django executes
+an SQL <code class="docutils literal"><span class="pre">SELECT</span></code> statement here.</li>
+</ul>
+<p>One thing is worth mentioning, in case it wasn&#8217;t clear from this example. When
+you&#8217;re creating objects using the Django model API, Django doesn&#8217;t save the
+objects to the database until you call the <code class="docutils literal"><span class="pre">save()</span></code> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">p1</span> <span class="o">=</span> <span class="n">Publisher</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c"># At this point, p1 is not saved to the database yet!</span>
+<span class="n">p1</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<span class="c"># Now it is.</span>
+</pre></div>
+</div>
+<p>If you want to create an object and save it to the database in a single step,
+use the <code class="docutils literal"><span class="pre">objects.create()</span></code> method. This example is equivalent to the example
+above:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p1</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">address</span><span class="o">=</span><span class="s">&#39;2855 Telegraph Avenue&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">city</span><span class="o">=</span><span class="s">&#39;Berkeley&#39;</span><span class="p">,</span> <span class="n">state_province</span><span class="o">=</span><span class="s">&#39;CA&#39;</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="s">&#39;U.S.A.&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">website</span><span class="o">=</span><span class="s">&#39;http://www.apress.com/&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p2</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;O&#39;Reilly&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">address</span><span class="o">=</span><span class="s">&#39;10 Fawcett St.&#39;</span><span class="p">,</span> <span class="n">city</span><span class="o">=</span><span class="s">&#39;Cambridge&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">state_province</span><span class="o">=</span><span class="s">&#39;MA&#39;</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="s">&#39;U.S.A.&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">website</span><span class="o">=</span><span class="s">&#39;http://www.oreilly.com/&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">publisher_list</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">publisher_list</span>
+</pre></div>
+</div>
+<p>Naturally, you can do quite a lot with the Django database API &#8211; but first,
+let&#8217;s take care of a small annoyance.</p>
+</div>
+<div class="section" id="adding-model-string-representations">
+<h2>Adding Model String Representations<a class="headerlink" href="#adding-model-string-representations" title="Permalink to this headline">¶</a></h2>
+<p>When we printed out the list of publishers, all we got was this
+unhelpful display that makes it difficult to tell the <code class="docutils literal"><span class="pre">Publisher</span></code> objects
+apart:</p>
+<div class="highlight-python"><div class="highlight"><pre>[&lt;Publisher: Publisher object&gt;, &lt;Publisher: Publisher object&gt;]
+</pre></div>
+</div>
+<p>We can fix this easily by adding a method called <code class="docutils literal"><span class="pre">__str__()</span></code> to our
+<code class="docutils literal"><span class="pre">Publisher</span></code> class. A <code class="docutils literal"><span class="pre">__str__()</span></code> method tells Python how to display a
+human-readable representation of an object. You can see this in action by adding a
+<code class="docutils literal"><span class="pre">__str__()</span></code> method to the three models:</p>
+<pre class="literal-block">
+from django.db import models
+
+class Publisher(models.Model):
+    name = models.CharField(max_length=30)
+    address = models.CharField(max_length=50)
+    city = models.CharField(max_length=60)
+    state_province = models.CharField(max_length=30)
+    country = models.CharField(max_length=50)
+    website = models.URLField()
+
+    <strong>def __str__(self):</strong>
+        <strong>return self.name</strong>
+
+class Author(models.Model):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=40)
+    email = models.EmailField()
+
+    <strong>def __str__(self):</strong>
+        <strong>return u'%s %s' % (self.first_name, self.last_name)</strong>
+
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+    authors = models.ManyToManyField(Author)
+    publisher = models.ForeignKey(Publisher)
+    publication_date = models.DateField()
+
+    <strong>def __str__(self):</strong>
+        <strong>return self.title</strong>
+</pre>
+<p>As you can see, a <code class="docutils literal"><span class="pre">__str__()</span></code> method can do whatever it needs to do in order
+to return a representation of an object. Here, the <code class="docutils literal"><span class="pre">__str__()</span></code> methods for
+<code class="docutils literal"><span class="pre">Publisher</span></code> and <code class="docutils literal"><span class="pre">Book</span></code> simply return the object&#8217;s name and title,
+respectively, but the <code class="docutils literal"><span class="pre">__str__()</span></code> for <code class="docutils literal"><span class="pre">Author</span></code> is slightly more complex &#8211;
+it pieces together the <code class="docutils literal"><span class="pre">first_name</span></code> and <code class="docutils literal"><span class="pre">last_name</span></code> fields, separated by a
+space.</p>
+<p>The only requirement for <code class="docutils literal"><span class="pre">__str__()</span></code> is that it return a string object.
+If <code class="docutils literal"><span class="pre">__str__()</span></code> doesn&#8217;t return a string object &#8211; if it returns, say, an
+integer &#8211; then Python will raise a <code class="docutils literal"><span class="pre">TypeError</span></code> with a message like</p>
+<p><code class="docutils literal"><span class="pre">TypeError:</span> <span class="pre">__str__</span> <span class="pre">returned</span> <span class="pre">non-string</span> <span class="pre">(type</span> <span class="pre">int)</span></code>.</p>
+<p>For the <code class="docutils literal"><span class="pre">__str__()</span></code> changes to take effect, exit out of the Python shell
+and enter it again with <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">shell</span></code>. (This is the simplest way
+to make code changes take effect.) Now the list of <code class="docutils literal"><span class="pre">Publisher</span></code> objects is
+much easier to understand:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">books.models</span> <span class="kn">import</span> <span class="n">Publisher</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">publisher_list</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">publisher_list</span>
+<span class="go">[&lt;Publisher: Apress&gt;, &lt;Publisher: O&#39;Reilly&gt;]</span>
+</pre></div>
+</div>
+<p>Make sure any model you define has a <code class="docutils literal"><span class="pre">__str__()</span></code> method &#8211; not only for
+your own convenience when using the interactive interpreter, but also because
+Django uses the output of <code class="docutils literal"><span class="pre">__str__()</span></code> in several places when it needs to
+display objects.</p>
+<p>Finally, note that <code class="docutils literal"><span class="pre">__str__()</span></code> is a good example of adding <em>behavior</em> to
+models. A Django model describes more than the database table layout for an
+object; it also describes any functionality that object knows how to do.
+<code class="docutils literal"><span class="pre">__str__()</span></code> is one example of such functionality &#8211; a model knows how to
+display itself.</p>
+</div>
+<div class="section" id="inserting-and-updating-data">
+<h2>Inserting and Updating Data<a class="headerlink" href="#inserting-and-updating-data" title="Permalink to this headline">¶</a></h2>
+<p>You&#8217;ve already seen this done: to insert a row into your database, first create
+an instance of your model using keyword arguments, like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Publisher</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">address</span><span class="o">=</span><span class="s">&#39;2855 Telegraph Ave.&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">city</span><span class="o">=</span><span class="s">&#39;Berkeley&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">state_province</span><span class="o">=</span><span class="s">&#39;CA&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">country</span><span class="o">=</span><span class="s">&#39;U.S.A.&#39;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">website</span><span class="o">=</span><span class="s">&#39;http://www.apress.com/&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As we noted above, this act of instantiating a model class does <em>not</em> touch
+the database. The record isn&#8217;t saved into the database until you call
+<code class="docutils literal"><span class="pre">save()</span></code>, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In SQL, this can roughly be translated into the following:</p>
+<div class="highlight-python"><div class="highlight"><pre>INSERT INTO books_publisher
+    (name, address, city, state_province, country, website)
+VALUES
+    (&#39;Apress&#39;, &#39;2855 Telegraph Ave.&#39;, &#39;Berkeley&#39;, &#39;CA&#39;,
+     &#39;U.S.A.&#39;, &#39;http://www.apress.com/&#39;);
+</pre></div>
+</div>
+<p>Because the <code class="docutils literal"><span class="pre">Publisher</span></code> model uses an autoincrementing primary key <code class="docutils literal"><span class="pre">id</span></code>,
+the initial call to <code class="docutils literal"><span class="pre">save()</span></code> does one more thing: it calculates the primary
+key value for the record and sets it to the <code class="docutils literal"><span class="pre">id</span></code> attribute on the instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">id</span>
+<span class="go">52    # this will differ based on your own data</span>
+</pre></div>
+</div>
+<p>Subsequent calls to <code class="docutils literal"><span class="pre">save()</span></code> will save the record in place, without creating
+a new record (i.e., performing an SQL <code class="docutils literal"><span class="pre">UPDATE</span></code> statement instead of an
+<code class="docutils literal"><span class="pre">INSERT</span></code>):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Apress Publishing&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The preceding <code class="docutils literal"><span class="pre">save()</span></code> statement will result in roughly the following SQL:</p>
+<div class="highlight-python"><div class="highlight"><pre>UPDATE books_publisher SET
+    name = &#39;Apress Publishing&#39;,
+    address = &#39;2855 Telegraph Ave.&#39;,
+    city = &#39;Berkeley&#39;,
+    state_province = &#39;CA&#39;,
+    country = &#39;U.S.A.&#39;,
+    website = &#39;http://www.apress.com&#39;
+WHERE id = 52;
+</pre></div>
+</div>
+<p>Yes, note that <em>all</em> of the fields will be updated, not just the ones that have
+been changed. Depending on your application, this may cause a race condition.
+See &#8220;Updating Multiple Objects in One Statement&#8221; below to find out how to
+execute this (slightly different) query:</p>
+<div class="highlight-python"><div class="highlight"><pre>UPDATE books_publisher SET
+    name = &#39;Apress Publishing&#39;
+WHERE id=52;
+</pre></div>
+</div>
+</div>
+<div class="section" id="selecting-objects">
+<h2>Selecting Objects<a class="headerlink" href="#selecting-objects" title="Permalink to this headline">¶</a></h2>
+<p>Knowing how to create and update database records is essential, but chances are
+that the Web applications you&#8217;ll build will be doing more querying of existing
+objects than creating new ones. We&#8217;ve already seen a way to retrieve <em>every</em>
+record for a given model:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="go">[&lt;Publisher: Apress&gt;, &lt;Publisher: O&#39;Reilly&gt;]</span>
+</pre></div>
+</div>
+<p>This roughly translates to this SQL:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher;
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Notice that Django doesn&#8217;t use <code class="docutils literal"><span class="pre">SELECT</span> <span class="pre">*</span></code> when looking up data and instead
+lists all fields explicitly. This is by design: in certain circumstances
+<code class="docutils literal"><span class="pre">SELECT</span> <span class="pre">*</span></code> can be slower, and (more important) listing fields more closely
+follows one tenet of the Zen of Python: &#8220;Explicit is better than implicit.&#8221;</p>
+<p class="last">For more on the Zen of Python, try typing <code class="docutils literal"><span class="pre">import</span> <span class="pre">this</span></code> at a Python
+prompt.</p>
+</div>
+<p>Let&#8217;s take a close look at each part of this <code class="docutils literal"><span class="pre">Publisher.objects.all()</span></code> line:</p>
+<ul>
+<li><p class="first">First, we have the model we defined, <code class="docutils literal"><span class="pre">Publisher</span></code>. No surprise here: when
+you want to look up data, you use the model for that data.</p>
+</li>
+<li><p class="first">Next, we have the <code class="docutils literal"><span class="pre">objects</span></code> attribute. This is called a <em>manager</em>.
+Managers are discussed in detail in Chapter 09. For now, all you need to
+know is that managers take care of all &#8220;table-level&#8221; operations on data
+including, most important, data lookup.</p>
+<p>All models automatically get a <code class="docutils literal"><span class="pre">objects</span></code> manager; you&#8217;ll use it
+any time you want to look up model instances.</p>
+</li>
+<li><p class="first">Finally, we have <code class="docutils literal"><span class="pre">all()</span></code>. This is a method on the <code class="docutils literal"><span class="pre">objects</span></code> manager
+that returns all the rows in the database. Though this object <em>looks</em>
+like a list, it&#8217;s actually a <em>QuerySet</em> &#8211; an object that represents a
+specific set of rows from the database. Appendix C deals with QuerySets
+in detail. For the rest of this chapter, we&#8217;ll just treat them like the
+lists they emulate.</p>
+</li>
+</ul>
+<p>Any database lookup is going to follow this general pattern &#8211; we&#8217;ll call
+methods on the manager attached to the model we want to query against.</p>
+<div class="section" id="filtering-data">
+<h3>Filtering Data<a class="headerlink" href="#filtering-data" title="Permalink to this headline">¶</a></h3>
+<p>Naturally, it&#8217;s rare to want to select <em>everything</em> from a database at once; in
+most cases, you&#8217;ll want to deal with a subset of your data. In the Django API,
+you can filter your data using the <code class="docutils literal"><span class="pre">filter()</span></code> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress&#39;</span><span class="p">)</span>
+<span class="go">[&lt;Publisher: Apress&gt;]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">filter()</span></code> takes keyword arguments that get translated into the appropriate
+SQL <code class="docutils literal"><span class="pre">WHERE</span></code> clauses. The preceding example would get translated into
+something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE name = &#39;Apress&#39;;
+</pre></div>
+</div>
+<p>You can pass multiple arguments into <code class="docutils literal"><span class="pre">filter()</span></code> to narrow down things further:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s">&quot;U.S.A.&quot;</span><span class="p">,</span> <span class="n">state_province</span><span class="o">=</span><span class="s">&quot;CA&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Publisher: Apress&gt;]</span>
+</pre></div>
+</div>
+<p>Those multiple arguments get translated into SQL <code class="docutils literal"><span class="pre">AND</span></code> clauses. Thus, the
+example in the code snippet translates into the following:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE country = &#39;U.S.A.&#39;
+AND state_province = &#39;CA&#39;;
+</pre></div>
+</div>
+<p>Notice that by default the lookups use the SQL <code class="docutils literal"><span class="pre">=</span></code> operator to do exact match
+lookups. Other lookup types are available:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">name__contains</span><span class="o">=</span><span class="s">&quot;press&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Publisher: Apress&gt;]</span>
+</pre></div>
+</div>
+<p>That&#8217;s a <em>double</em> underscore there between <code class="docutils literal"><span class="pre">name</span></code> and <code class="docutils literal"><span class="pre">contains</span></code>. Like
+Python itself, Django uses the double underscore to signal that something
+&#8220;magic&#8221; is happening &#8211; here, the <code class="docutils literal"><span class="pre">__contains</span></code> part gets translated by Django
+into a SQL <code class="docutils literal"><span class="pre">LIKE</span></code> statement:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE name LIKE &#39;%press%&#39;;
+</pre></div>
+</div>
+<p>Many other types of lookups are available, including <code class="docutils literal"><span class="pre">icontains</span></code>
+(case-insensitive <code class="docutils literal"><span class="pre">LIKE</span></code>), <code class="docutils literal"><span class="pre">startswith</span></code> and <code class="docutils literal"><span class="pre">endswith</span></code>, and <code class="docutils literal"><span class="pre">range</span></code> (SQL
+<code class="docutils literal"><span class="pre">BETWEEN</span></code> queries). Appendix C describes all of these lookup types in detail.</p>
+</div>
+<div class="section" id="retrieving-single-objects">
+<h3>Retrieving Single Objects<a class="headerlink" href="#retrieving-single-objects" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">filter()</span></code> examples above all returned a <code class="docutils literal"><span class="pre">QuerySet</span></code>, which you can
+treat like a list. Sometimes it&#8217;s more convenient to fetch only a single object,
+as opposed to a list. That&#8217;s what the <code class="docutils literal"><span class="pre">get()</span></code> method is for:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Apress&quot;</span><span class="p">)</span>
+<span class="go">&lt;Publisher: Apress&gt;</span>
+</pre></div>
+</div>
+<p>Instead of a list (rather, <code class="docutils literal"><span class="pre">QuerySet</span></code>), only a single object is returned.
+Because of that, a query resulting in multiple objects will cause an
+exception:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s">&quot;U.S.A.&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="o">...</span>
+<span class="gr">MultipleObjectsReturned</span>: <span class="n">get() returned more than one Publisher --</span>
+<span class="go">    it returned 2! Lookup parameters were {&#39;country&#39;: &#39;U.S.A.&#39;}</span>
+</pre></div>
+</div>
+<p>A query that returns no objects also causes an exception:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;Penguin&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+    <span class="o">...</span>
+<span class="gr">DoesNotExist</span>: <span class="n">Publisher matching query does not exist.</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">DoesNotExist</span></code> exception is an attribute of the model&#8217;s class &#8211;
+<code class="docutils literal"><span class="pre">Publisher.DoesNotExist</span></code>. In your applications, you&#8217;ll want to trap these
+exceptions, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+    <span class="k">print</span> <span class="p">(</span><span class="s">&quot;Apress isn&#39;t in the database yet.&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">print</span> <span class="p">(</span><span class="s">&quot;Apress is in the database.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ordering-data">
+<h3>Ordering Data<a class="headerlink" href="#ordering-data" title="Permalink to this headline">¶</a></h3>
+<p>As you play around with the previous examples, you might discover that the objects
+are being returned in a seemingly random order. You aren&#8217;t imagining things; so
+far we haven&#8217;t told the database how to order its results, so we&#8217;re simply
+getting back data in some arbitrary order chosen by the database.</p>
+<p>In your Django applications, you&#8217;ll probably want to order your results
+according to a certain value &#8211; say, alphabetically. To do this, use the
+<code class="docutils literal"><span class="pre">order_by()</span></code> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Publisher: Apress&gt;, &lt;Publisher: O&#39;Reilly&gt;]</span>
+</pre></div>
+</div>
+<p>This doesn&#8217;t look much different from the earlier <code class="docutils literal"><span class="pre">all()</span></code> example, but the
+SQL now includes a specific ordering:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+ORDER BY name;
+</pre></div>
+</div>
+<p>You can order by any field you like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;address&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Publisher: O&#39;Reilly&gt;, &lt;Publisher: Apress&gt;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;state_province&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Publisher: Apress&gt;, &lt;Publisher: O&#39;Reilly&gt;]</span>
+</pre></div>
+</div>
+<p>To order by multiple fields (where the second field is used to disambiguate
+ordering in cases where the first is the same), use multiple arguments:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;state_province&quot;</span><span class="p">,</span> <span class="s">&quot;address&quot;</span><span class="p">)</span>
+<span class="go"> [&lt;Publisher: Apress&gt;, &lt;Publisher: O&#39;Reilly&gt;]</span>
+</pre></div>
+</div>
+<p>You can also specify reverse ordering by prefixing the field name with a <code class="docutils literal"><span class="pre">-</span></code>
+(that&#8217;s a minus character):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;-name&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Publisher: O&#39;Reilly&gt;, &lt;Publisher: Apress&gt;]</span>
+</pre></div>
+</div>
+<p>While this flexibility is useful, using <code class="docutils literal"><span class="pre">order_by()</span></code> all the time can be quite
+repetitive. Most of the time you&#8217;ll have a particular field you usually want
+to order by. In these cases, Django lets you specify a default ordering in the
+model:</p>
+<div class="highlight-python"><div class="highlight"><pre>class Publisher(models.Model):
+    name = models.CharField(max_length=30)
+    address = models.CharField(max_length=50)
+    city = models.CharField(max_length=60)
+    state_province = models.CharField(max_length=30)
+    country = models.CharField(max_length=50)
+    website = models.URLField()
+
+    def __str__(self):
+        return self.name
+
+    **class Meta:**
+        **ordering = [&#39;name&#39;]**
+</pre></div>
+</div>
+<p>Here, we&#8217;ve introduced a new concept: the <code class="docutils literal"><span class="pre">class</span> <span class="pre">Meta</span></code>, which is a class
+that&#8217;s embedded within the <code class="docutils literal"><span class="pre">Publisher</span></code> class definition (i.e., it&#8217;s indented
+to be within <code class="docutils literal"><span class="pre">class</span> <span class="pre">Publisher</span></code>). You can use this <code class="docutils literal"><span class="pre">Meta</span></code> class on any model
+to specify various model-specific options. A full reference of <code class="docutils literal"><span class="pre">Meta</span></code> options
+is available in Appendix B, but for now, we&#8217;re concerned with the <code class="docutils literal"><span class="pre">ordering</span></code>
+option. If you specify this, it tells Django that unless an ordering is given
+explicitly with <code class="docutils literal"><span class="pre">order_by()</span></code>, all <code class="docutils literal"><span class="pre">Publisher</span></code> objects should be ordered by
+the <code class="docutils literal"><span class="pre">name</span></code> field whenever they&#8217;re retrieved with the Django database API.</p>
+</div>
+<div class="section" id="chaining-lookups">
+<h3>Chaining Lookups<a class="headerlink" href="#chaining-lookups" title="Permalink to this headline">¶</a></h3>
+<p>You&#8217;ve seen how you can filter data, and you&#8217;ve seen how you can order it.
+Often, of course, you&#8217;ll need to do both. In these cases, you simply &#8220;chain&#8221; the
+lookups together:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s">&quot;U.S.A.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&quot;-name&quot;</span><span class="p">)</span>
+<span class="go">[&lt;Publisher: O&#39;Reilly&gt;, &lt;Publisher: Apress&gt;]</span>
+</pre></div>
+</div>
+<p>As you might expect, this translates to a SQL query with both a <code class="docutils literal"><span class="pre">WHERE</span></code> and an
+<code class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE country = &#39;U.S.A&#39;
+ORDER BY name DESC;
+</pre></div>
+</div>
+</div>
+<div class="section" id="slicing-data">
+<h3>Slicing Data<a class="headerlink" href="#slicing-data" title="Permalink to this headline">¶</a></h3>
+<p>Another common need is to look up only a fixed number of rows. Imagine you have thousands
+of publishers in your database, but you want to display only the first one. You can do this
+using Python&#8217;s standard list slicing syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">&lt;Publisher: Apress&gt;</span>
+</pre></div>
+</div>
+<p>This translates roughly to:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+ORDER BY name
+LIMIT 1;
+</pre></div>
+</div>
+<p>Similarly, you can retrieve a specific subset of data using Python&#8217;s
+range-slicing syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>This returns two objects, translating roughly to:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+ORDER BY name
+OFFSET 0 LIMIT 2;
+</pre></div>
+</div>
+<p>Note that negative slicing is <em>not</em> supported:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+  <span class="c">...</span>
+<span class="gr">AssertionError</span>: <span class="n">Negative indexing is not supported.</span>
+</pre></div>
+</div>
+<p>This is easy to get around, though. Just change the <code class="docutils literal"><span class="pre">order_by()</span></code> statement,
+like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-name&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="updating-multiple-objects-in-one-statement">
+<h3>Updating Multiple Objects in One Statement<a class="headerlink" href="#updating-multiple-objects-in-one-statement" title="Permalink to this headline">¶</a></h3>
+<p>We pointed out in the &#8220;Inserting and Updating Data&#8221; section that the model
+<code class="docutils literal"><span class="pre">save()</span></code> method updates <em>all</em> columns in a row. Depending on your
+application, you may want to update only a subset of columns.</p>
+<p>For example, let&#8217;s say we want to update the Apress <code class="docutils literal"><span class="pre">Publisher</span></code> to change
+the name from <code class="docutils literal"><span class="pre">'Apress'</span></code> to <code class="docutils literal"><span class="pre">'Apress</span> <span class="pre">Publishing'</span></code>. Using <code class="docutils literal"><span class="pre">save()</span></code>, it
+would look something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;Apress Publishing&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This roughly translates to the following SQL:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name, address, city, state_province, country, website
+FROM books_publisher
+WHERE name = &#39;Apress&#39;;
+
+UPDATE books_publisher SET
+    name = &#39;Apress Publishing&#39;,
+    address = &#39;2855 Telegraph Ave.&#39;,
+    city = &#39;Berkeley&#39;,
+    state_province = &#39;CA&#39;,
+    country = &#39;U.S.A.&#39;,
+    website = &#39;http://www.apress.com&#39;
+WHERE id = 52;
+</pre></div>
+</div>
+<p>(Note that this example assumes Apress has a publisher ID of <code class="docutils literal"><span class="pre">52</span></code>.)</p>
+<p>You can see in this example that Django&#8217;s <code class="docutils literal"><span class="pre">save()</span></code> method sets <em>all</em> of the
+column values, not just the <code class="docutils literal"><span class="pre">name</span></code> column. If you&#8217;re in an environment where
+other columns of the database might change due to some other process, it&#8217;s
+smarter to change <em>only</em> the column you need to change. To do this, use the
+<code class="docutils literal"><span class="pre">update()</span></code> method on <code class="docutils literal"><span class="pre">QuerySet</span></code> objects. Here&#8217;s an example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">52</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&#39;Apress Publishing&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The SQL translation here is much more efficient and has no chance of race
+conditions:</p>
+<div class="highlight-python"><div class="highlight"><pre>UPDATE books_publisher
+SET name = &#39;Apress Publishing&#39;
+WHERE id = 52;
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">update()</span></code> method works on any <code class="docutils literal"><span class="pre">QuerySet</span></code>, which means you can edit
+multiple records in bulk. Here&#8217;s how you might change the <code class="docutils literal"><span class="pre">country</span></code> from
+<code class="docutils literal"><span class="pre">'U.S.A.'</span></code> to <code class="docutils literal"><span class="pre">USA</span></code> in each <code class="docutils literal"><span class="pre">Publisher</span></code> record:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s">&#39;USA&#39;</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">update()</span></code> method has a return value &#8211; an integer representing how many
+records changed. In the above example, we got <code class="docutils literal"><span class="pre">2</span></code>.</p>
+</div>
+</div>
+<div class="section" id="deleting-objects">
+<h2>Deleting Objects<a class="headerlink" href="#deleting-objects" title="Permalink to this headline">¶</a></h2>
+<p>To delete an object from your database, simply call the object&#8217;s <code class="docutils literal"><span class="pre">delete()</span></code>
+method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;O&#39;Reilly&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="go">[&lt;Publisher: Apress Publishing&gt;]</span>
+</pre></div>
+</div>
+<p>You can also delete objects in bulk by calling <code class="docutils literal"><span class="pre">delete()</span></code> on the result of
+any <code class="docutils literal"><span class="pre">QuerySet</span></code>. This is similar to the <code class="docutils literal"><span class="pre">update()</span></code> method we showed in the
+last section:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s">&#39;USA&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<p>Be careful deleting your data! As a precaution against deleting all of the data
+in a particular table, Django requires you to explicitly use <code class="docutils literal"><span class="pre">all()</span></code> if you
+want to delete <em>everything</em> in your table. For example, this won&#8217;t work:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;console&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">&lt;module&gt;</span>
+<span class="gr">AttributeError</span>: <span class="n">&#39;Manager&#39; object has no attribute &#39;delete&#39;</span>
+</pre></div>
+</div>
+<p>But it&#8217;ll work if you add the <code class="docutils literal"><span class="pre">all()</span></code> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If you&#8217;re just deleting a subset of your data, you don&#8217;t need to include
+<code class="docutils literal"><span class="pre">all()</span></code>. To repeat a previous example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">country</span><span class="o">=</span><span class="s">&#39;USA&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="what-s-next">
+<h2>What&#8217;s Next?<a class="headerlink" href="#what-s-next" title="Permalink to this headline">¶</a></h2>
+<p>Having read this chapter, you have enough knowledge of Django models to be able
+to write basic database applications. Chapter 9 will provide some information
+on more advanced usage of Django&#8217;s database layer.</p>
+<p>Once you&#8217;ve defined your models, the next step is to populate your database
+with data. You might have legacy data, in which case Chapter 23 will give you
+advice about integrating with legacy databases. You might rely on site users
+to supply your data, in which case Chapter 6 will teach you how to process
+user-submitted form data.</p>
+<p>But in some cases, you or your team might need to enter data manually, in which
+case it would be helpful to have a Web-based interface for entering and
+managing data. The next chapter covers Django&#8217;s admin interface, which exists
+precisely for that reason.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Chapter 4: Models</a><ul>
+<li><a class="reference internal" href="#the-dumb-way-to-do-database-queries-in-views">The &#8220;Dumb&#8221; Way to Do Database Queries in Views</a></li>
+<li><a class="reference internal" href="#configuring-the-database">Configuring the Database</a></li>
+<li><a class="reference internal" href="#your-first-app">Your First App</a></li>
+<li><a class="reference internal" href="#defining-models-in-python">Defining Models in Python</a></li>
+<li><a class="reference internal" href="#your-first-model">Your First Model</a></li>
+<li><a class="reference internal" href="#installing-the-model">Installing the Model</a></li>
+<li><a class="reference internal" href="#basic-data-access">Basic Data Access</a></li>
+<li><a class="reference internal" href="#adding-model-string-representations">Adding Model String Representations</a></li>
+<li><a class="reference internal" href="#inserting-and-updating-data">Inserting and Updating Data</a></li>
+<li><a class="reference internal" href="#selecting-objects">Selecting Objects</a><ul>
+<li><a class="reference internal" href="#filtering-data">Filtering Data</a></li>
+<li><a class="reference internal" href="#retrieving-single-objects">Retrieving Single Objects</a></li>
+<li><a class="reference internal" href="#ordering-data">Ordering Data</a></li>
+<li><a class="reference internal" href="#chaining-lookups">Chaining Lookups</a></li>
+<li><a class="reference internal" href="#slicing-data">Slicing Data</a></li>
+<li><a class="reference internal" href="#updating-multiple-objects-in-one-statement">Updating Multiple Objects in One Statement</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#deleting-objects">Deleting Objects</a></li>
+<li><a class="reference internal" href="#what-s-next">What&#8217;s Next?</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="chapter_03.html" title="previous chapter">Chapter 3: Templates</a></li>
+      <li>Next: <a href="chapter_05.html" title="next chapter">Chapter 5: The Django Admin Site</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chapter_04.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/chapter_04.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,1377 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Appendix G: Request and Response Objects &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="License &amp; Copyright" href="license.html" />
+    <link rel="prev" title="Appendix F: The django-admin Utility" href="appendix_F.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="appendix-g-request-and-response-objects">
+<h1>Appendix G: Request and Response Objects<a class="headerlink" href="#appendix-g-request-and-response-objects" title="Permalink to this headline">¶</a></h1>
+<p>Django uses request and response objects to pass state through the system.</p>
+<p>When a page is requested, Django creates an <a class="reference internal" href="#HttpRequest" title="HttpRequest"><code class="xref py py-class docutils literal"><span class="pre">HttpRequest</span></code></a> object that
+contains metadata about the request. Then Django loads the appropriate view,
+passing the <a class="reference internal" href="#HttpRequest" title="HttpRequest"><code class="xref py py-class docutils literal"><span class="pre">HttpRequest</span></code></a> as the first argument to the view function.
+Each view is responsible for returning an <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> object.</p>
+<p>This document explains the APIs for <a class="reference internal" href="#HttpRequest" title="HttpRequest"><code class="xref py py-class docutils literal"><span class="pre">HttpRequest</span></code></a> and
+<a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> objects, which are defined in the <code class="xref py py-mod docutils literal"><span class="pre">django.http</span></code>
+module.</p>
+<div class="section" id="httprequest-objects">
+<h2>HttpRequest objects<a class="headerlink" href="#httprequest-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="HttpRequest">
+<em class="property">class </em><code class="descname">HttpRequest</code><a class="headerlink" href="#HttpRequest" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="section" id="attributes">
+<span id="httprequest-attributes"></span><h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<p>All attributes should be considered read-only, unless stated otherwise below.
+<code class="docutils literal"><span class="pre">session</span></code> is a notable exception.</p>
+<dl class="attribute">
+<dt id="HttpRequest.scheme">
+<code class="descclassname">HttpRequest.</code><code class="descname">scheme</code><a class="headerlink" href="#HttpRequest.scheme" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string representing the scheme of the request (<code class="docutils literal"><span class="pre">http</span></code> or <code class="docutils literal"><span class="pre">https</span></code>
+usually).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.body">
+<code class="descclassname">HttpRequest.</code><code class="descname">body</code><a class="headerlink" href="#HttpRequest.body" title="Permalink to this definition">¶</a></dt>
+<dd><p>The raw HTTP request body as a byte string. This is useful for processing
+data in different ways than conventional HTML forms: binary images,
+XML payload etc. For processing conventional form data, use <code class="docutils literal"><span class="pre">HttpRequest.POST</span></code>.</p>
+<p>You can also read from an HttpRequest using a file-like interface. See
+<a class="reference internal" href="#HttpRequest.read" title="HttpRequest.read"><code class="xref py py-meth docutils literal"><span class="pre">HttpRequest.read()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.path">
+<code class="descclassname">HttpRequest.</code><code class="descname">path</code><a class="headerlink" href="#HttpRequest.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string representing the full path to the requested page, not including
+the domain.</p>
+<p>Example: <code class="docutils literal"><span class="pre">&quot;/music/bands/the_beatles/&quot;</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.path_info">
+<code class="descclassname">HttpRequest.</code><code class="descname">path_info</code><a class="headerlink" href="#HttpRequest.path_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Under some Web server configurations, the portion of the URL after the
+host name is split up into a script prefix portion and a path info
+portion. The <code class="docutils literal"><span class="pre">path_info</span></code> attribute always contains the path info portion
+of the path, no matter what Web server is being used. Using this instead
+of <a class="reference internal" href="#HttpRequest.path" title="HttpRequest.path"><code class="xref py py-attr docutils literal"><span class="pre">path</span></code></a> can make your code easier to move between
+test and deployment servers.</p>
+<p>For example, if the <code class="docutils literal"><span class="pre">WSGIScriptAlias</span></code> for your application is set to
+<code class="docutils literal"><span class="pre">&quot;/minfo&quot;</span></code>, then <code class="docutils literal"><span class="pre">path</span></code> might be <code class="docutils literal"><span class="pre">&quot;/minfo/music/bands/the_beatles/&quot;</span></code>
+and <code class="docutils literal"><span class="pre">path_info</span></code> would be <code class="docutils literal"><span class="pre">&quot;/music/bands/the_beatles/&quot;</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.method">
+<code class="descclassname">HttpRequest.</code><code class="descname">method</code><a class="headerlink" href="#HttpRequest.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string representing the HTTP method used in the request. This is
+guaranteed to be uppercase. Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;GET&#39;</span><span class="p">:</span>
+    <span class="n">do_something</span><span class="p">()</span>
+<span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
+    <span class="n">do_something_else</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.encoding">
+<code class="descclassname">HttpRequest.</code><code class="descname">encoding</code><a class="headerlink" href="#HttpRequest.encoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string representing the current encoding used to decode form submission
+data (or <code class="docutils literal"><span class="pre">None</span></code>, which means the <code class="docutils literal"><span class="pre">DEFAULT_CHARSET</span></code> setting is
+used). You can write to this attribute to change the encoding used when
+accessing the form data. Any subsequent attribute accesses (such as reading
+from <code class="docutils literal"><span class="pre">GET</span></code> or <code class="docutils literal"><span class="pre">POST</span></code>) will use the new <code class="docutils literal"><span class="pre">encoding</span></code> value.  Useful if
+you know the form data is not in the <code class="docutils literal"><span class="pre">DEFAULT_CHARSET</span></code> encoding.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.GET">
+<code class="descclassname">HttpRequest.</code><code class="descname">GET</code><a class="headerlink" href="#HttpRequest.GET" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary-like object containing all given HTTP GET parameters. See the
+<a class="reference internal" href="#QueryDict" title="QueryDict"><code class="xref py py-class docutils literal"><span class="pre">QueryDict</span></code></a> documentation below.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.POST">
+<code class="descclassname">HttpRequest.</code><code class="descname">POST</code><a class="headerlink" href="#HttpRequest.POST" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary-like object containing all given HTTP POST parameters,
+providing that the request contains form data. See the
+<a class="reference internal" href="#QueryDict" title="QueryDict"><code class="xref py py-class docutils literal"><span class="pre">QueryDict</span></code></a> documentation below. If you need to access raw or
+non-form data posted in the request, access this through the
+<a class="reference internal" href="#HttpRequest.body" title="HttpRequest.body"><code class="xref py py-attr docutils literal"><span class="pre">HttpRequest.body</span></code></a> attribute instead.</p>
+<p>It&#8217;s possible that a request can come in via POST with an empty <code class="docutils literal"><span class="pre">POST</span></code>
+dictionary &#8211; if, say, a form is requested via the POST HTTP method but
+does not include form data. Therefore, you shouldn&#8217;t use <code class="docutils literal"><span class="pre">if</span> <span class="pre">request.POST</span></code>
+to check for use of the POST method; instead, use <code class="docutils literal"><span class="pre">if</span> <span class="pre">request.method</span> <span class="pre">==</span>
+<span class="pre">&quot;POST&quot;</span></code> (see above).</p>
+<p>Note: <code class="docutils literal"><span class="pre">POST</span></code> does <em>not</em> include file-upload information. See <code class="docutils literal"><span class="pre">FILES</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.COOKIES">
+<code class="descclassname">HttpRequest.</code><code class="descname">COOKIES</code><a class="headerlink" href="#HttpRequest.COOKIES" title="Permalink to this definition">¶</a></dt>
+<dd><p>A standard Python dictionary containing all cookies. Keys and values are
+strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.FILES">
+<code class="descclassname">HttpRequest.</code><code class="descname">FILES</code><a class="headerlink" href="#HttpRequest.FILES" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dictionary-like object containing all uploaded files. Each key in
+<code class="docutils literal"><span class="pre">FILES</span></code> is the <code class="docutils literal"><span class="pre">name</span></code> from the <code class="docutils literal"><span class="pre">&lt;input</span> <span class="pre">type=&quot;file&quot;</span> <span class="pre">name=&quot;&quot;</span> <span class="pre">/&gt;</span></code>. Each
+value in <code class="docutils literal"><span class="pre">FILES</span></code> is an <code class="xref py py-class docutils literal"><span class="pre">UploadedFile</span></code>.</p>
+<p>Note that <code class="docutils literal"><span class="pre">FILES</span></code> will only contain data if the request method was POST
+and the <code class="docutils literal"><span class="pre">&lt;form&gt;</span></code> that posted to the request had
+<code class="docutils literal"><span class="pre">enctype=&quot;multipart/form-data&quot;</span></code>. Otherwise, <code class="docutils literal"><span class="pre">FILES</span></code> will be a blank
+dictionary-like object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.META">
+<code class="descclassname">HttpRequest.</code><code class="descname">META</code><a class="headerlink" href="#HttpRequest.META" title="Permalink to this definition">¶</a></dt>
+<dd><p>A standard Python dictionary containing all available HTTP headers.
+Available headers depend on the client and server, but here are some
+examples:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CONTENT_LENGTH</span></code> &#8211; the length of the request body (as a string).</li>
+<li><code class="docutils literal"><span class="pre">CONTENT_TYPE</span></code> &#8211; the MIME type of the request body.</li>
+<li><code class="docutils literal"><span class="pre">HTTP_ACCEPT_ENCODING</span></code> &#8211; Acceptable encodings for the response.</li>
+<li><code class="docutils literal"><span class="pre">HTTP_ACCEPT_LANGUAGE</span></code> &#8211; Acceptable languages for the response.</li>
+<li><code class="docutils literal"><span class="pre">HTTP_HOST</span></code> &#8211; The HTTP Host header sent by the client.</li>
+<li><code class="docutils literal"><span class="pre">HTTP_REFERER</span></code> &#8211; The referring page, if any.</li>
+<li><code class="docutils literal"><span class="pre">HTTP_USER_AGENT</span></code> &#8211; The client&#8217;s user-agent string.</li>
+<li><code class="docutils literal"><span class="pre">QUERY_STRING</span></code> &#8211; The query string, as a single (unparsed) string.</li>
+<li><code class="docutils literal"><span class="pre">REMOTE_ADDR</span></code> &#8211; The IP address of the client.</li>
+<li><code class="docutils literal"><span class="pre">REMOTE_HOST</span></code> &#8211; The hostname of the client.</li>
+<li><code class="docutils literal"><span class="pre">REMOTE_USER</span></code> &#8211; The user authenticated by the Web server, if any.</li>
+<li><code class="docutils literal"><span class="pre">REQUEST_METHOD</span></code> &#8211; A string such as <code class="docutils literal"><span class="pre">&quot;GET&quot;</span></code> or <code class="docutils literal"><span class="pre">&quot;POST&quot;</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">SERVER_NAME</span></code> &#8211; The hostname of the server.</li>
+<li><code class="docutils literal"><span class="pre">SERVER_PORT</span></code> &#8211; The port of the server (as a string).</li>
+</ul>
+<p>With the exception of <code class="docutils literal"><span class="pre">CONTENT_LENGTH</span></code> and <code class="docutils literal"><span class="pre">CONTENT_TYPE</span></code>, as given
+above, any HTTP headers in the request are converted to <code class="docutils literal"><span class="pre">META</span></code> keys by
+converting all characters to uppercase, replacing any hyphens with
+underscores and adding an <code class="docutils literal"><span class="pre">HTTP_</span></code> prefix to the name. So, for example, a
+header called <code class="docutils literal"><span class="pre">X-Bender</span></code> would be mapped to the <code class="docutils literal"><span class="pre">META</span></code> key
+<code class="docutils literal"><span class="pre">HTTP_X_BENDER</span></code>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.user">
+<code class="descclassname">HttpRequest.</code><code class="descname">user</code><a class="headerlink" href="#HttpRequest.user" title="Permalink to this definition">¶</a></dt>
+<dd><p>An object of type <code class="docutils literal"><span class="pre">AUTH_USER_MODEL</span></code> representing the currently
+logged-in user. If the user isn&#8217;t currently logged in, <code class="docutils literal"><span class="pre">user</span></code> will be set
+to an instance of <code class="xref py py-class docutils literal"><span class="pre">django.contrib.auth.models.AnonymousUser</span></code>. You
+can tell them apart with
+<code class="xref py py-meth docutils literal"><span class="pre">is_authenticated()</span></code>, like so:</p>
+<div class="highlight-python"><div class="highlight"><pre>if request.user.is_authenticated():
+    # Do something for logged-in users.
+else:
+    # Do something for anonymous users.
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">user</span></code> is only available if your Django installation has the
+<code class="xref py py-class docutils literal"><span class="pre">AuthenticationMiddleware</span></code>
+activated.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.session">
+<code class="descclassname">HttpRequest.</code><code class="descname">session</code><a class="headerlink" href="#HttpRequest.session" title="Permalink to this definition">¶</a></dt>
+<dd><p>A readable-and-writable, dictionary-like object that represents the current
+session. This is only available if your Django installation has session
+support activated.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.urlconf">
+<code class="descclassname">HttpRequest.</code><code class="descname">urlconf</code><a class="headerlink" href="#HttpRequest.urlconf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Not defined by Django itself, but will be read if other code (e.g., a custom
+middleware class) sets it. When present, this will be used as the root
+URLconf for the current request, overriding the <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code>
+setting. See how-django-processes-a-request for details.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpRequest.resolver_match">
+<code class="descclassname">HttpRequest.</code><code class="descname">resolver_match</code><a class="headerlink" href="#HttpRequest.resolver_match" title="Permalink to this definition">¶</a></dt>
+<dd><p>An instance of <code class="xref py py-class docutils literal"><span class="pre">ResolverMatch</span></code> representing
+the resolved url. This attribute is only set after url resolving took place,
+which means it&#8217;s available in all views but not in middleware methods which
+are executed before url resolving takes place (like <code class="docutils literal"><span class="pre">process_request</span></code>, you
+can use <code class="docutils literal"><span class="pre">process_view</span></code> instead).</p>
+</dd></dl>
+
+</div>
+<div class="section" id="methods">
+<h3>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="HttpRequest.get_host">
+<code class="descclassname">HttpRequest.</code><code class="descname">get_host</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.get_host" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the originating host of the request using information from the
+<code class="docutils literal"><span class="pre">HTTP_X_FORWARDED_HOST</span></code> (if <code class="docutils literal"><span class="pre">USE_X_FORWARDED_HOST</span></code> is enabled)
+and <code class="docutils literal"><span class="pre">HTTP_HOST</span></code> headers, in that order. If they don&#8217;t provide a value,
+the method uses a combination of <code class="docutils literal"><span class="pre">SERVER_NAME</span></code> and <code class="docutils literal"><span class="pre">SERVER_PORT</span></code> as
+detailed in <span class="target" id="index-0"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-3333"><strong>PEP 3333</strong></a>.</p>
+<p>Example: <code class="docutils literal"><span class="pre">&quot;127.0.0.1:8000&quot;</span></code></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The <a class="reference internal" href="#HttpRequest.get_host" title="HttpRequest.get_host"><code class="xref py py-meth docutils literal"><span class="pre">get_host()</span></code></a> method fails when the host is
+behind multiple proxies. One solution is to use middleware to rewrite
+the proxy headers, as in the following example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MultipleProxyMiddleware</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">FORWARDED_FOR_FIELDS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s">&#39;HTTP_X_FORWARDED_FOR&#39;</span><span class="p">,</span>
+        <span class="s">&#39;HTTP_X_FORWARDED_HOST&#39;</span><span class="p">,</span>
+        <span class="s">&#39;HTTP_X_FORWARDED_SERVER&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">process_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rewrites the proxy headers so that only the most</span>
+<span class="sd">        recent proxy is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">FORWARDED_FOR_FIELDS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s">&#39;,&#39;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="p">[</span><span class="n">field</span><span class="p">]:</span>
+                    <span class="n">parts</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+                    <span class="n">request</span><span class="o">.</span><span class="n">META</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</pre></div>
+</div>
+<p class="last">This middleware should be positioned before any other middleware that
+relies on the value of <a class="reference internal" href="#HttpRequest.get_host" title="HttpRequest.get_host"><code class="xref py py-meth docutils literal"><span class="pre">get_host()</span></code></a> &#8211; for instance,
+<code class="xref py py-class docutils literal"><span class="pre">CommonMiddleware</span></code> or
+<code class="xref py py-class docutils literal"><span class="pre">CsrfViewMiddleware</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.get_full_path">
+<code class="descclassname">HttpRequest.</code><code class="descname">get_full_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.get_full_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <code class="docutils literal"><span class="pre">path</span></code>, plus an appended query string, if applicable.</p>
+<p>Example: <code class="docutils literal"><span class="pre">&quot;/music/bands/the_beatles/?print=true&quot;</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.build_absolute_uri">
+<code class="descclassname">HttpRequest.</code><code class="descname">build_absolute_uri</code><span class="sig-paren">(</span><em>location</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.build_absolute_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the absolute URI form of <code class="docutils literal"><span class="pre">location</span></code>. If no location is provided,
+the location will be set to <code class="docutils literal"><span class="pre">request.get_full_path()</span></code>.</p>
+<p>If the location is already an absolute URI, it will not be altered.
+Otherwise the absolute URI is built using the server variables available in
+this request.</p>
+<p>Example: <code class="docutils literal"><span class="pre">&quot;http://example.com/music/bands/the_beatles/?print=true&quot;</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.get_signed_cookie">
+<code class="descclassname">HttpRequest.</code><code class="descname">get_signed_cookie</code><span class="sig-paren">(</span><em>key</em>, <em>default=RAISE_ERROR</em>, <em>salt=''</em>, <em>max_age=None</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.get_signed_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a cookie value for a signed cookie, or raises a
+<code class="docutils literal"><span class="pre">django.core.signing.BadSignature</span></code> exception if the signature is
+no longer valid. If you provide the <code class="docutils literal"><span class="pre">default</span></code> argument the exception
+will be suppressed and that default value will be returned instead.</p>
+<p>The optional <code class="docutils literal"><span class="pre">salt</span></code> argument can be used to provide extra protection
+against brute force attacks on your secret key. If supplied, the
+<code class="docutils literal"><span class="pre">max_age</span></code> argument will be checked against the signed timestamp
+attached to the cookie value to ensure the cookie is not older than
+<code class="docutils literal"><span class="pre">max_age</span></code> seconds.</p>
+<p>For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">request</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+<span class="go">&#39;Tony&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">request</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">salt</span><span class="o">=</span><span class="s">&#39;name-salt&#39;</span><span class="p">)</span>
+<span class="go">&#39;Tony&#39; # assuming cookie was set using the same salt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">request</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;non-existing-cookie&#39;</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">KeyError: &#39;non-existing-cookie&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">request</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;non-existing-cookie&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">request</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;cookie-that-was-tampered-with&#39;</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">BadSignature: ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">request</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">SignatureExpired: Signature age 1677.3839159 &gt; 60 seconds</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">request</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>See cryptographic signing  for more information.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.is_secure">
+<code class="descclassname">HttpRequest.</code><code class="descname">is_secure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.is_secure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal"><span class="pre">True</span></code> if the request is secure; that is, if it was made with
+HTTPS.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.is_ajax">
+<code class="descclassname">HttpRequest.</code><code class="descname">is_ajax</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.is_ajax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal"><span class="pre">True</span></code> if the request was made via an <code class="docutils literal"><span class="pre">XMLHttpRequest</span></code>, by
+checking the <code class="docutils literal"><span class="pre">HTTP_X_REQUESTED_WITH</span></code> header for the string
+<code class="docutils literal"><span class="pre">'XMLHttpRequest'</span></code>. Most modern JavaScript libraries send this header.
+If you write your own XMLHttpRequest call (on the browser side), you&#8217;ll
+have to set this header manually if you want <code class="docutils literal"><span class="pre">is_ajax()</span></code> to work.</p>
+<p>If a response varies on whether or not it&#8217;s requested via AJAX and you are
+using some form of caching like Django&#8217;s <code class="xref py py-mod docutils literal"><span class="pre">cache</span> <span class="pre">middleware</span></code>, you should decorate the view with
+<code class="xref py py-func docutils literal"><span class="pre">vary_on_headers('HTTP_X_REQUESTED_WITH')</span></code> so that the responses are
+properly cached.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.read">
+<code class="descclassname">HttpRequest.</code><code class="descname">read</code><span class="sig-paren">(</span><em>size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.readline">
+<code class="descclassname">HttpRequest.</code><code class="descname">readline</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.readline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.readlines">
+<code class="descclassname">HttpRequest.</code><code class="descname">readlines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.readlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.xreadlines">
+<code class="descclassname">HttpRequest.</code><code class="descname">xreadlines</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.xreadlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="HttpRequest.__iter__">
+<code class="descclassname">HttpRequest.</code><code class="descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpRequest.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods implementing a file-like interface for reading from an
+HttpRequest instance. This makes it possible to consume an incoming
+request in a streaming fashion. A common use-case would be to process a
+big XML payload with iterative parser without constructing a whole
+XML tree in memory.</p>
+<p>Given this standard interface, an HttpRequest instance can be
+passed directly to an XML parser such as ElementTree:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">as</span> <span class="nn">ET</span>
+<span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">ET</span><span class="o">.</span><span class="n">iterparse</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">process</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="querydict-objects">
+<h2>QueryDict objects<a class="headerlink" href="#querydict-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="QueryDict">
+<em class="property">class </em><code class="descname">QueryDict</code><a class="headerlink" href="#QueryDict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>In an <a class="reference internal" href="#HttpRequest" title="HttpRequest"><code class="xref py py-class docutils literal"><span class="pre">HttpRequest</span></code></a> object, the <code class="docutils literal"><span class="pre">GET</span></code> and <code class="docutils literal"><span class="pre">POST</span></code> attributes are
+instances of <code class="docutils literal"><span class="pre">django.http.QueryDict</span></code>, a dictionary-like class customized to
+deal with multiple values for the same key. This is necessary because some HTML
+form elements, notably <code class="docutils literal"><span class="pre">&lt;select</span> <span class="pre">multiple&gt;</span></code>, pass multiple values for the same
+key.</p>
+<p>The <code class="docutils literal"><span class="pre">QueryDict</span></code>s at <code class="docutils literal"><span class="pre">request.POST</span></code> and <code class="docutils literal"><span class="pre">request.GET</span></code> will be immutable
+when accessed in a normal request/response cycle. To get a mutable version you
+need to use <code class="docutils literal"><span class="pre">.copy()</span></code>.</p>
+<div class="section" id="id1">
+<h3>Methods<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#QueryDict" title="QueryDict"><code class="xref py py-class docutils literal"><span class="pre">QueryDict</span></code></a> implements all the standard dictionary methods because it&#8217;s
+a subclass of dictionary. Exceptions are outlined here:</p>
+<dl class="method">
+<dt id="QueryDict.__init__">
+<code class="descclassname">QueryDict.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>query_string=None</em>, <em>mutable=False</em>, <em>encoding=None</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates a <code class="docutils literal"><span class="pre">QueryDict</span></code> object based on <code class="docutils literal"><span class="pre">query_string</span></code>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=1&amp;a=2&amp;c=3&#39;</span><span class="p">)</span>
+<span class="go">&lt;QueryDict: {&#39;a&#39;: [&#39;1&#39;, &#39;2&#39;], &#39;c&#39;: [&#39;3&#39;]}&gt;</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">query_string</span></code> is not passed in, the resulting <code class="docutils literal"><span class="pre">QueryDict</span></code> will be
+empty (it will have no keys or values).</p>
+<p>Most <code class="docutils literal"><span class="pre">QueryDict</span></code>s you encounter, and in particular those at
+<code class="docutils literal"><span class="pre">request.POST</span></code> and <code class="docutils literal"><span class="pre">request.GET</span></code>, will be immutable. If you are
+instantiating one yourself, you can make it mutable by passing
+<code class="docutils literal"><span class="pre">mutable=True</span></code> to its <code class="docutils literal"><span class="pre">__init__()</span></code>.</p>
+<p>Strings for setting both keys and values will be converted from <code class="docutils literal"><span class="pre">encoding</span></code>
+to unicode. If encoding is not set, it defaults to <code class="docutils literal"><span class="pre">DEFAULT_CHARSET</span></code>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified">Changed in version 1.8: </span>In previous versions, <code class="docutils literal"><span class="pre">query_string</span></code> was a required positional argument.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.__getitem__">
+<code class="descclassname">QueryDict.</code><code class="descname">__getitem__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value for the given key. If the key has more than one value,
+<code class="docutils literal"><span class="pre">__getitem__()</span></code> returns the last value. Raises
+<code class="docutils literal"><span class="pre">django.utils.datastructures.MultiValueDictKeyError</span></code> if the key does not
+exist. (This is a subclass of Python&#8217;s standard <code class="docutils literal"><span class="pre">KeyError</span></code>, so you can
+stick to catching <code class="docutils literal"><span class="pre">KeyError</span></code>.)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.__setitem__">
+<code class="descclassname">QueryDict.</code><code class="descname">__setitem__</code><span class="sig-paren">(</span><em>key</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the given key to <code class="docutils literal"><span class="pre">[value]</span></code> (a Python list whose single element is
+<code class="docutils literal"><span class="pre">value</span></code>). Note that this, as other dictionary functions that have side
+effects, can only be called on a mutable <code class="docutils literal"><span class="pre">QueryDict</span></code> (such as one that
+was created via <code class="docutils literal"><span class="pre">copy()</span></code>).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.__contains__">
+<code class="descclassname">QueryDict.</code><code class="descname">__contains__</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal"><span class="pre">True</span></code> if the given key is set. This lets you do, e.g., <code class="docutils literal"><span class="pre">if</span> <span class="pre">&quot;foo&quot;</span>
+<span class="pre">in</span> <span class="pre">request.GET</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.get">
+<code class="descclassname">QueryDict.</code><code class="descname">get</code><span class="sig-paren">(</span><em>key</em>, <em>default</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the same logic as <code class="docutils literal"><span class="pre">__getitem__()</span></code> above, with a hook for returning a
+default value if the key doesn&#8217;t exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.setdefault">
+<code class="descclassname">QueryDict.</code><code class="descname">setdefault</code><span class="sig-paren">(</span><em>key</em>, <em>default</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.setdefault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just like the standard dictionary <code class="docutils literal"><span class="pre">setdefault()</span></code> method, except it uses
+<code class="docutils literal"><span class="pre">__setitem__()</span></code> internally.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.update">
+<code class="descclassname">QueryDict.</code><code class="descname">update</code><span class="sig-paren">(</span><em>other_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes either a <code class="docutils literal"><span class="pre">QueryDict</span></code> or standard dictionary. Just like the standard
+dictionary <code class="docutils literal"><span class="pre">update()</span></code> method, except it <em>appends</em> to the current
+dictionary items rather than replacing them. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=1&#39;</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
+<span class="go">[&#39;1&#39;, &#39;2&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">]</span> <span class="c"># returns the last</span>
+<span class="go">[&#39;2&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.items">
+<code class="descclassname">QueryDict.</code><code class="descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just like the standard dictionary <code class="docutils literal"><span class="pre">items()</span></code> method, except this uses the
+same last-value logic as <code class="docutils literal"><span class="pre">__getitem__()</span></code>. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=1&amp;a=2&amp;a=3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+<span class="go">[(&#39;a&#39;, &#39;3&#39;)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.iteritems">
+<code class="descclassname">QueryDict.</code><code class="descname">iteritems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just like the standard dictionary <code class="docutils literal"><span class="pre">iteritems()</span></code> method. Like
+<a class="reference internal" href="#QueryDict.items" title="QueryDict.items"><code class="xref py py-meth docutils literal"><span class="pre">QueryDict.items()</span></code></a> this uses the same last-value logic as
+<a class="reference internal" href="#QueryDict.__getitem__" title="QueryDict.__getitem__"><code class="xref py py-meth docutils literal"><span class="pre">QueryDict.__getitem__()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.iterlists">
+<code class="descclassname">QueryDict.</code><code class="descname">iterlists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.iterlists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#QueryDict.iteritems" title="QueryDict.iteritems"><code class="xref py py-meth docutils literal"><span class="pre">QueryDict.iteritems()</span></code></a> except it includes all values, as a list,
+for each member of the dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.values">
+<code class="descclassname">QueryDict.</code><code class="descname">values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just like the standard dictionary <code class="docutils literal"><span class="pre">values()</span></code> method, except this uses the
+same last-value logic as <code class="docutils literal"><span class="pre">__getitem__()</span></code>. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=1&amp;a=2&amp;a=3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+<span class="go">[&#39;3&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.itervalues">
+<code class="descclassname">QueryDict.</code><code class="descname">itervalues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.itervalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just like <a class="reference internal" href="#QueryDict.values" title="QueryDict.values"><code class="xref py py-meth docutils literal"><span class="pre">QueryDict.values()</span></code></a>, except an iterator.</p>
+</dd></dl>
+
+<p>In addition, <code class="docutils literal"><span class="pre">QueryDict</span></code> has the following methods:</p>
+<dl class="method">
+<dt id="QueryDict.copy">
+<code class="descclassname">QueryDict.</code><code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of the object, using <code class="docutils literal"><span class="pre">copy.deepcopy()</span></code> from the Python
+standard library. This copy will be mutable even if the original was not.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.getlist">
+<code class="descclassname">QueryDict.</code><code class="descname">getlist</code><span class="sig-paren">(</span><em>key</em>, <em>default</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.getlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data with the requested key, as a Python list. Returns an
+empty list if the key doesn&#8217;t exist and no default value was provided.
+It&#8217;s guaranteed to return a list of some sort unless the default value
+was no list.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.setlist">
+<code class="descclassname">QueryDict.</code><code class="descname">setlist</code><span class="sig-paren">(</span><em>key</em>, <em>list_</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.setlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the given key to <code class="docutils literal"><span class="pre">list_</span></code> (unlike <code class="docutils literal"><span class="pre">__setitem__()</span></code>).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.appendlist">
+<code class="descclassname">QueryDict.</code><code class="descname">appendlist</code><span class="sig-paren">(</span><em>key</em>, <em>item</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.appendlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends an item to the internal list associated with key.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.setlistdefault">
+<code class="descclassname">QueryDict.</code><code class="descname">setlistdefault</code><span class="sig-paren">(</span><em>key</em>, <em>default_list</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.setlistdefault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Just like <code class="docutils literal"><span class="pre">setdefault</span></code>, except it takes a list of values instead of a
+single value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.lists">
+<code class="descclassname">QueryDict.</code><code class="descname">lists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.lists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#QueryDict.items" title="QueryDict.items"><code class="xref py py-meth docutils literal"><span class="pre">items()</span></code></a>, except it includes all values, as a list, for each
+member of the dictionary. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=1&amp;a=2&amp;a=3&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">lists</span><span class="p">()</span>
+<span class="go">[(&#39;a&#39;, [&#39;1&#39;, &#39;2&#39;, &#39;3&#39;])]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.pop">
+<code class="descclassname">QueryDict.</code><code class="descname">pop</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of values for the given key and removes them from the
+dictionary. Raises <code class="docutils literal"><span class="pre">KeyError</span></code> if the key does not exist. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=1&amp;a=2&amp;a=3&#39;</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
+<span class="go">[&#39;1&#39;, &#39;2&#39;, &#39;3&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.popitem">
+<code class="descclassname">QueryDict.</code><code class="descname">popitem</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.popitem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an arbitrary member of the dictionary (since there&#8217;s no concept
+of ordering), and returns a two value tuple containing the key and a list
+of all values for the key. Raises <code class="docutils literal"><span class="pre">KeyError</span></code> when called on an empty
+dictionary. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=1&amp;a=2&amp;a=3&#39;</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">popitem</span><span class="p">()</span>
+<span class="go">(&#39;a&#39;, [&#39;1&#39;, &#39;2&#39;, &#39;3&#39;])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.dict">
+<code class="descclassname">QueryDict.</code><code class="descname">dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal"><span class="pre">dict</span></code> representation of <code class="docutils literal"><span class="pre">QueryDict</span></code>. For every (key, list)
+pair in <code class="docutils literal"><span class="pre">QueryDict</span></code>, <code class="docutils literal"><span class="pre">dict</span></code> will have (key, item), where item is one
+element of the list, using same logic as <a class="reference internal" href="#QueryDict.__getitem__" title="QueryDict.__getitem__"><code class="xref py py-meth docutils literal"><span class="pre">QueryDict.__getitem__()</span></code></a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=1&amp;a=3&amp;a=5&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+<span class="go">{&#39;a&#39;: &#39;5&#39;}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="QueryDict.urlencode">
+<code class="descclassname">QueryDict.</code><code class="descname">urlencode</code><span class="sig-paren">(</span><span class="optional">[</span><em>safe</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#QueryDict.urlencode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string of the data in query-string format. Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="s">&#39;a=2&amp;b=3&amp;b=5&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">urlencode</span><span class="p">()</span>
+<span class="go">&#39;a=2&amp;b=3&amp;b=5&#39;</span>
+</pre></div>
+</div>
+<p>Optionally, urlencode can be passed characters which
+do not require encoding. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">QueryDict</span><span class="p">(</span><span class="n">mutable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="p">[</span><span class="s">&#39;next&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;/a&amp;b/&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">safe</span><span class="o">=</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+<span class="go">&#39;next=/a%26b/&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="httpresponse-objects">
+<h2>HttpResponse objects<a class="headerlink" href="#httpresponse-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="HttpResponse">
+<em class="property">class </em><code class="descname">HttpResponse</code><a class="headerlink" href="#HttpResponse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>In contrast to <a class="reference internal" href="#HttpRequest" title="HttpRequest"><code class="xref py py-class docutils literal"><span class="pre">HttpRequest</span></code></a> objects, which are created automatically by
+Django, <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> objects are your responsibility. Each view you
+write is responsible for instantiating, populating and returning an
+<a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a>.</p>
+<p>The <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> class lives in the <code class="xref py py-mod docutils literal"><span class="pre">django.http</span></code> module.</p>
+<div class="section" id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="passing-strings">
+<h4>Passing strings<a class="headerlink" href="#passing-strings" title="Permalink to this headline">¶</a></h4>
+<p>Typical usage is to pass the contents of the page, as a string, to the
+<a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> constructor:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="s">&quot;Here&#39;s the text of the Web page.&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="s">&quot;Text only, please.&quot;</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s">&quot;text/plain&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>But if you want to add content incrementally, you can use <code class="docutils literal"><span class="pre">response</span></code> as a
+file-like object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;&lt;p&gt;Here&#39;s the text of the Web page.&lt;/p&gt;&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;&lt;p&gt;Here&#39;s another paragraph.&lt;/p&gt;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="passing-iterators">
+<h4>Passing iterators<a class="headerlink" href="#passing-iterators" title="Permalink to this headline">¶</a></h4>
+<p>Finally, you can pass <code class="docutils literal"><span class="pre">HttpResponse</span></code> an iterator rather than strings.
+<code class="docutils literal"><span class="pre">HttpResponse</span></code> will consume the iterator immediately, store its content as a
+string, and discard it.</p>
+<p>If you need the response to be streamed from the iterator to the client, you
+must use the <a class="reference internal" href="#StreamingHttpResponse" title="StreamingHttpResponse"><code class="xref py py-class docutils literal"><span class="pre">StreamingHttpResponse</span></code></a> class instead.</p>
+</div>
+<div class="section" id="setting-header-fields">
+<h4>Setting header fields<a class="headerlink" href="#setting-header-fields" title="Permalink to this headline">¶</a></h4>
+<p>To set or remove a header field in your response, treat it like a dictionary:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="p">[</span><span class="s">&#39;Age&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">120</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">response</span><span class="p">[</span><span class="s">&#39;Age&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Note that unlike a dictionary, <code class="docutils literal"><span class="pre">del</span></code> doesn&#8217;t raise <code class="docutils literal"><span class="pre">KeyError</span></code> if the header
+field doesn&#8217;t exist.</p>
+<p>For setting the <code class="docutils literal"><span class="pre">Cache-Control</span></code> and <code class="docutils literal"><span class="pre">Vary</span></code> header fields, it is recommended
+to use the <code class="xref py py-func docutils literal"><span class="pre">patch_cache_control()</span></code> and
+<code class="xref py py-func docutils literal"><span class="pre">patch_vary_headers()</span></code> methods from
+<code class="xref py py-mod docutils literal"><span class="pre">django.utils.cache</span></code>, since these fields can have multiple, comma-separated
+values. The &#8220;patch&#8221; methods ensure that other values, e.g. added by a
+middleware, are not removed.</p>
+<p>HTTP header fields cannot contain newlines. An attempt to set a header field
+containing a newline character (CR or LF) will raise <code class="docutils literal"><span class="pre">BadHeaderError</span></code></p>
+</div>
+<div class="section" id="telling-the-browser-to-treat-the-response-as-a-file-attachment">
+<h4>Telling the browser to treat the response as a file attachment<a class="headerlink" href="#telling-the-browser-to-treat-the-response-as-a-file-attachment" title="Permalink to this headline">¶</a></h4>
+<p>To tell the browser to treat the response as a file attachment, use the
+<code class="docutils literal"><span class="pre">content_type</span></code> argument and set the <code class="docutils literal"><span class="pre">Content-Disposition</span></code> header. For example,
+this is how you might return a Microsoft Excel spreadsheet:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">my_data</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s">&#39;application/vnd.ms-excel&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="p">[</span><span class="s">&#39;Content-Disposition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;attachment; filename=&quot;foo.xls&quot;&#39;</span>
+</pre></div>
+</div>
+<p>There&#8217;s nothing Django-specific about the <code class="docutils literal"><span class="pre">Content-Disposition</span></code> header, but
+it&#8217;s easy to forget the syntax, so we&#8217;ve included it here.</p>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Attributes<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="HttpResponse.content">
+<code class="descclassname">HttpResponse.</code><code class="descname">content</code><a class="headerlink" href="#HttpResponse.content" title="Permalink to this definition">¶</a></dt>
+<dd><p>A bytestring representing the content, encoded from a Unicode
+object if necessary.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpResponse.charset">
+<code class="descclassname">HttpResponse.</code><code class="descname">charset</code><a class="headerlink" href="#HttpResponse.charset" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string denoting the charset in which the response will be encoded. If not
+given at <code class="docutils literal"><span class="pre">HttpResponse</span></code> instantiation time, it will be extracted from
+<code class="docutils literal"><span class="pre">content_type</span></code> and if that is unsuccessful, the
+<code class="docutils literal"><span class="pre">DEFAULT_CHARSET</span></code> setting will be used.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpResponse.status_code">
+<code class="descclassname">HttpResponse.</code><code class="descname">status_code</code><a class="headerlink" href="#HttpResponse.status_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10">HTTP status code</a> for the response.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpResponse.reason_phrase">
+<code class="descclassname">HttpResponse.</code><code class="descname">reason_phrase</code><a class="headerlink" href="#HttpResponse.reason_phrase" title="Permalink to this definition">¶</a></dt>
+<dd><p>The HTTP reason phrase for the response.</p>
+<blockquote>
+<div></div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpResponse.streaming">
+<code class="descclassname">HttpResponse.</code><code class="descname">streaming</code><a class="headerlink" href="#HttpResponse.streaming" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is always <code class="docutils literal"><span class="pre">False</span></code>.</p>
+<p>This attribute exists so middleware can treat streaming responses
+differently from regular responses.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="HttpResponse.closed">
+<code class="descclassname">HttpResponse.</code><code class="descname">closed</code><a class="headerlink" href="#HttpResponse.closed" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">True</span></code> if the response has been closed.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id3">
+<h3>Methods<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="HttpResponse.__init__">
+<code class="descclassname">HttpResponse.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>content=''</em>, <em>content_type=None</em>, <em>status=200</em>, <em>reason=None</em>, <em>charset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates an <code class="docutils literal"><span class="pre">HttpResponse</span></code> object with the given page content and
+content type.</p>
+<p><code class="docutils literal"><span class="pre">content</span></code> should be an iterator or a string. If it&#8217;s an
+iterator, it should return strings, and those strings will be
+joined together to form the content of the response. If it is not
+an iterator or a string, it will be converted to a string when
+accessed.</p>
+<p><code class="docutils literal"><span class="pre">content_type</span></code> is the MIME type optionally completed by a character set
+encoding and is used to fill the HTTP <code class="docutils literal"><span class="pre">Content-Type</span></code> header. If not
+specified, it is formed by the <code class="docutils literal"><span class="pre">DEFAULT_CONTENT_TYPE</span></code> and
+<code class="docutils literal"><span class="pre">DEFAULT_CHARSET</span></code> settings, by default: &#8220;<cite>text/html; charset=utf-8</cite>&#8221;.</p>
+<p><code class="docutils literal"><span class="pre">status</span></code> is the <a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10">HTTP status code</a> for the response.</p>
+<p><code class="docutils literal"><span class="pre">reason</span></code> is the HTTP response phrase. If not provided, a default phrase
+will be used.</p>
+<p><code class="docutils literal"><span class="pre">charset</span></code> is the charset in which the response will be encoded. If not
+given it will be extracted from <code class="docutils literal"><span class="pre">content_type</span></code>, and if that
+is unsuccessful, the <code class="docutils literal"><span class="pre">DEFAULT_CHARSET</span></code> setting will be used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.__setitem__">
+<code class="descclassname">HttpResponse.</code><code class="descname">__setitem__</code><span class="sig-paren">(</span><em>header</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the given header name to the given value. Both <code class="docutils literal"><span class="pre">header</span></code> and
+<code class="docutils literal"><span class="pre">value</span></code> should be strings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.__delitem__">
+<code class="descclassname">HttpResponse.</code><code class="descname">__delitem__</code><span class="sig-paren">(</span><em>header</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the header with the given name. Fails silently if the header
+doesn&#8217;t exist. Case-insensitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.__getitem__">
+<code class="descclassname">HttpResponse.</code><code class="descname">__getitem__</code><span class="sig-paren">(</span><em>header</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value for the given header name. Case-insensitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.has_header">
+<code class="descclassname">HttpResponse.</code><code class="descname">has_header</code><span class="sig-paren">(</span><em>header</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.has_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal"><span class="pre">True</span></code> or <code class="docutils literal"><span class="pre">False</span></code> based on a case-insensitive check for a
+header with the given name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.setdefault">
+<code class="descclassname">HttpResponse.</code><code class="descname">setdefault</code><span class="sig-paren">(</span><em>header</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.setdefault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a header unless it has already been set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.set_cookie">
+<code class="descclassname">HttpResponse.</code><code class="descname">set_cookie</code><span class="sig-paren">(</span><em>key</em>, <em>value=''</em>, <em>max_age=None</em>, <em>expires=None</em>, <em>path='/'</em>, <em>domain=None</em>, <em>secure=None</em>, <em>httponly=False</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.set_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a cookie. The parameters are the same as in the
+<code class="xref py py-class docutils literal"><span class="pre">Morsel</span></code> cookie object in the Python standard library.</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">max_age</span></code> should be a number of seconds, or <code class="docutils literal"><span class="pre">None</span></code> (default) if
+the cookie should last only as long as the client&#8217;s browser session.
+If <code class="docutils literal"><span class="pre">expires</span></code> is not specified, it will be calculated.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">expires</span></code> should either be a string in the format
+<code class="docutils literal"><span class="pre">&quot;Wdy,</span> <span class="pre">DD-Mon-YY</span> <span class="pre">HH:MM:SS</span> <span class="pre">GMT&quot;</span></code> or a <code class="docutils literal"><span class="pre">datetime.datetime</span></code> object
+in UTC. If <code class="docutils literal"><span class="pre">expires</span></code> is a <code class="docutils literal"><span class="pre">datetime</span></code> object, the <code class="docutils literal"><span class="pre">max_age</span></code>
+will be calculated.</p>
+</li>
+<li><p class="first">Use <code class="docutils literal"><span class="pre">domain</span></code> if you want to set a cross-domain cookie. For example,
+<code class="docutils literal"><span class="pre">domain=&quot;.lawrence.com&quot;</span></code> will set a cookie that is readable by
+the domains www.lawrence.com, blogs.lawrence.com and
+calendars.lawrence.com. Otherwise, a cookie will only be readable by
+the domain that set it.</p>
+</li>
+<li><p class="first">Use <code class="docutils literal"><span class="pre">httponly=True</span></code> if you want to prevent client-side
+JavaScript from having access to the cookie.</p>
+<p><a class="reference external" href="https://www.owasp.org/index.php/HTTPOnly">HTTPOnly</a> is a flag included in a Set-Cookie HTTP response
+header. It is not part of the <span class="target" id="index-1"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2109.html"><strong>RFC 2109</strong></a> standard for cookies,
+and it isn&#8217;t honored consistently by all browsers. However,
+when it is honored, it can be a useful way to mitigate the
+risk of client side script accessing the protected cookie
+data.</p>
+</li>
+</ul>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Both <span class="target" id="index-2"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2109.html"><strong>RFC 2109</strong></a> and <span class="target" id="index-3"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc6265.html"><strong>RFC 6265</strong></a> state that user agents should support
+cookies of at least 4096 bytes. For many browsers this is also the
+maximum size. Django will not raise an exception if there&#8217;s an attempt
+to store a cookie of more than 4096 bytes, but many browsers will not
+set the cookie correctly.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.set_signed_cookie">
+<code class="descclassname">HttpResponse.</code><code class="descname">set_signed_cookie</code><span class="sig-paren">(</span><em>key</em>, <em>value</em>, <em>salt=''</em>, <em>max_age=None</em>, <em>expires=None</em>, <em>path='/'</em>, <em>domain=None</em>, <em>secure=None</em>, <em>httponly=True</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.set_signed_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#HttpResponse.set_cookie" title="HttpResponse.set_cookie"><code class="xref py py-meth docutils literal"><span class="pre">set_cookie()</span></code></a>, but
+cryptographic signing  the cookie before setting
+it. Use in conjunction with <a class="reference internal" href="#HttpRequest.get_signed_cookie" title="HttpRequest.get_signed_cookie"><code class="xref py py-meth docutils literal"><span class="pre">HttpRequest.get_signed_cookie()</span></code></a>.
+You can use the optional <code class="docutils literal"><span class="pre">salt</span></code> argument for added key strength, but
+you will need to remember to pass it to the corresponding
+<a class="reference internal" href="#HttpRequest.get_signed_cookie" title="HttpRequest.get_signed_cookie"><code class="xref py py-meth docutils literal"><span class="pre">HttpRequest.get_signed_cookie()</span></code></a> call.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.delete_cookie">
+<code class="descclassname">HttpResponse.</code><code class="descname">delete_cookie</code><span class="sig-paren">(</span><em>key</em>, <em>path='/'</em>, <em>domain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.delete_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the cookie with the given key. Fails silently if the key doesn&#8217;t
+exist.</p>
+<p>Due to the way cookies work, <code class="docutils literal"><span class="pre">path</span></code> and <code class="docutils literal"><span class="pre">domain</span></code> should be the same
+values you used in <code class="docutils literal"><span class="pre">set_cookie()</span></code> &#8211; otherwise the cookie may not be
+deleted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.write">
+<code class="descclassname">HttpResponse.</code><code class="descname">write</code><span class="sig-paren">(</span><em>content</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method makes an <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> instance a file-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.flush">
+<code class="descclassname">HttpResponse.</code><code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.flush" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method makes an <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> instance a file-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.tell">
+<code class="descclassname">HttpResponse.</code><code class="descname">tell</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.tell" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method makes an <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> instance a file-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.getvalue">
+<code class="descclassname">HttpResponse.</code><code class="descname">getvalue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.getvalue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of <a class="reference internal" href="#HttpResponse.content" title="HttpResponse.content"><code class="xref py py-attr docutils literal"><span class="pre">HttpResponse.content</span></code></a>. This method makes
+an <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> instance a stream-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.writable">
+<code class="descclassname">HttpResponse.</code><code class="descname">writable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.writable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Always <code class="docutils literal"><span class="pre">True</span></code>. This method makes an <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> instance a
+stream-like object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="HttpResponse.writelines">
+<code class="descclassname">HttpResponse.</code><code class="descname">writelines</code><span class="sig-paren">(</span><em>lines</em><span class="sig-paren">)</span><a class="headerlink" href="#HttpResponse.writelines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a list of lines to the response. Line separators are not added. This
+method makes an <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> instance a stream-like object.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="httpresponse-subclasses">
+<span id="ref-httpresponse-subclasses"></span><h3>HttpResponse subclasses<a class="headerlink" href="#httpresponse-subclasses" title="Permalink to this headline">¶</a></h3>
+<p>Django includes a number of <code class="docutils literal"><span class="pre">HttpResponse</span></code> subclasses that handle different
+types of HTTP responses. Like <code class="docutils literal"><span class="pre">HttpResponse</span></code>, these subclasses live in
+<code class="xref py py-mod docutils literal"><span class="pre">django.http</span></code>.</p>
+<dl class="class">
+<dt id="HttpResponseRedirect">
+<em class="property">class </em><code class="descname">HttpResponseRedirect</code><a class="headerlink" href="#HttpResponseRedirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>The first argument to the constructor is required &#8211; the path to redirect
+to. This can be a fully qualified URL
+(e.g. <code class="docutils literal"><span class="pre">'http://www.yahoo.com/search/'</span></code>) or an absolute path with no
+domain (e.g. <code class="docutils literal"><span class="pre">'/search/'</span></code>). See <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> for other optional
+constructor arguments. Note that this returns an HTTP status code 302.</p>
+<dl class="attribute">
+<dt id="HttpResponseRedirect.url">
+<code class="descname">url</code><a class="headerlink" href="#HttpResponseRedirect.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>This read-only attribute represents the URL the response will redirect
+to (equivalent to the <code class="docutils literal"><span class="pre">Location</span></code> response header).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="HttpResponsePermanentRedirect">
+<em class="property">class </em><code class="descname">HttpResponsePermanentRedirect</code><a class="headerlink" href="#HttpResponsePermanentRedirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#HttpResponseRedirect" title="HttpResponseRedirect"><code class="xref py py-class docutils literal"><span class="pre">HttpResponseRedirect</span></code></a>, but it returns a permanent redirect
+(HTTP status code 301) instead of a &#8220;found&#8221; redirect (status code 302).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="HttpResponseNotModified">
+<em class="property">class </em><code class="descname">HttpResponseNotModified</code><a class="headerlink" href="#HttpResponseNotModified" title="Permalink to this definition">¶</a></dt>
+<dd><p>The constructor doesn&#8217;t take any arguments and no content should be added
+to this response. Use this to designate that a page hasn&#8217;t been modified
+since the user&#8217;s last request (status code 304).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="HttpResponseBadRequest">
+<em class="property">class </em><code class="descname">HttpResponseBadRequest</code><a class="headerlink" href="#HttpResponseBadRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acts just like <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> but uses a 400 status code.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="HttpResponseNotFound">
+<em class="property">class </em><code class="descname">HttpResponseNotFound</code><a class="headerlink" href="#HttpResponseNotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acts just like <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> but uses a 404 status code.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="HttpResponseForbidden">
+<em class="property">class </em><code class="descname">HttpResponseForbidden</code><a class="headerlink" href="#HttpResponseForbidden" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acts just like <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> but uses a 403 status code.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="HttpResponseNotAllowed">
+<em class="property">class </em><code class="descname">HttpResponseNotAllowed</code><a class="headerlink" href="#HttpResponseNotAllowed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a>, but uses a 405 status code. The first argument
+to the constructor is required: a list of permitted methods (e.g.
+<code class="docutils literal"><span class="pre">['GET',</span> <span class="pre">'POST']</span></code>).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="HttpResponseGone">
+<em class="property">class </em><code class="descname">HttpResponseGone</code><a class="headerlink" href="#HttpResponseGone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acts just like <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> but uses a 410 status code.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="HttpResponseServerError">
+<em class="property">class </em><code class="descname">HttpResponseServerError</code><a class="headerlink" href="#HttpResponseServerError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Acts just like <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> but uses a 500 status code.</p>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If a custom subclass of <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> implements a <code class="docutils literal"><span class="pre">render</span></code>
+method, Django will treat it as emulating a
+<code class="xref py py-class docutils literal"><span class="pre">SimpleTemplateResponse</span></code>, and the
+<code class="docutils literal"><span class="pre">render</span></code> method must itself return a valid response object.</p>
+</div>
+</div>
+</div>
+<div class="section" id="jsonresponse-objects">
+<h2>JsonResponse objects<a class="headerlink" href="#jsonresponse-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="JsonResponse">
+<em class="property">class </em><code class="descname">JsonResponse</code><a class="headerlink" href="#JsonResponse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="JsonResponse.__init__">
+<code class="descclassname">JsonResponse.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>data</em>, <em>encoder=DjangoJSONEncoder</em>, <em>safe=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#JsonResponse.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>An <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a> subclass that helps to create a JSON-encoded
+response. It inherits most behavior from its superclass with a couple
+differences:</p>
+<p>Its default <code class="docutils literal"><span class="pre">Content-Type</span></code> header is set to <code class="docutils literal"><span class="pre">application/json</span></code>.</p>
+<p>The first parameter, <code class="docutils literal"><span class="pre">data</span></code>, should be a <code class="docutils literal"><span class="pre">dict</span></code> instance. If the <code class="docutils literal"><span class="pre">safe</span></code>
+parameter is set to <code class="docutils literal"><span class="pre">False</span></code> (see below) it can be any JSON-serializable
+object.</p>
+<p>The <code class="docutils literal"><span class="pre">encoder</span></code>, which defaults to
+<code class="docutils literal"><span class="pre">django.core.serializers.json.DjangoJSONEncoder</span></code>, will be used to
+serialize the data.</p>
+<p>The <code class="docutils literal"><span class="pre">safe</span></code> boolean parameter defaults to <code class="docutils literal"><span class="pre">True</span></code>. If it&#8217;s set to <code class="docutils literal"><span class="pre">False</span></code>,
+any object can be passed for serialization (otherwise only <code class="docutils literal"><span class="pre">dict</span></code> instances
+are allowed). If <code class="docutils literal"><span class="pre">safe</span></code> is <code class="docutils literal"><span class="pre">True</span></code> and a non-<code class="docutils literal"><span class="pre">dict</span></code> object is passed as
+the first argument, a <code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> will be raised.</p>
+</dd></dl>
+
+<div class="section" id="id4">
+<h3>Usage<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>Typical usage could look like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">JsonResponse</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s">&#39;foo&#39;</span><span class="p">:</span> <span class="s">&#39;bar&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">content</span>
+<span class="go">&#39;{&quot;foo&quot;: &quot;bar&quot;}&#39;</span>
+</pre></div>
+</div>
+<div class="section" id="serializing-non-dictionary-objects">
+<h4>Serializing non-dictionary objects<a class="headerlink" href="#serializing-non-dictionary-objects" title="Permalink to this headline">¶</a></h4>
+<p>In order to serialize objects other than <code class="docutils literal"><span class="pre">dict</span></code> you must set the <code class="docutils literal"><span class="pre">safe</span></code>
+parameter to <code class="docutils literal"><span class="pre">False</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">JsonResponse</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">safe</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Without passing <code class="docutils literal"><span class="pre">safe=False</span></code>, a <code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> will be raised.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Before the <a class="reference external" href="http://www.ecma-international.org/publications/standards/Ecma-262.htm">5th edition of EcmaScript</a>
+it was possible to poison the JavaScript <code class="docutils literal"><span class="pre">Array</span></code> constructor. For this
+reason, Django does not allow passing non-dict objects to the
+<code class="xref py py-class docutils literal"><span class="pre">JsonResponse</span></code> constructor by default.  However, most
+modern browsers implement EcmaScript 5 which removes this attack vector.
+Therefore it is possible to disable this security precaution.</p>
+</div>
+</div>
+<div class="section" id="changing-the-default-json-encoder">
+<h4>Changing the default JSON encoder<a class="headerlink" href="#changing-the-default-json-encoder" title="Permalink to this headline">¶</a></h4>
+<p>If you need to use a different JSON encoder class you can pass the <code class="docutils literal"><span class="pre">encoder</span></code>
+parameter to the constructor method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">encoder</span><span class="o">=</span><span class="n">MyJSONEncoder</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="streaminghttpresponse-objects">
+<span id="httpresponse-streaming"></span><h2>StreamingHttpResponse objects<a class="headerlink" href="#streaminghttpresponse-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="StreamingHttpResponse">
+<em class="property">class </em><code class="descname">StreamingHttpResponse</code><a class="headerlink" href="#StreamingHttpResponse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <a class="reference internal" href="#StreamingHttpResponse" title="StreamingHttpResponse"><code class="xref py py-class docutils literal"><span class="pre">StreamingHttpResponse</span></code></a> class is used to stream a response from
+Django to the browser. You might want to do this if generating the response
+takes too long or uses too much memory. For instance, it&#8217;s useful for
+generating large CSV files &lt;streaming-csv-files&gt;.</p>
+<div class="admonition-performance-considerations admonition">
+<p class="first admonition-title">Performance considerations</p>
+<p>Django is designed for short-lived requests. Streaming responses will tie
+a worker process for the entire duration of the response. This may result
+in poor performance.</p>
+<p class="last">Generally speaking, you should perform expensive tasks outside of the
+request-response cycle, rather than resorting to a streamed response.</p>
+</div>
+<p>The <a class="reference internal" href="#StreamingHttpResponse" title="StreamingHttpResponse"><code class="xref py py-class docutils literal"><span class="pre">StreamingHttpResponse</span></code></a> is not a subclass of <a class="reference internal" href="#HttpResponse" title="HttpResponse"><code class="xref py py-class docutils literal"><span class="pre">HttpResponse</span></code></a>,
+because it features a slightly different API. However, it is almost identical,
+with the following notable differences:</p>
+<ul class="simple">
+<li>It should be given an iterator that yields strings as content.</li>
+<li>You cannot access its content, except by iterating the response object
+itself. This should only occur when the response is returned to the client.</li>
+<li>It has no <code class="docutils literal"><span class="pre">content</span></code> attribute. Instead, it has a
+<a class="reference internal" href="#StreamingHttpResponse.streaming_content" title="StreamingHttpResponse.streaming_content"><code class="xref py py-attr docutils literal"><span class="pre">streaming_content</span></code></a> attribute.</li>
+<li>You cannot use the file-like object <code class="docutils literal"><span class="pre">tell()</span></code> or <code class="docutils literal"><span class="pre">write()</span></code> methods.
+Doing so will raise an exception.</li>
+</ul>
+<p><a class="reference internal" href="#StreamingHttpResponse" title="StreamingHttpResponse"><code class="xref py py-class docutils literal"><span class="pre">StreamingHttpResponse</span></code></a> should only be used in situations where it is
+absolutely required that the whole content isn&#8217;t iterated before transferring
+the data to the client. Because the content can&#8217;t be accessed, many
+middlewares can&#8217;t function normally. For example the <code class="docutils literal"><span class="pre">ETag</span></code> and <code class="docutils literal"><span class="pre">Content-</span>
+<span class="pre">Length</span></code> headers can&#8217;t be generated for streaming responses.</p>
+<div class="section" id="id5">
+<h3>Attributes<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<dl class="attribute">
+<dt id="StreamingHttpResponse.streaming_content">
+<code class="descclassname">StreamingHttpResponse.</code><code class="descname">streaming_content</code><a class="headerlink" href="#StreamingHttpResponse.streaming_content" title="Permalink to this definition">¶</a></dt>
+<dd><p>An iterator of strings representing the content.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="StreamingHttpResponse.status_code">
+<code class="descclassname">StreamingHttpResponse.</code><code class="descname">status_code</code><a class="headerlink" href="#StreamingHttpResponse.status_code" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10">HTTP status code</a> for the response.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="StreamingHttpResponse.reason_phrase">
+<code class="descclassname">StreamingHttpResponse.</code><code class="descname">reason_phrase</code><a class="headerlink" href="#StreamingHttpResponse.reason_phrase" title="Permalink to this definition">¶</a></dt>
+<dd><p>The HTTP reason phrase for the response.</p>
+<blockquote>
+<div></div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="StreamingHttpResponse.streaming">
+<code class="descclassname">StreamingHttpResponse.</code><code class="descname">streaming</code><a class="headerlink" href="#StreamingHttpResponse.streaming" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is always <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="fileresponse-objects">
+<h2>FileResponse objects<a class="headerlink" href="#fileresponse-objects" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="FileResponse">
+<em class="property">class </em><code class="descname">FileResponse</code><a class="headerlink" href="#FileResponse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p><a class="reference internal" href="#FileResponse" title="FileResponse"><code class="xref py py-class docutils literal"><span class="pre">FileResponse</span></code></a> is a subclass of <a class="reference internal" href="#StreamingHttpResponse" title="StreamingHttpResponse"><code class="xref py py-class docutils literal"><span class="pre">StreamingHttpResponse</span></code></a> optimized
+for binary files. It uses <a class="reference external" href="https://www.python.org/dev/peps/pep-3333/#optional-platform-specific-file-handling">wsgi.file_wrapper</a> if provided by the wsgi server,
+otherwise it streams the file out in small chunks.</p>
+<p><code class="docutils literal"><span class="pre">FileResponse</span></code> expects a file open in binary mode like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">FileResponse</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">FileResponse</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&#39;myfile.png&#39;</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="error-views">
+<span id="id7"></span><h2>Error views<a class="headerlink" href="#error-views" title="Permalink to this headline">¶</a></h2>
+<p>Django comes with a few views by default for handling HTTP errors. To override
+these with your own custom views, see customizing-error-views.</p>
+<div class="section" id="the-404-page-not-found-view">
+<span id="http-not-found-view"></span><h3>The 404 (page not found) view<a class="headerlink" href="#the-404-page-not-found-view" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="defaults.page_not_found">
+<code class="descclassname">defaults.</code><code class="descname">page_not_found</code><span class="sig-paren">(</span><em>request</em>, <em>template_name='404.html'</em><span class="sig-paren">)</span><a class="headerlink" href="#defaults.page_not_found" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>When you raise <code class="xref py py-exc docutils literal"><span class="pre">Http404</span></code> from within a view, Django loads a
+special view devoted to handling 404 errors. By default, it&#8217;s the view
+<code class="xref py py-func docutils literal"><span class="pre">django.views.defaults.page_not_found()</span></code>, which either produces a very
+simple &#8220;Not Found&#8221; message or loads and renders the template <code class="docutils literal"><span class="pre">404.html</span></code> if
+you created it in your root template directory.</p>
+<p>The default 404 view will pass one variable to the template: <code class="docutils literal"><span class="pre">request_path</span></code>,
+which is the URL that resulted in the error.</p>
+<p>Three things to note about 404 views:</p>
+<ul class="simple">
+<li>The 404 view is also called if Django doesn&#8217;t find a match after
+checking every regular expression in the URLconf.</li>
+<li>The 404 view is passed a <code class="xref py py-class docutils literal"><span class="pre">RequestContext</span></code> and
+will have access to variables supplied by your template context
+processors (e.g. <code class="docutils literal"><span class="pre">MEDIA_URL</span></code>).</li>
+<li>If <code class="docutils literal"><span class="pre">DEBUG</span></code> is set to <code class="docutils literal"><span class="pre">True</span></code> (in your settings module), then
+your 404 view will never be used, and your URLconf will be displayed
+instead, with some debug information.</li>
+</ul>
+</div>
+<div class="section" id="the-500-server-error-view">
+<span id="http-internal-server-error-view"></span><h3>The 500 (server error) view<a class="headerlink" href="#the-500-server-error-view" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="defaults.server_error">
+<code class="descclassname">defaults.</code><code class="descname">server_error</code><span class="sig-paren">(</span><em>request</em>, <em>template_name='500.html'</em><span class="sig-paren">)</span><a class="headerlink" href="#defaults.server_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Similarly, Django executes special-case behavior in the case of runtime errors
+in view code. If a view results in an exception, Django will, by default, call
+the view <code class="docutils literal"><span class="pre">django.views.defaults.server_error</span></code>, which either produces a very
+simple &#8220;Server Error&#8221; message or loads and renders the template <code class="docutils literal"><span class="pre">500.html</span></code> if
+you created it in your root template directory.</p>
+<p>The default 500 view passes no variables to the <code class="docutils literal"><span class="pre">500.html</span></code> template and is
+rendered with an empty <code class="docutils literal"><span class="pre">Context</span></code> to lessen the chance of additional errors.</p>
+<p>If <code class="docutils literal"><span class="pre">DEBUG</span></code> is set to <code class="docutils literal"><span class="pre">True</span></code> (in your settings module), then
+your 500 view will never be used, and the traceback will be displayed
+instead, with some debug information.</p>
+</div>
+<div class="section" id="the-403-http-forbidden-view">
+<span id="http-forbidden-view"></span><h3>The 403 (HTTP Forbidden) view<a class="headerlink" href="#the-403-http-forbidden-view" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="defaults.permission_denied">
+<code class="descclassname">defaults.</code><code class="descname">permission_denied</code><span class="sig-paren">(</span><em>request</em>, <em>template_name='403.html'</em><span class="sig-paren">)</span><a class="headerlink" href="#defaults.permission_denied" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>In the same vein as the 404 and 500 views, Django has a view to handle 403
+Forbidden errors. If a view results in a 403 exception then Django will, by
+default, call the view <code class="docutils literal"><span class="pre">django.views.defaults.permission_denied</span></code>.</p>
+<p>This view loads and renders the template <code class="docutils literal"><span class="pre">403.html</span></code> in your root template
+directory, or if this file does not exist, instead serves the text
+&#8220;403 Forbidden&#8221;, as per <span class="target" id="index-4"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2616.html"><strong>RFC 2616</strong></a> (the HTTP 1.1 Specification).</p>
+<p><code class="docutils literal"><span class="pre">django.views.defaults.permission_denied</span></code> is triggered by a
+<code class="xref py py-exc docutils literal"><span class="pre">PermissionDenied</span></code> exception. To deny access in a
+view you can use code like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="kn">import</span> <span class="n">PermissionDenied</span>
+
+<span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_staff</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">PermissionDenied</span>
+    <span class="c"># ...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-400-bad-request-view">
+<span id="http-bad-request-view"></span><h3>The 400 (bad request) view<a class="headerlink" href="#the-400-bad-request-view" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="defaults.bad_request">
+<code class="descclassname">defaults.</code><code class="descname">bad_request</code><span class="sig-paren">(</span><em>request</em>, <em>template_name='400.html'</em><span class="sig-paren">)</span><a class="headerlink" href="#defaults.bad_request" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>When a <code class="xref py py-exc docutils literal"><span class="pre">SuspiciousOperation</span></code> is raised in Django,
+it may be handled by a component of Django (for example resetting the session
+data). If not specifically handled, Django will consider the current request a
+&#8216;bad request&#8217; instead of a server error.</p>
+<p><code class="docutils literal"><span class="pre">django.views.defaults.bad_request</span></code>, is otherwise very similar to the
+<code class="docutils literal"><span class="pre">server_error</span></code> view, but returns with the status code 400 indicating that
+the error condition was the result of a client operation.</p>
+<p><code class="docutils literal"><span class="pre">bad_request</span></code> views are also only used when <code class="docutils literal"><span class="pre">DEBUG</span></code> is <code class="docutils literal"><span class="pre">False</span></code>.</p>
+</div>
+</div>
+<div class="section" id="customizing-error-views">
+<span id="id8"></span><h2>Customizing error views<a class="headerlink" href="#customizing-error-views" title="Permalink to this headline">¶</a></h2>
+<p>The default error views in Django should suffice for most Web applications,
+but can easily be overridden if you need any custom behavior. Simply specify
+the handlers as seen below in your URLconf (setting them anywhere else will
+have no effect).</p>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">page_not_found()</span></code> view is overridden by
+<code class="xref py py-data docutils literal"><span class="pre">handler404</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">handler404</span> <span class="o">=</span> <span class="s">&#39;mysite.views.my_custom_page_not_found_view&#39;</span>
+</pre></div>
+</div>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">server_error()</span></code> view is overridden by
+<code class="xref py py-data docutils literal"><span class="pre">handler500</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">handler500</span> <span class="o">=</span> <span class="s">&#39;mysite.views.my_custom_error_view&#39;</span>
+</pre></div>
+</div>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">permission_denied()</span></code> view is overridden by
+<code class="xref py py-data docutils literal"><span class="pre">handler403</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">handler403</span> <span class="o">=</span> <span class="s">&#39;mysite.views.my_custom_permission_denied_view&#39;</span>
+</pre></div>
+</div>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">bad_request()</span></code> view is overridden by
+<code class="xref py py-data docutils literal"><span class="pre">handler400</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">handler400</span> <span class="o">=</span> <span class="s">&#39;mysite.views.my_custom_bad_request_view&#39;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Appendix G: Request and Response Objects</a><ul>
+<li><a class="reference internal" href="#httprequest-objects">HttpRequest objects</a><ul>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#querydict-objects">QueryDict objects</a><ul>
+<li><a class="reference internal" href="#id1">Methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#httpresponse-objects">HttpResponse objects</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#passing-strings">Passing strings</a></li>
+<li><a class="reference internal" href="#passing-iterators">Passing iterators</a></li>
+<li><a class="reference internal" href="#setting-header-fields">Setting header fields</a></li>
+<li><a class="reference internal" href="#telling-the-browser-to-treat-the-response-as-a-file-attachment">Telling the browser to treat the response as a file attachment</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id2">Attributes</a></li>
+<li><a class="reference internal" href="#id3">Methods</a></li>
+<li><a class="reference internal" href="#httpresponse-subclasses">HttpResponse subclasses</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#jsonresponse-objects">JsonResponse objects</a><ul>
+<li><a class="reference internal" href="#id4">Usage</a><ul>
+<li><a class="reference internal" href="#serializing-non-dictionary-objects">Serializing non-dictionary objects</a></li>
+<li><a class="reference internal" href="#changing-the-default-json-encoder">Changing the default JSON encoder</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#streaminghttpresponse-objects">StreamingHttpResponse objects</a><ul>
+<li><a class="reference internal" href="#id5">Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fileresponse-objects">FileResponse objects</a></li>
+<li><a class="reference internal" href="#error-views">Error views</a><ul>
+<li><a class="reference internal" href="#the-404-page-not-found-view">The 404 (page not found) view</a></li>
+<li><a class="reference internal" href="#the-500-server-error-view">The 500 (server error) view</a></li>
+<li><a class="reference internal" href="#the-403-http-forbidden-view">The 403 (HTTP Forbidden) view</a></li>
+<li><a class="reference internal" href="#the-400-bad-request-view">The 400 (bad request) view</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#customizing-error-views">Customizing error views</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="appendix_F.html" title="previous chapter">Appendix F: The django-admin Utility</a></li>
+      <li>Next: <a href="license.html" title="next chapter">License &amp; Copyright</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/appendix_G.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/appendix_G.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

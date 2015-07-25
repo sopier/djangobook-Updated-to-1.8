@@ -1,0 +1,1764 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Chapter 3: Templates &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Chapter 4: Models" href="chapter_04.html" />
+    <link rel="prev" title="Chapter 2: Views and URLconfs" href="chapter_02.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="chapter-3-templates">
+<h1>Chapter 3: Templates<a class="headerlink" href="#chapter-3-templates" title="Permalink to this headline">¶</a></h1>
+<p>In the previous chapter, you may have noticed something peculiar in how we
+returned the text in our example views. Namely, the HTML was hard-coded directly
+in our Python code, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;html&gt;&lt;body&gt;It is now </span><span class="si">%s</span><span class="s">.&lt;/body&gt;&lt;/html&gt;&quot;</span> <span class="o">%</span> <span class="n">now</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Although this technique was convenient for the purpose of explaining how views
+work, it&#8217;s not a good idea to hard-code HTML directly in your views. Here&#8217;s
+why:</p>
+<ul class="simple">
+<li>Any change to the design of the page requires a change to
+the Python code. The design of a site tends to change far more frequently
+than the underlying Python code, so it would be convenient if
+the design could change without needing to modify the Python code.</li>
+<li>Writing Python code and designing HTML are two different disciplines, and
+most professional Web development environments split these
+responsibilities between separate people (or even separate departments).
+Designers and HTML/CSS coders shouldn&#8217;t be required to edit Python code
+to get their job done.</li>
+<li>It&#8217;s most efficient if programmers can work on Python code and designers
+can work on templates at the same time, rather than one person waiting
+for the other to finish editing a single file that contains both Python
+and HTML.</li>
+</ul>
+<p>For these reasons, it&#8217;s much cleaner and more maintainable to separate the
+design of the page from the Python code itself. We can do this with Django&#8217;s
+<em>template system</em>, which we discuss in this chapter.</p>
+<div class="section" id="template-system-basics">
+<h2>Template System Basics<a class="headerlink" href="#template-system-basics" title="Permalink to this headline">¶</a></h2>
+<p>A Django template is a string of text that is intended to separate the
+presentation of a document from its data. A template defines placeholders and
+various bits of basic logic (template tags) that regulate how the document
+should be displayed. Usually, templates are used for producing HTML, but Django
+templates are equally capable of generating any text-based format.</p>
+<div class="admonition-philosophy-behind-django-templates admonition">
+<p class="first admonition-title">Philosophy behind Django templates</p>
+<p>If you have a background in programming, or if you&#8217;re used to languages
+which mix programming code directly into HTML, you&#8217;ll want to bear in
+mind that the Django template system is not simply Python embedded into
+HTML. This is by design: the template system is meant to express
+presentation, not program logic.</p>
+<p class="last">The Django template system provides tags which function similarly to some
+programming constructs &#8211; an <cite>if</cite> tag for boolean tests, a <cite>for</cite>
+tag for looping, etc. &#8211; but these are not simply executed as the
+corresponding Python code, and the template system will not execute
+arbitrary Python expressions. Only the tags, filters and syntax listed below
+are supported by default (although you can add your own extensions
+to the template language as needed).</p>
+</div>
+<p>Let&#8217;s start with a simple example template. This Django template describes an
+HTML page that thanks a person for placing an order with a company. Think of it
+as a form letter:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;html&gt;
+&lt;head&gt;&lt;title&gt;Ordering notice&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Ordering notice&lt;/h1&gt;
+
+&lt;p&gt;Dear {{ person_name }},&lt;/p&gt;
+
+&lt;p&gt;Thanks for placing an order from {{ company }}. It&#39;s scheduled to
+ship on {{ ship_date|date:&quot;F j, Y&quot; }}.&lt;/p&gt;
+
+&lt;p&gt;Here are the items you&#39;ve ordered:&lt;/p&gt;
+
+&lt;ul&gt;
+{% for item in item_list %}
+    &lt;li&gt;{{ item }}&lt;/li&gt;
+{% endfor %}
+&lt;/ul&gt;
+
+{% if ordered_warranty %}
+    &lt;p&gt;Your warranty information will be included in the packaging.&lt;/p&gt;
+{% else %}
+    &lt;p&gt;You didn&#39;t order a warranty, so you&#39;re on your own when
+    the products inevitably stop working.&lt;/p&gt;
+{% endif %}
+
+&lt;p&gt;Sincerely,&lt;br /&gt;{{ company }}&lt;/p&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+</div>
+<p>This template is basic HTML with some variables and template tags thrown in.
+Let&#8217;s step through it:</p>
+<ul>
+<li><p class="first">Any text surrounded by a pair of braces (e.g., <code class="docutils literal"><span class="pre">{{</span> <span class="pre">person_name</span> <span class="pre">}}</span></code>) is a
+<em>variable</em>. This means &#8220;insert the value of the variable with the given
+name.&#8221; (How do we specify the values of the variables? We&#8217;ll get to that in
+a moment.)</p>
+</li>
+<li><p class="first">Any text that&#8217;s surrounded by curly braces and percent signs (e.g., <code class="docutils literal"><span class="pre">{%</span>
+<span class="pre">if</span> <span class="pre">ordered_warranty</span> <span class="pre">%}</span></code>) is a <em>template tag</em>. The definition of a tag is
+quite broad: a tag just tells the template system to &#8220;do something.&#8221;</p>
+<p>This example template contains a <code class="docutils literal"><span class="pre">for</span></code> tag (<code class="docutils literal"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">item</span> <span class="pre">in</span> <span class="pre">item_list</span>
+<span class="pre">%}</span></code>) and an <code class="docutils literal"><span class="pre">if</span></code> tag (<code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">ordered_warranty</span> <span class="pre">%}</span></code>).</p>
+<p>A <code class="docutils literal"><span class="pre">for</span></code> tag works very much like a <code class="docutils literal"><span class="pre">for</span></code> statement in Python, letting
+you loop over each item in a sequence. An <code class="docutils literal"><span class="pre">if</span></code> tag, as you may expect,
+acts as a logical &#8220;if&#8221; statement. In this particular case, the tag checks
+whether the value of the <code class="docutils literal"><span class="pre">ordered_warranty</span></code> variable evaluates to
+<code class="docutils literal"><span class="pre">True</span></code>. If it does, the template system will display everything between
+the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">ordered_warranty</span> <span class="pre">%}</span></code> and <code class="docutils literal"><span class="pre">{%</span> <span class="pre">else</span> <span class="pre">%}</span></code>. If not, the
+template system will display everything between <code class="docutils literal"><span class="pre">{%</span> <span class="pre">else</span> <span class="pre">%}</span></code> and
+<code class="docutils literal"><span class="pre">{%</span> <span class="pre">endif</span> <span class="pre">%}</span></code>. Note that the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">else</span> <span class="pre">%}</span></code> is optional.</p>
+</li>
+<li><p class="first">Finally, the second paragraph of this template contains an example of a
+<em>filter</em>, which is the most convenient way to alter the formatting of a
+variable. In this example, <code class="docutils literal"><span class="pre">{{</span> <span class="pre">ship_date|date:&quot;F</span> <span class="pre">j,</span> <span class="pre">Y&quot;</span> <span class="pre">}}</span></code>, we&#8217;re passing the
+<code class="docutils literal"><span class="pre">ship_date</span></code> variable to the <code class="docutils literal"><span class="pre">date</span></code> filter, giving the <code class="docutils literal"><span class="pre">date</span></code> filter
+the argument <code class="docutils literal"><span class="pre">&quot;F</span> <span class="pre">j,</span> <span class="pre">Y&quot;</span></code>. The <code class="docutils literal"><span class="pre">date</span></code> filter formats dates in a given
+format, as specified by that argument. Filters are attached using a pipe
+character (<code class="docutils literal"><span class="pre">|</span></code>), as a reference to Unix pipes.</p>
+</li>
+</ul>
+<p>Each Django template has access to several built-in tags and filters, many of
+which are discussed in the sections that follow. Appendix E contains the full
+list of tags and filters, and it&#8217;s a good idea to familiarize yourself with that
+list so you know what&#8217;s possible. It&#8217;s also possible to create your own filters
+and tags; we&#8217;ll cover that in Chapter 8.</p>
+</div>
+<div class="section" id="using-the-template-system">
+<h2>Using the Template System<a class="headerlink" href="#using-the-template-system" title="Permalink to this headline">¶</a></h2>
+<p>A Django project can be configured with one or several template engines (or
+even zero if you don&#8217;t use templates). Django ships with a built-in backend for its
+own template system - the <em>Django Template language (DTL)</em>. Django 1.8 also
+includes support for the popular alternative <a class="reference external" href="http://jinja.pocoo.org/">Jinja2</a>.</p>
+<p>If you don&#8217;t have a pressing reason to choose another backend, you should use
+the DTL - especially if you&#8217;re writing a pluggable application and you intend
+to distribute templates. Django&#8217;s contrib apps that include templates, like
+<code class="docutils literal"><span class="pre">django.contrib.admin</span></code>, use the DTL.</p>
+<p>All of the examples in this chapter will use the DTL. For more advanced
+template topics, including configuring third-party template engines see Chapter 8.</p>
+<p>Let&#8217;s dive into Django&#8217;s template system so you can see how it works &#8211; but
+we&#8217;re <em>not</em> yet going to integrate it with the views that we created in the
+previous chapter. The goal here is to show you how the system works
+independently of the rest of Django. (Put another way: usually you&#8217;ll be using
+the template system within a Django view, but we want to make it clear that the
+template system is just a Python library that you can use <em>anywhere</em>, not just
+in Django views.)</p>
+<p>Here is the most basic way you can use Django&#8217;s template system in Python code:</p>
+<ol class="arabic simple">
+<li>Create a <code class="docutils literal"><span class="pre">Template</span></code> object by providing the raw template code as a
+string.</li>
+<li>Call the <code class="docutils literal"><span class="pre">render()</span></code> method of the <code class="docutils literal"><span class="pre">Template</span></code> object with a given
+set of variables (the <em>context</em>). This returns a fully rendered
+template as a string, with all of the variables and template tags
+evaluated according to the context.</li>
+</ol>
+<p>In code, here&#8217;s what that looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">template</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="s">&#39;My name is {{ name }}.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Nige&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+<span class="go">My name is Nige.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Barry&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+<span class="go">My name is Barry.</span>
+</pre></div>
+</div>
+<p>The following sections describe each step in much more detail.</p>
+<div class="section" id="creating-template-objects">
+<h3>Creating Template Objects<a class="headerlink" href="#creating-template-objects" title="Permalink to this headline">¶</a></h3>
+<p>The easiest way to create a <code class="docutils literal"><span class="pre">Template</span></code> object is to instantiate it directly.
+The <code class="docutils literal"><span class="pre">Template</span></code> class lives in the <code class="docutils literal"><span class="pre">django.template</span></code> module, and the
+constructor takes one argument, the raw template code. Let&#8217;s dip into the Python
+interactive interpreter to see how this works in code.</p>
+<p>From the <code class="docutils literal"><span class="pre">mysite</span></code> project directory created by <code class="docutils literal"><span class="pre">django-admin</span>
+<span class="pre">startproject</span></code> (as covered in Chapter 1), type <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">shell</span></code> to
+start the interactive interpreter.</p>
+<div class="admonition-a-special-python-prompt admonition">
+<p class="first admonition-title">A special Python prompt</p>
+<p>If you&#8217;ve used Python before, you may be wondering why we&#8217;re running
+<code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">shell</span></code> instead of just <code class="docutils literal"><span class="pre">python</span></code> (or <code class="docutils literal"><span class="pre">python3</span></code>). Both commands will
+start the interactive interpreter, but the <code class="docutils literal"><span class="pre">manage.py</span> <span class="pre">shell</span></code> command has
+one key difference: before starting the interpreter, it tells Django which
+settings file to use. Many parts of Django, including the template system,
+rely on your settings, and you won&#8217;t be able to use them unless the
+framework knows which settings to use.</p>
+<p>If you&#8217;re curious, here&#8217;s how it works behind the scenes. Django looks for
+an environment variable called <code class="docutils literal"><span class="pre">DJANGO_SETTINGS_MODULE</span></code>, which should be
+set to the import path of your <code class="docutils literal"><span class="pre">settings.py</span></code>. For example,
+<code class="docutils literal"><span class="pre">DJANGO_SETTINGS_MODULE</span></code> might be set to <code class="docutils literal"><span class="pre">'mysite.settings'</span></code>, assuming
+<code class="docutils literal"><span class="pre">mysite</span></code> is on your Python path.</p>
+<p class="last">When you run <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">shell</span></code>, the command takes care of setting
+<code class="docutils literal"><span class="pre">DJANGO_SETTINGS_MODULE</span></code> for you. You will need to use
+<code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">shell</span></code> in these examples, or Django will throw an
+exception.</p>
+</div>
+<p>Let&#8217;s go through some template system basics:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;My name is {{ name }}.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">t</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you&#8217;re following along interactively, you&#8217;ll see something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;django.template.base.Template object at 0x7f12e132a860&gt;
+</pre></div>
+</div>
+<p>That <code class="docutils literal"><span class="pre">0x7f12e132a860</span></code> will be different every time, and it isn&#8217;t relevant; it&#8217;s a
+Python thing (the Python &#8220;identity&#8221; of the <code class="docutils literal"><span class="pre">Template</span></code> object, if you must
+know).</p>
+<p>When you create a <code class="docutils literal"><span class="pre">Template</span></code> object, the template system compiles the raw
+template code into an internal, optimized form, ready for rendering. But if your
+template code includes any syntax errors, the call to <code class="docutils literal"><span class="pre">Template()</span></code> will cause
+a <code class="docutils literal"><span class="pre">TemplateSyntaxError</span></code> exception:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;{% notatag %}&#39;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+  File <span class="nb">&quot;&lt;stdin&gt;&quot;</span>, line <span class="m">1</span>, in <span class="n">?</span>
+  <span class="c">...</span>
+<span class="gr">django.template.base.TemplateSyntaxError</span>: <span class="n">Invalid block tag: &#39;notatag&#39;</span>
+</pre></div>
+</div>
+<p>The term &#8220;block tag&#8221; here refers to <code class="docutils literal"><span class="pre">{%</span> <span class="pre">notatag</span> <span class="pre">%}</span></code>. &#8220;Block tag&#8221; and
+&#8220;template tag&#8221; are synonymous.</p>
+<p>The system raises a <code class="docutils literal"><span class="pre">TemplateSyntaxError</span></code> exception for any of the following
+cases:</p>
+<ul class="simple">
+<li>Invalid tags</li>
+<li>Invalid arguments to valid tags</li>
+<li>Invalid filters</li>
+<li>Invalid arguments to valid filters</li>
+<li>Invalid template syntax</li>
+<li>Unclosed tags (for tags that require closing tags)</li>
+</ul>
+</div>
+<div class="section" id="rendering-a-template">
+<h3>Rendering a Template<a class="headerlink" href="#rendering-a-template" title="Permalink to this headline">¶</a></h3>
+<p>Once you have a <code class="docutils literal"><span class="pre">Template</span></code> object, you can pass it data by giving it a
+<em>context</em>. A context is simply a set of template variable names and their
+associated values. A template uses this to populate its variables and
+evaluate its tags.</p>
+<p>A context is represented in Django by the <code class="docutils literal"><span class="pre">Context</span></code> class, which lives in the
+<code class="docutils literal"><span class="pre">django.template</span></code> module. Its constructor takes one optional argument: a
+dictionary mapping variable names to variable values. Call the <code class="docutils literal"><span class="pre">Template</span></code>
+object&#8217;s <code class="docutils literal"><span class="pre">render()</span></code> method with the context to &#8220;fill&#8221; the template:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">Template</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;My name is {{ name }}.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Context</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Stephane&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&#39;My name is Stephane.&#39;</span>
+</pre></div>
+</div>
+<div class="admonition-dictionaries-and-contexts admonition">
+<p class="first admonition-title">Dictionaries and Contexts</p>
+<p class="last">A Python dictionary is a mapping between known keys and variable
+values. A <code class="docutils literal"><span class="pre">Context</span></code> is similar to a dictionary, but a <code class="docutils literal"><span class="pre">Context</span></code>
+provides additional functionality, as covered in Chapter 8.</p>
+</div>
+<p>Variable names must begin with a letter (A-Z or a-z) and may contain more
+letters, digits, underscores, and dots. (Dots are a special case we&#8217;ll get to in a moment.)
+Variable names are case sensitive.</p>
+<p>Here&#8217;s an example of template compilation and rendering, using a template
+similar to the example in the beginning of this chapter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">raw_template</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;&lt;p&gt;Dear {{ person_name }},&lt;/p&gt;</span>
+<span class="gp">...</span><span class="s"></span>
+<span class="gp">... </span><span class="s">&lt;p&gt;Thanks for placing an order from {{ company }}. It&#39;s scheduled to</span>
+<span class="gp">... </span><span class="s">ship on {{ ship_date|date:&quot;F j, Y&quot; }}.&lt;/p&gt;</span>
+<span class="gp">...</span><span class="s"></span>
+<span class="gp">... </span><span class="s">{</span><span class="si">% i</span><span class="s">f ordered_warranty %}</span>
+<span class="gp">... </span><span class="s">&lt;p&gt;Your warranty information will be included in the packaging.&lt;/p&gt;</span>
+<span class="gp">... </span><span class="s">{</span><span class="si">% e</span><span class="s">lse %}</span>
+<span class="gp">... </span><span class="s">&lt;p&gt;You didn&#39;t order a warranty, so you&#39;re on your own when</span>
+<span class="gp">... </span><span class="s">the products inevitably stop working.&lt;/p&gt;</span>
+<span class="gp">... </span><span class="s">{</span><span class="si">% e</span><span class="s">ndif %}</span>
+<span class="gp">...</span><span class="s"></span>
+<span class="gp">... </span><span class="s">&lt;p&gt;Sincerely,&lt;br /&gt;{{ company }}&lt;/p&gt;&quot;&quot;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="n">raw_template</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Context</span><span class="p">({</span><span class="s">&#39;person_name&#39;</span><span class="p">:</span> <span class="s">&#39;John Smith&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s">&#39;company&#39;</span><span class="p">:</span> <span class="s">&#39;Outdoor Equipment&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s">&#39;ship_date&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="s">&#39;ordered_warranty&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&quot;&lt;p&gt;Dear John Smith,&lt;/p&gt;\n\n&lt;p&gt;Thanks for placing an order from Outdoor</span>
+<span class="go">Equipment. It&#39;s scheduled to\nship on July 2, 2015.&lt;/p&gt;\n\n\n&lt;p&gt;You</span>
+<span class="go">didn&#39;t order a warranty, so you&#39;re on your own when\nthe products</span>
+<span class="go">inevitably stop working.&lt;/p&gt;\n\n\n&lt;p&gt;Sincerely,&lt;br /&gt;Outdoor Equipment</span>
+<span class="go">&lt;/p&gt;&quot;</span>
+</pre></div>
+</div>
+<p>Let&#8217;s step through this code one statement at a time:</p>
+<ul>
+<li><p class="first">First, we import the classes <code class="docutils literal"><span class="pre">Template</span></code> and <code class="docutils literal"><span class="pre">Context</span></code>, which both
+live in the module <code class="docutils literal"><span class="pre">django.template</span></code>.</p>
+</li>
+<li><p class="first">We save the raw text of our template into the variable
+<code class="docutils literal"><span class="pre">raw_template</span></code>. Note that we use triple quote marks to designate the
+string, because it wraps over multiple lines; in contrast, strings
+within single quote marks cannot be wrapped over multiple lines.</p>
+</li>
+<li><p class="first">Next, we create a template object, <code class="docutils literal"><span class="pre">t</span></code>, by passing <code class="docutils literal"><span class="pre">raw_template</span></code> to
+the <code class="docutils literal"><span class="pre">Template</span></code> class constructor.</p>
+</li>
+<li><p class="first">We import the <code class="docutils literal"><span class="pre">datetime</span></code> module from Python&#8217;s standard library,
+because we&#8217;ll need it in the following statement.</p>
+</li>
+<li><p class="first">Then, we create a <code class="docutils literal"><span class="pre">Context</span></code> object, <code class="docutils literal"><span class="pre">c</span></code>. The <code class="docutils literal"><span class="pre">Context</span></code>
+constructor takes a Python dictionary, which maps variable names to
+values. Here, for example, we specify that the <code class="docutils literal"><span class="pre">person_name</span></code>
+is <code class="docutils literal"><span class="pre">'John</span> <span class="pre">Smith'</span></code>, <code class="docutils literal"><span class="pre">company</span></code> is <code class="docutils literal"><span class="pre">'Outdoor</span> <span class="pre">Equipment'</span></code>, and so forth.</p>
+</li>
+<li><p class="first">Finally, we call the <code class="docutils literal"><span class="pre">render()</span></code> method on our template object, passing
+it the context. This returns the rendered template &#8211; i.e., it replaces
+template variables with the actual values of the variables, and it
+executes any template tags.</p>
+<p>Note that the &#8220;You didn&#8217;t order a warranty&#8221; paragraph was displayed
+because the <code class="docutils literal"><span class="pre">ordered_warranty</span></code> variable evaluated to <code class="docutils literal"><span class="pre">False</span></code>. Also
+note the date, <code class="docutils literal"><span class="pre">July</span> <span class="pre">2,</span> <span class="pre">2015</span></code>, which is displayed according to the
+format string <code class="docutils literal"><span class="pre">'F</span> <span class="pre">j,</span> <span class="pre">Y'</span></code>. (We&#8217;ll explain format strings for the
+<code class="docutils literal"><span class="pre">date</span></code> filter in a little while.)</p>
+<p>If you&#8217;re new to Python, you may wonder why this output includes
+newline characters (<code class="docutils literal"><span class="pre">'\n'</span></code>) rather than displaying the line breaks.
+That&#8217;s happening because of a subtlety in the Python interactive
+interpreter: the call to <code class="docutils literal"><span class="pre">t.render(c)</span></code> returns a string, and by default
+the interactive interpreter displays the <em>representation</em> of the string,
+rather than the printed value of the string. If you want to see the
+string with line breaks displayed as true line breaks rather than <code class="docutils literal"><span class="pre">'\n'</span></code>
+characters, use the <code class="docutils literal"><span class="pre">print</span></code> function: <code class="docutils literal"><span class="pre">print</span> <span class="pre">(t.render(c))</span></code>.</p>
+</li>
+</ul>
+<p>Those are the fundamentals of using the Django template system: just write a
+template string, create a <code class="docutils literal"><span class="pre">Template</span></code> object, create a <code class="docutils literal"><span class="pre">Context</span></code>, and call
+the <code class="docutils literal"><span class="pre">render()</span></code> method.</p>
+</div>
+<div class="section" id="multiple-contexts-same-template">
+<h3>Multiple Contexts, Same Template<a class="headerlink" href="#multiple-contexts-same-template" title="Permalink to this headline">¶</a></h3>
+<p>Once you have a <code class="docutils literal"><span class="pre">Template</span></code> object, you can render multiple contexts through
+it. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;Hello, {{ name }}&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;John&#39;</span><span class="p">})))</span>
+<span class="go">Hello, John</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Julie&#39;</span><span class="p">})))</span>
+<span class="go">Hello, Julie</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Pat&#39;</span><span class="p">})))</span>
+<span class="go">Hello, Pat</span>
+</pre></div>
+</div>
+<p>Whenever you&#8217;re using the same template source to render multiple
+contexts like this, it&#8217;s more efficient to create the <code class="docutils literal"><span class="pre">Template</span></code>
+object <em>once</em>, and then call <code class="docutils literal"><span class="pre">render()</span></code> on it multiple times:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Bad</span>
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;John&#39;</span><span class="p">,</span> <span class="s">&#39;Julie&#39;</span><span class="p">,</span> <span class="s">&#39;Pat&#39;</span><span class="p">):</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;Hello, {{ name }}&#39;</span><span class="p">)</span>
+    <span class="k">print</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})))</span>
+
+<span class="c"># Good</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;Hello, {{ name }}&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;John&#39;</span><span class="p">,</span> <span class="s">&#39;Julie&#39;</span><span class="p">,</span> <span class="s">&#39;Pat&#39;</span><span class="p">):</span>
+    <span class="k">print</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">})))</span>
+</pre></div>
+</div>
+<p>Django&#8217;s template parsing is quite fast. Behind the scenes, most of the parsing
+happens via a call to a single regular expression. This is in stark
+contrast to XML-based template engines, which incur the overhead of an XML
+parser and tend to be orders of magnitude slower than Django&#8217;s template
+rendering engine.</p>
+</div>
+<div class="section" id="context-variable-lookup">
+<h3>Context Variable Lookup<a class="headerlink" href="#context-variable-lookup" title="Permalink to this headline">¶</a></h3>
+<p>In the examples so far, we&#8217;ve passed simple values in the contexts &#8211; mostly
+strings, plus a <code class="docutils literal"><span class="pre">datetime.date</span></code> example. However, the template system
+elegantly handles more complex data structures, such as lists, dictionaries, and
+custom objects.</p>
+<p>The key to traversing complex data structures in Django templates is the dot
+character (<code class="docutils literal"><span class="pre">.</span></code>). Use a dot to access dictionary keys, attributes, methods,
+or indices of an object.</p>
+<p>This is best illustrated with a few examples. For instance, suppose
+you&#8217;re passing a Python dictionary to a template. To access the values
+of that dictionary by dictionary key, use a dot:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">person</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Sally&#39;</span><span class="p">,</span> <span class="s">&#39;age&#39;</span><span class="p">:</span> <span class="s">&#39;43&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;{{ person.name }} is {{ person.age }} years old.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Context</span><span class="p">({</span><span class="s">&#39;person&#39;</span><span class="p">:</span> <span class="n">person</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&#39;Sally is 43 years old.&#39;</span>
+</pre></div>
+</div>
+<p>Similarly, dots also allow access of object attributes. For example, a Python
+<code class="docutils literal"><span class="pre">datetime.date</span></code> object has <code class="docutils literal"><span class="pre">year</span></code>, <code class="docutils literal"><span class="pre">month</span></code>, and <code class="docutils literal"><span class="pre">day</span></code> attributes, and
+you can use a dot to access those attributes in a Django template:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="mi">1993</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">year</span>
+<span class="go">1993</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">month</span>
+<span class="go">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">day</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;The month is {{ date.month }} and the year is {{ date.year }}.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Context</span><span class="p">({</span><span class="s">&#39;date&#39;</span><span class="p">:</span> <span class="n">d</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&#39;The month is 5 and the year is 1993.&#39;</span>
+</pre></div>
+</div>
+<p>This example uses a custom class, demonstrating that variable dots also allow
+attribute access on arbitrary objects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">first_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_name</span> <span class="o">=</span> <span class="n">first_name</span><span class="p">,</span> <span class="n">last_name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;Hello, {{ person.first_name }} {{ person.last_name }}.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Context</span><span class="p">({</span><span class="s">&#39;person&#39;</span><span class="p">:</span> <span class="n">Person</span><span class="p">(</span><span class="s">&#39;John&#39;</span><span class="p">,</span> <span class="s">&#39;Smith&#39;</span><span class="p">)})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&#39;Hello, John Smith.&#39;</span>
+</pre></div>
+</div>
+<p>Dots can also refer to <em>methods</em> on objects. For example, each Python string
+has the methods <code class="docutils literal"><span class="pre">upper()</span></code> and <code class="docutils literal"><span class="pre">isdigit()</span></code>, and you can call those in Django
+templates using the same dot syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;{{ var }} -- {{ var.upper }} -- {{ var.isdigit }}&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;var&#39;</span><span class="p">:</span> <span class="s">&#39;hello&#39;</span><span class="p">}))</span>
+<span class="go">&#39;hello -- HELLO -- False&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;var&#39;</span><span class="p">:</span> <span class="s">&#39;123&#39;</span><span class="p">}))</span>
+<span class="go">&#39;123 -- 123 -- True&#39;</span>
+</pre></div>
+</div>
+<p>Note that you do <em>not</em> include parentheses in the method calls. Also, it&#8217;s not
+possible to pass arguments to the methods; you can only call methods that have
+no required arguments. (We explain this philosophy later in this chapter.)</p>
+<p>Finally, dots are also used to access list indices, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;Item 2 is {{ items.2 }}.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Context</span><span class="p">({</span><span class="s">&#39;items&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;apples&#39;</span><span class="p">,</span> <span class="s">&#39;bananas&#39;</span><span class="p">,</span> <span class="s">&#39;carrots&#39;</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&#39;Item 2 is carrots.&#39;</span>
+</pre></div>
+</div>
+<p>Negative list indices are not allowed. For example, the template variable
+<code class="docutils literal"><span class="pre">{{</span> <span class="pre">items.-1</span> <span class="pre">}}</span></code> would cause a <code class="docutils literal"><span class="pre">TemplateSyntaxError</span></code>.</p>
+<div class="admonition-python-lists admonition">
+<p class="first admonition-title">Python Lists</p>
+<p class="last">A reminder: Python lists have 0-based indices. The first item is at index 0,
+the second is at index 1, and so on.</p>
+</div>
+<p>Dot lookups can be summarized like this: when the template system
+encounters a dot in a variable name, it tries the following lookups, in this
+order:</p>
+<ul class="simple">
+<li>Dictionary lookup (e.g., <code class="docutils literal"><span class="pre">foo[&quot;bar&quot;]</span></code>)</li>
+<li>Attribute lookup (e.g., <code class="docutils literal"><span class="pre">foo.bar</span></code>)</li>
+<li>Method call (e.g., <code class="docutils literal"><span class="pre">foo.bar()</span></code>)</li>
+<li>List-index lookup (e.g., <code class="docutils literal"><span class="pre">foo[2]</span></code>)</li>
+</ul>
+<p>The system uses the first lookup type that works. It&#8217;s short-circuit logic.</p>
+<p>Dot lookups can be nested multiple levels deep. For instance, the following
+example uses <code class="docutils literal"><span class="pre">{{</span> <span class="pre">person.name.upper</span> <span class="pre">}}</span></code>, which translates into a dictionary
+lookup (<code class="docutils literal"><span class="pre">person['name']</span></code>) and then a method call (<code class="docutils literal"><span class="pre">upper()</span></code>):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">person</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="s">&#39;Sally&#39;</span><span class="p">,</span> <span class="s">&#39;age&#39;</span><span class="p">:</span> <span class="s">&#39;43&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;{{ person.name.upper }} is {{ person.age }} years old.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Context</span><span class="p">({</span><span class="s">&#39;person&#39;</span><span class="p">:</span> <span class="n">person</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="go">&#39;SALLY is 43 years old.&#39;</span>
+</pre></div>
+</div>
+<div class="section" id="method-call-behavior">
+<h4>Method Call Behavior<a class="headerlink" href="#method-call-behavior" title="Permalink to this headline">¶</a></h4>
+<p>Method calls are slightly more complex than the other lookup types. Here are
+some things to keep in mind:</p>
+<ul>
+<li><p class="first">If, during the method lookup, a method raises an exception, the exception
+will be propagated, unless the exception has an attribute
+<code class="docutils literal"><span class="pre">silent_variable_failure</span></code> whose value is <code class="docutils literal"><span class="pre">True</span></code>. If the exception
+<em>does</em> have a <code class="docutils literal"><span class="pre">silent_variable_failure</span></code> attribute, the variable will
+render as the value of the engine&#8217;s <code class="docutils literal"><span class="pre">string_if_invalid</span></code> configuration
+option (an empty string, by default). For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&quot;My name is {{ person.first_name }}.&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">PersonClass3</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">first_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s">&quot;foo&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">PersonClass3</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&quot;person&quot;</span><span class="p">:</span> <span class="n">p</span><span class="p">}))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AssertionError</span>: <span class="n">foo</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">SilentAssertionError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">silent_variable_failure</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">PersonClass4</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">def</span> <span class="nf">first_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">raise</span> <span class="n">SilentAssertionError</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">PersonClass4</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&quot;person&quot;</span><span class="p">:</span> <span class="n">p</span><span class="p">}))</span>
+<span class="go">&#39;My name is .&#39;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">A method call will only work if the method has no required arguments.
+Otherwise, the system will move to the next lookup type (list-index
+lookup).</p>
+</li>
+</ul>
+<div class="admonition-method-arguments-and-templates admonition">
+<p class="first admonition-title">Method Arguments and Templates</p>
+<p class="last">By design, Django intentionally limits the amount of logic
+processing available in the template, so it is not possible to pass
+arguments to method calls accessed from within templates. Data should
+be calculated in views and then pass to templates for display.</p>
+</div>
+<ul>
+<li><p class="first">Obviously, some methods have side effects, and it would be foolish at
+best, and possibly even a security hole, to allow the template system to
+access them.</p>
+<p>Say, for instance, you have a <code class="docutils literal"><span class="pre">BankAccount</span></code> object that has a
+<code class="docutils literal"><span class="pre">delete()</span></code> method. If a template includes something like
+<code class="docutils literal"><span class="pre">{{</span> <span class="pre">account.delete</span> <span class="pre">}}</span></code>, where <code class="docutils literal"><span class="pre">account</span></code> is a <code class="docutils literal"><span class="pre">BankAccount</span></code> object,
+the object would be deleted when the template is rendered!</p>
+<p>To prevent this, set the function attribute <code class="docutils literal"><span class="pre">alters_data</span></code> on the
+method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Delete the account</span>
+        <span class="n">delete</span><span class="o">.</span><span class="n">alters_data</span> <span class="o">=</span> <span class="bp">True</span>
+</pre></div>
+</div>
+<p>The template system won&#8217;t execute any method marked in this way.
+Continuing the above example, if a template includes
+<code class="docutils literal"><span class="pre">{{</span> <span class="pre">account.delete</span> <span class="pre">}}</span></code> and the <code class="docutils literal"><span class="pre">delete()</span></code> method has the
+<code class="docutils literal"><span class="pre">alters_data=True</span></code>, then the <code class="docutils literal"><span class="pre">delete()</span></code> method will not be executed
+when the template is rendered, the engine will instead replace the variable
+with <code class="docutils literal"><span class="pre">string_if_invalid</span></code>.</p>
+<p><strong>NOTE:</strong> The dynamically-generated <code class="docutils literal"><span class="pre">delete()</span></code> and <code class="docutils literal"><span class="pre">save()</span></code> methods on Django model objects get <code class="docutils literal"><span class="pre">alters_data=true</span></code> set automatically.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="how-invalid-variables-are-handled">
+<h3>How Invalid Variables Are Handled<a class="headerlink" href="#how-invalid-variables-are-handled" title="Permalink to this headline">¶</a></h3>
+<p>Generally, if a variable doesn&#8217;t exist, the template system inserts the value of the engine&#8217;s <code class="docutils literal"><span class="pre">string_if_invalid</span></code> configuration option, which is an
+empty string by default. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&#39;Your name is {{ name }}.&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">())</span>
+<span class="go">&#39;Your name is .&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;var&#39;</span><span class="p">:</span> <span class="s">&#39;hello&#39;</span><span class="p">}))</span>
+<span class="go">&#39;Your name is .&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;NAME&#39;</span><span class="p">:</span> <span class="s">&#39;hello&#39;</span><span class="p">}))</span>
+<span class="go">&#39;Your name is .&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;Name&#39;</span><span class="p">:</span> <span class="s">&#39;hello&#39;</span><span class="p">}))</span>
+<span class="go">&#39;Your name is .&#39;</span>
+</pre></div>
+</div>
+<p>This behaviour is better than raising an exception because it&#8217;s
+intended to be resilient to human error. In this case, all of the
+lookups failed because variable names have the wrong case or name. In the real
+world, it&#8217;s unacceptable for a Web site to become inaccessible due to a
+small template syntax error.</p>
+</div>
+</div>
+<div class="section" id="basic-template-tags-and-filters">
+<h2>Basic Template Tags and Filters<a class="headerlink" href="#basic-template-tags-and-filters" title="Permalink to this headline">¶</a></h2>
+<p>As we&#8217;ve mentioned already, the template system ships with built-in tags and
+filters. The sections that follow provide a rundown of the most common tags and
+filters.</p>
+<div class="section" id="tags">
+<h3>Tags<a class="headerlink" href="#tags" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="if-else">
+<h4>if/else<a class="headerlink" href="#if-else" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">%}</span></code> tag evaluates a variable, and if that variable is &#8220;True&#8221;
+(i.e., it exists, is not empty, and is not a false Boolean value), the system
+will display everything between <code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">%}</span></code> and <code class="docutils literal"><span class="pre">{%</span> <span class="pre">endif</span> <span class="pre">%}</span></code>, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% if today_is_weekend %}
+    &lt;p&gt;Welcome to the weekend!&lt;/p&gt;
+{% endif %}
+</pre></div>
+</div>
+<p>An <code class="docutils literal"><span class="pre">{%</span> <span class="pre">else</span> <span class="pre">%}</span></code> tag is optional:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% if today_is_weekend %}
+    &lt;p&gt;Welcome to the weekend!&lt;/p&gt;
+{% else %}
+    &lt;p&gt;Get back to work.&lt;/p&gt;
+{% endif %}
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">if</span></code> tag may also take one or several <code class="docutils literal"><span class="pre">{%</span> <span class="pre">elif</span> <span class="pre">%}</span></code> clauses as well:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% if athlete_list %}
+    Number of athletes: {{ athlete_list|length }}
+{% elif athlete_in_locker_room_list %}
+    Athletes should be out of the locker room soon!
+{% elif ...
+    ...
+{% else %}
+    No athletes.
+{% endif %}
+</pre></div>
+</div>
+<div class="admonition-python-truthiness admonition">
+<p class="first admonition-title">Python &#8220;Truthiness&#8221;</p>
+<p>In Python and in the Django template system, these objects evaluate to
+<code class="docutils literal"><span class="pre">False</span></code> in a Boolean context:</p>
+<ul class="simple">
+<li>An empty list (<code class="docutils literal"><span class="pre">[]</span></code>)</li>
+<li>An empty tuple (<code class="docutils literal"><span class="pre">()</span></code>)</li>
+<li>An empty dictionary (<code class="docutils literal"><span class="pre">{}</span></code>)</li>
+<li>An empty string (<code class="docutils literal"><span class="pre">''</span></code>)</li>
+<li>Zero (<code class="docutils literal"><span class="pre">0</span></code>)</li>
+<li>The special object <code class="docutils literal"><span class="pre">None</span></code></li>
+<li>The object <code class="docutils literal"><span class="pre">False</span></code> (obviously)</li>
+<li>Custom objects that define their own Boolean context behavior
+(this is advanced Python usage)</li>
+</ul>
+<p class="last">Everything else evaluates to <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</div>
+<p>The <code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">%}</span></code> tag accepts <code class="docutils literal"><span class="pre">and</span></code>, <code class="docutils literal"><span class="pre">or</span></code>, or <code class="docutils literal"><span class="pre">not</span></code> for testing multiple
+variables, or to negate a given variable. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% if athlete_list and coach_list %}
+    Both athletes and coaches are available.
+{% endif %}
+
+{% if not athlete_list %}
+    There are no athletes.
+{% endif %}
+
+{% if athlete_list or coach_list %}
+    There are some athletes or some coaches.
+{% endif %}
+
+{% if not athlete_list or coach_list %}
+    There are no athletes or there are some coaches.
+{% endif %}
+
+{% if athlete_list and not coach_list %}
+    There are some athletes and absolutely no coaches.
+{% endif %}
+</pre></div>
+</div>
+<p>Use of both <code class="docutils literal"><span class="pre">and</span></code> and <code class="docutils literal"><span class="pre">or</span></code> clauses within the same tag is allowed, with
+<code class="docutils literal"><span class="pre">and</span></code> having higher precedence than <code class="docutils literal"><span class="pre">or</span></code> e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% if athlete_list and coach_list or cheerleader_list %}
+</pre></div>
+</div>
+<p>will be interpreted like:</p>
+<div class="highlight-python"><div class="highlight"><pre>if (athlete_list and coach_list) or cheerleader_list
+</pre></div>
+</div>
+<p>Use of actual parentheses in the <code class="docutils literal"><span class="pre">if</span></code> tag is invalid syntax. If you need
+them to indicate precedence, you should use nested <code class="docutils literal"><span class="pre">if</span></code> tags.</p>
+<p>The use of parentheses for controlling order of operations is not supported. If
+you find yourself needing parentheses, consider performing logic outside the
+template and passing the result of that as a dedicated template variable. Or,
+just use nested <code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">%}</span></code> tags, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% if athlete_list %}
+    {% if coach_list or cheerleader_list %}
+        We have athletes, and either coaches or cheerleaders!
+    {% endif %}
+{% endif %}
+</pre></div>
+</div>
+<p>Multiple uses of the same logical operator are fine, but you can&#8217;t
+combine different operators. For example, this is valid:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% if athlete_list or coach_list or parent_list or teacher_list %}
+</pre></div>
+</div>
+<p>Make sure to close each <code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">%}</span></code> with an <code class="docutils literal"><span class="pre">{%</span> <span class="pre">endif</span> <span class="pre">%}</span></code>. Otherwise, Django
+will throw a <code class="docutils literal"><span class="pre">TemplateSyntaxError</span></code>.</p>
+</div>
+<div class="section" id="for">
+<h4>for<a class="headerlink" href="#for" title="Permalink to this headline">¶</a></h4>
+<p>The <code class="docutils literal"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">%}</span></code> tag allows you to loop over each item in a sequence. As in
+Python&#8217;s <code class="docutils literal"><span class="pre">for</span></code> statement, the syntax is <code class="docutils literal"><span class="pre">for</span> <span class="pre">X</span> <span class="pre">in</span> <span class="pre">Y</span></code>, where <code class="docutils literal"><span class="pre">Y</span></code> is the
+sequence to loop over and <code class="docutils literal"><span class="pre">X</span></code> is the name of the variable to use for a
+particular cycle of the loop. Each time through the loop, the template system
+will render everything between <code class="docutils literal"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">%}</span></code> and <code class="docutils literal"><span class="pre">{%</span> <span class="pre">endfor</span> <span class="pre">%}</span></code>.</p>
+<p>For example, you could use the following to display a list of athletes given a
+variable <code class="docutils literal"><span class="pre">athlete_list</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;ul&gt;
+{% for athlete in athlete_list %}
+    &lt;li&gt;{{ athlete.name }}&lt;/li&gt;
+{% endfor %}
+&lt;/ul&gt;
+</pre></div>
+</div>
+<p>Add <code class="docutils literal"><span class="pre">reversed</span></code> to the tag to loop over the list in reverse:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for athlete in athlete_list reversed %}
+...
+{% endfor %}
+</pre></div>
+</div>
+<p>It&#8217;s possible to nest <code class="docutils literal"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">%}</span></code> tags:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for athlete in athlete_list %}
+    &lt;h1&gt;{{ athlete.name }}&lt;/h1&gt;
+    &lt;ul&gt;
+    {% for sport in athlete.sports_played %}
+        &lt;li&gt;{{ sport }}&lt;/li&gt;
+    {% endfor %}
+    &lt;/ul&gt;
+{% endfor %}
+</pre></div>
+</div>
+<p>If you need to loop over a list of lists, you can unpack the values
+in each sublist into individual variables. For example, if your context
+contains a list of (x,y) coordinates called <code class="docutils literal"><span class="pre">points</span></code>, you could use the
+following to output the list of points:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for x, y in points %}
+    There is a point at {{ x }},{{ y }}
+{% endfor %}
+</pre></div>
+</div>
+<p>This can also be useful if you need to access the items in a dictionary.
+For example, if your context contained a dictionary <code class="docutils literal"><span class="pre">data</span></code>, the following
+would display the keys and values of the dictionary:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for key, value in data.items %}
+    {{ key }}: {{ value }}
+{% endfor %}
+</pre></div>
+</div>
+<p>A common pattern is to check the size of the list before looping over it, and
+outputting some special text if the list is empty:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% if athlete_list %}
+    {% for athlete in athlete_list %}
+        &lt;p&gt;{{ athlete.name }}&lt;/p&gt;
+    {% endfor %}
+{% else %}
+    &lt;p&gt;There are no athletes. Only computer programmers.&lt;/p&gt;
+{% endif %}
+</pre></div>
+</div>
+<p>Because this pattern is so common, the <code class="docutils literal"><span class="pre">for</span></code> tag supports an optional
+<code class="docutils literal"><span class="pre">{%</span> <span class="pre">empty</span> <span class="pre">%}</span></code> clause that lets you define what to output if the list is
+empty. This example is equivalent to the previous one:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for athlete in athlete_list %}
+    &lt;p&gt;{{ athlete.name }}&lt;/p&gt;
+{% empty %}
+    &lt;p&gt;There are no athletes. Only computer programmers.&lt;/p&gt;
+{% endfor %}
+</pre></div>
+</div>
+<p>There is no support for &#8220;breaking out&#8221; of a loop before the loop is finished.
+If you want to accomplish this, change the variable you&#8217;re looping over so that
+it includes only the values you want to loop over. Similarly, there is no
+support for a &#8220;continue&#8221; statement that would instruct the loop processor to
+return immediately to the front of the loop. (See the section &#8220;Philosophies and
+Limitations&#8221; later in this chapter for the reasoning behind this design
+decision.)</p>
+<p>Within each <code class="docutils literal"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">%}</span></code> loop, you get access to a template variable called
+<code class="docutils literal"><span class="pre">forloop</span></code>. This variable has a few attributes that give you information about
+the progress of the loop:</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">forloop.counter</span></code> is always set to an integer representing the number
+of times the loop has been entered. This is one-indexed, so the first
+time through the loop, <code class="docutils literal"><span class="pre">forloop.counter</span></code> will be set to <code class="docutils literal"><span class="pre">1</span></code>.
+Here&#8217;s an example:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for item in todo_list %}
+    &lt;p&gt;{{ forloop.counter }}: {{ item }}&lt;/p&gt;
+{% endfor %}
+</pre></div>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">forloop.counter0</span></code> is like <code class="docutils literal"><span class="pre">forloop.counter</span></code>, except it&#8217;s
+zero-indexed. Its value will be set to <code class="docutils literal"><span class="pre">0</span></code> the first time through the
+loop.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">forloop.revcounter</span></code> is always set to an integer representing the
+number of remaining items in the loop. The first time through the loop,
+<code class="docutils literal"><span class="pre">forloop.revcounter</span></code> will be set to the total number of items in the
+sequence you&#8217;re traversing. The last time through the loop,
+<code class="docutils literal"><span class="pre">forloop.revcounter</span></code> will be set to <code class="docutils literal"><span class="pre">1</span></code>.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">forloop.revcounter0</span></code> is like <code class="docutils literal"><span class="pre">forloop.revcounter</span></code>, except it&#8217;s
+zero-indexed. The first time through the loop, <code class="docutils literal"><span class="pre">forloop.revcounter0</span></code>
+will be set to the number of elements in the sequence minus 1. The last
+time through the loop, it will be set to <code class="docutils literal"><span class="pre">0</span></code>.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">forloop.first</span></code> is a Boolean value set to <code class="docutils literal"><span class="pre">True</span></code> if this is the first
+time through the loop. This is convenient for special-casing:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for object in objects %}
+    {% if forloop.first %}&lt;li class=&quot;first&quot;&gt;{% else %}&lt;li&gt;{% endif %}
+    {{ object }}
+    &lt;/li&gt;
+{% endfor %}
+</pre></div>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">forloop.last</span></code> is a Boolean value set to <code class="docutils literal"><span class="pre">True</span></code> if this is the last
+time through the loop. A common use for this is to put pipe
+characters between a list of links:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for link in links %}{{ link }}{% if not forloop.last %} | {% endif %}{% endfor %}
+</pre></div>
+</div>
+<p>The above template code might output something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Link1</span> <span class="o">|</span> <span class="n">Link2</span> <span class="o">|</span> <span class="n">Link3</span> <span class="o">|</span> <span class="n">Link4</span>
+</pre></div>
+</div>
+<p>Another common use for this is to put a comma between words in a list:</p>
+<div class="highlight-python"><div class="highlight"><pre>Favorite places:
+{% for p in places %}{{ p }}{% if not forloop.last %}, {% endif %}{% endfor %}
+</pre></div>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">forloop.parentloop</span></code> is a reference to the <code class="docutils literal"><span class="pre">forloop</span></code> object for the
+<em>parent</em> loop, in case of nested loops. Here&#8217;s an example:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% for country in countries %}
+    &lt;table&gt;
+    {% for city in country.city_list %}
+        &lt;tr&gt;
+        &lt;td&gt;Country #{{ forloop.parentloop.counter }}&lt;/td&gt;
+        &lt;td&gt;City #{{ forloop.counter }}&lt;/td&gt;
+        &lt;td&gt;{{ city }}&lt;/td&gt;
+        &lt;/tr&gt;
+    {% endfor %}
+    &lt;/table&gt;
+{% endfor %}
+</pre></div>
+</div>
+</li>
+</ul>
+<p>The <code class="docutils literal"><span class="pre">forloop</span></code> variable is only available within loops. After the
+template parser has reached <code class="docutils literal"><span class="pre">{%</span> <span class="pre">endfor</span> <span class="pre">%}</span></code>, <code class="docutils literal"><span class="pre">forloop</span></code> disappears.</p>
+<div class="admonition-context-and-the-forloop-variable admonition">
+<p class="first admonition-title">Context and the forloop Variable</p>
+<p class="last">Inside the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">%}</span></code> block, the existing variables are moved
+out of the way to avoid overwriting the <code class="docutils literal"><span class="pre">forloop</span></code>
+variable. Django exposes this moved context in
+<code class="docutils literal"><span class="pre">forloop.parentloop</span></code>. You generally don&#8217;t need to worry about
+this, but if you supply a template variable named <code class="docutils literal"><span class="pre">forloop</span></code>
+(though we advise against it), it will be named
+<code class="docutils literal"><span class="pre">forloop.parentloop</span></code> while inside the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">%}</span></code> block.</p>
+</div>
+</div>
+<div class="section" id="ifequal-ifnotequal">
+<h4>ifequal/ifnotequal<a class="headerlink" href="#ifequal-ifnotequal" title="Permalink to this headline">¶</a></h4>
+<p>The Django template system deliberately is not a full-fledged programming
+language and thus does not allow you to execute arbitrary Python statements.
+(More on this idea in the section &#8220;Philosophies and Limitations.&#8221;) However,
+it&#8217;s quite a common template requirement to compare two values and display
+something if they&#8217;re equal &#8211; and Django provides an <code class="docutils literal"><span class="pre">{%</span> <span class="pre">ifequal</span> <span class="pre">%}</span></code> tag for
+that purpose.</p>
+<p>The <code class="docutils literal"><span class="pre">{%</span> <span class="pre">ifequal</span> <span class="pre">%}</span></code> tag compares two values and displays everything between
+<code class="docutils literal"><span class="pre">{%</span> <span class="pre">ifequal</span> <span class="pre">%}</span></code> and <code class="docutils literal"><span class="pre">{%</span> <span class="pre">endifequal</span> <span class="pre">%}</span></code> if the values are equal.</p>
+<p>This example compares the template variables <code class="docutils literal"><span class="pre">user</span></code> and <code class="docutils literal"><span class="pre">currentuser</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% ifequal user currentuser %}
+    &lt;h1&gt;Welcome!&lt;/h1&gt;
+{% endifequal %}
+</pre></div>
+</div>
+<p>The arguments can be hard-coded strings, with either single or double quotes,
+so the following is valid:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% ifequal section &#39;sitenews&#39; %}
+    &lt;h1&gt;Site News&lt;/h1&gt;
+{% endifequal %}
+
+{% ifequal section &quot;community&quot; %}
+    &lt;h1&gt;Community&lt;/h1&gt;
+{% endifequal %}
+</pre></div>
+</div>
+<p>Just like <code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">%}</span></code>, the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">ifequal</span> <span class="pre">%}</span></code> tag supports an optional
+<code class="docutils literal"><span class="pre">{%</span> <span class="pre">else</span> <span class="pre">%}</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% ifequal section &#39;sitenews&#39; %}
+    &lt;h1&gt;Site News&lt;/h1&gt;
+{% else %}
+    &lt;h1&gt;No News Here&lt;/h1&gt;
+{% endifequal %}
+</pre></div>
+</div>
+<p>Only template variables, strings, integers, and decimal numbers are allowed as
+arguments to <code class="docutils literal"><span class="pre">{%</span> <span class="pre">ifequal</span> <span class="pre">%}</span></code>. These are valid examples:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% ifequal variable 1 %}
+{% ifequal variable 1.23 %}
+{% ifequal variable &#39;foo&#39; %}
+{% ifequal variable &quot;foo&quot; %}
+</pre></div>
+</div>
+<p>Any other types of variables, such as Python dictionaries, lists, or Booleans,
+can&#8217;t be hard-coded in <code class="docutils literal"><span class="pre">{%</span> <span class="pre">ifequal</span> <span class="pre">%}</span></code>. These are invalid examples:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% ifequal variable True %}
+{% ifequal variable [1, 2, 3] %}
+{% ifequal variable {&#39;key&#39;: &#39;value&#39;} %}
+</pre></div>
+</div>
+<p>If you need to test whether something is true or false, use the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">if</span> <span class="pre">%}</span></code>
+tags instead of <code class="docutils literal"><span class="pre">{%</span> <span class="pre">ifequal</span> <span class="pre">%}</span></code>.</p>
+<p>An alternative to the <code class="docutils literal"><span class="pre">ifequal</span></code> tag is to use the <code class="docutils literal"><span class="pre">if</span></code> tag and the <code class="docutils literal"><span class="pre">==</span></code> operator.</p>
+<p>The <code class="docutils literal"><span class="pre">ifnotequal</span></code> tag is identical to the <code class="docutils literal"><span class="pre">ifequal</span></code> tag, except that it
+tests whether the two arguments are not equal. An alternative to the
+<code class="docutils literal"><span class="pre">ifnotequal</span></code> tag is to use the <code class="docutils literal"><span class="pre">if</span></code> tag and the <code class="docutils literal"><span class="pre">!=</span></code> operator.</p>
+</div>
+</div>
+<div class="section" id="comments">
+<h3>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h3>
+<p>Just as in HTML or Python, the Django template language allows for comments. To
+designate a comment, use <code class="docutils literal"><span class="pre">{#</span> <span class="pre">#}</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>{# This is a comment #}
+</pre></div>
+</div>
+<p>The comment will not be output when the template is rendered.</p>
+<p>Comments using this syntax cannot span multiple lines. This limitation improves
+template parsing performance. In the following template, the rendered output
+will look exactly the same as the template (i.e., the comment tag will
+not be parsed as a comment):</p>
+<div class="highlight-python"><div class="highlight"><pre>This is a {# this is not
+a comment #}
+test.
+</pre></div>
+</div>
+<p>If you want to use multi-line comments, use the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">comment</span> <span class="pre">%}</span></code> template tag,
+like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% comment %}
+This is a
+multi-line comment.
+{% endcomment %}
+</pre></div>
+</div>
+<p>Comment tags cannot be nested.</p>
+</div>
+<div class="section" id="filters">
+<h3>Filters<a class="headerlink" href="#filters" title="Permalink to this headline">¶</a></h3>
+<p>As explained earlier in this chapter, template filters are simple ways of
+altering the value of variables before they&#8217;re displayed. Filters use a pipe
+character, like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{{</span> <span class="n">name</span><span class="o">|</span><span class="n">lower</span> <span class="p">}}</span>
+</pre></div>
+</div>
+<p>This displays the value of the <code class="docutils literal"><span class="pre">{{</span> <span class="pre">name</span> <span class="pre">}}</span></code> variable after being filtered
+through the <code class="docutils literal"><span class="pre">lower</span></code> filter, which converts text to lowercase.</p>
+<p>Filters can be <em>chained</em> &#8211; that is, they can be used in tandem such that the
+output of one filter is applied to the next. Here&#8217;s an example that takes the
+first element in a list and converts it to uppercase:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{{</span> <span class="n">my_list</span><span class="o">|</span><span class="n">first</span><span class="o">|</span><span class="n">upper</span> <span class="p">}}</span>
+</pre></div>
+</div>
+<p>Some filters take arguments. A filter argument comes after a colon and is
+always in double quotes. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{{</span> <span class="n">bio</span><span class="o">|</span><span class="n">truncatewords</span><span class="p">:</span><span class="s">&quot;30&quot;</span> <span class="p">}}</span>
+</pre></div>
+</div>
+<p>This displays the first 30 words of the <code class="docutils literal"><span class="pre">bio</span></code> variable.</p>
+<p>The following are a few of the most important filters. Appendix E covers the rest.</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">addslashes</span></code>: Adds a backslash before any backslash, single quote, or
+double quote. This is useful for escaping strings.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">date</span></code>: Formats a <code class="docutils literal"><span class="pre">date</span></code> or <code class="docutils literal"><span class="pre">datetime</span></code> object according to a
+format string given in the parameter, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{{</span> <span class="n">pub_date</span><span class="o">|</span><span class="n">date</span><span class="p">:</span><span class="s">&quot;F j, Y&quot;</span> <span class="p">}}</span>
+</pre></div>
+</div>
+<p>Format strings are defined in Appendix E.</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">length</span></code>: Returns the length of the value. For a list, this returns the
+number of elements. For a string, this returns the number of characters.
+If the variable is undefined, <code class="docutils literal"><span class="pre">length</span></code> returns <strong>0</strong>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="philosophies-and-limitations">
+<h2>Philosophies and Limitations<a class="headerlink" href="#philosophies-and-limitations" title="Permalink to this headline">¶</a></h2>
+<p>Now that you&#8217;ve gotten a feel for the Django Template Language(DTL), it is
+probably time to explain the basic design philosophy behind the DTL.</p>
+<p>First and foremost, the <strong>limitations to the DTL are intentional.</strong></p>
+<p>Django was developed in a high volume, ever-changing environment of an online
+newsroom. The original creators of Django had a very definite set of philosophies
+in creating the DTL. These philosophies remain core to Django today. They are:</p>
+<div class="section" id="separate-logic-from-presentation">
+<h3>Separate logic from presentation<a class="headerlink" href="#separate-logic-from-presentation" title="Permalink to this headline">¶</a></h3>
+<p>A template system is a tool that controls presentation and
+presentation-related logic &#8211; and that&#8217;s it. The template system shouldn&#8217;t
+support functionality that goes beyond this basic goal.</p>
+</div>
+<div class="section" id="discourage-redundancy">
+<h3>Discourage redundancy<a class="headerlink" href="#discourage-redundancy" title="Permalink to this headline">¶</a></h3>
+<p>The majority of dynamic Web sites use some sort of common site-wide design &#8211;
+a common header, footer, navigation bar, etc. The Django template system should
+make it easy to store those elements in a single place, eliminating duplicate
+code.</p>
+<p>This is the philosophy behind template inheritance.</p>
+</div>
+<div class="section" id="be-decoupled-from-html">
+<h3>Be decoupled from HTML<a class="headerlink" href="#be-decoupled-from-html" title="Permalink to this headline">¶</a></h3>
+<p>The template system shouldn&#8217;t be designed so that it only outputs HTML. It
+should be equally good at generating other text-based formats, or just plain
+text.</p>
+</div>
+<div class="section" id="xml-should-not-be-used-for-template-languages">
+<h3>XML should not be used for template languages<a class="headerlink" href="#xml-should-not-be-used-for-template-languages" title="Permalink to this headline">¶</a></h3>
+<p>Using an XML engine to parse templates introduces a whole new world of human
+error in editing templates &#8211; and incurs an unacceptable level of overhead in
+template processing.</p>
+</div>
+<div class="section" id="assume-designer-competence">
+<h3>Assume designer competence<a class="headerlink" href="#assume-designer-competence" title="Permalink to this headline">¶</a></h3>
+<p>The template system shouldn&#8217;t be designed so that templates necessarily are
+displayed nicely in WYSIWYG editors such as Dreamweaver. That is too severe of
+a limitation and wouldn&#8217;t allow the syntax to be as nice as it is. Django
+expects template authors are comfortable editing HTML directly.</p>
+</div>
+<div class="section" id="treat-whitespace-obviously">
+<h3>Treat whitespace obviously<a class="headerlink" href="#treat-whitespace-obviously" title="Permalink to this headline">¶</a></h3>
+<p>The template system shouldn&#8217;t do magic things with whitespace. If a template
+includes whitespace, the system should treat the whitespace as it treats text
+&#8211; just display it. Any whitespace that&#8217;s not in a template tag should be
+displayed.</p>
+</div>
+<div class="section" id="don-t-invent-a-programming-language">
+<h3>Don&#8217;t invent a programming language<a class="headerlink" href="#don-t-invent-a-programming-language" title="Permalink to this headline">¶</a></h3>
+<p>The template system intentionally doesn&#8217;t allow the following:</p>
+<ul class="simple">
+<li>Assignment to variables</li>
+<li>Advanced logic</li>
+</ul>
+<p>The goal is not to invent a programming language. The goal is to offer just
+enough programming-esque functionality, such as branching and looping, that is
+essential for making presentation-related decisions.</p>
+<p>The Django template system recognizes that templates are most often written by
+<em>designers</em>, not <em>programmers</em>, and therefore should not assume Python
+knowledge.</p>
+</div>
+<div class="section" id="safety-and-security">
+<h3>Safety and security<a class="headerlink" href="#safety-and-security" title="Permalink to this headline">¶</a></h3>
+<p>The template system, out of the box, should forbid the inclusion of malicious
+code &#8211; such as commands that delete database records.</p>
+<p>This is another reason the template system doesn&#8217;t allow arbitrary Python code.</p>
+</div>
+<div class="section" id="extensibility">
+<h3>Extensibility<a class="headerlink" href="#extensibility" title="Permalink to this headline">¶</a></h3>
+<p>The template system should recognize that advanced template authors may want
+to extend its technology.</p>
+<p>This is the philosophy behind custom template tags and filters.</p>
+<p>Having worked with many different templating systems myself over the years, I
+whole-heartedly endorse this approach - the DTL and the way it has been
+designed is one of the major pluses of the Django framework - when the
+pressure is on to Get Stuff Done, and you have both designers and programmers
+trying to communicate and get all the of the last minute tasks done, Django
+just gets out of the way and lets each team concentrate on what they are good
+at. Once you have found this out for yourself through real-life practice, you
+will find out very quickly why Django really is the &#8216;framework for
+perfectionists with deadlines&#8217;.</p>
+<p>With all this in mind, Django is flexible - it does not require you to use the
+DTL. More than any other component of Web applications, template syntax is highly
+subjective, and programmers&#8217; opinions vary wildly. The fact that Python alone
+has dozens, if not hundreds, of open source template-language implementations
+supports this point. Each was likely created because its developer deemed all
+existing template languages inadequate.</p>
+<p>Because Django is intended to be a full-stack Web framework that provides all
+the pieces necessary for Web developers to be productive, most times it&#8217;s <em>more
+convenient</em> to use the DTL, but it&#8217;s not a strict requirement in any sense. [As
+you&#8217;ll see in the upcoming section &#8220;Using Templates in Views&#8221;, it&#8217;s very easy
+to use another template language with Django.</p>
+</div>
+</div>
+<div class="section" id="using-templates-in-views">
+<h2>Using Templates in Views<a class="headerlink" href="#using-templates-in-views" title="Permalink to this headline">¶</a></h2>
+<p>You&#8217;ve learned the basics of using the template system; now let&#8217;s use this
+knowledge to create a view. Recall the <code class="docutils literal"><span class="pre">current_datetime</span></code> view in
+<code class="docutils literal"><span class="pre">mysite.views</span></code>, which we started in the previous chapter. Here&#8217;s what it looks
+like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;html&gt;&lt;body&gt;It is now </span><span class="si">%s</span><span class="s">.&lt;/body&gt;&lt;/html&gt;&quot;</span> <span class="o">%</span> <span class="n">now</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let&#8217;s change this view to use Django&#8217;s template system. At first, you might
+think to do something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s">&quot;&lt;html&gt;&lt;body&gt;It is now {{ current_date }}.&lt;/body&gt;&lt;/html&gt;&quot;</span><span class="p">)</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;current_date&#39;</span><span class="p">:</span> <span class="n">now</span><span class="p">}))</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Sure, that uses the template system, but it doesn&#8217;t solve the problems we
+pointed out in the introduction of this chapter. Namely, the template is still
+embedded in the Python code, so true separation of data and presentation isn&#8217;t
+achieved. Let&#8217;s fix that by putting the template in a <em>separate file</em>, which
+this view will load.</p>
+<p>You might first consider saving your template somewhere on your
+filesystem and using Python&#8217;s built-in file-opening functionality to read
+the contents of the template. Here&#8217;s what that might look like, assuming the
+template was saved as the file <code class="docutils literal"><span class="pre">/home/djangouser/templates/mytemplate.html</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Template</span><span class="p">,</span> <span class="n">Context</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="c"># Simple way of using templates from the filesystem.</span>
+    <span class="c"># This is BAD because it doesn&#39;t account for missing files!</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&#39;/home/djangouser/templates/mytemplate.html&#39;</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;current_date&#39;</span><span class="p">:</span> <span class="n">now</span><span class="p">}))</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This approach, however, is inelegant for these reasons:</p>
+<ul class="simple">
+<li>It doesn&#8217;t handle the case of a missing file. If the file
+<code class="docutils literal"><span class="pre">mytemplate.html</span></code> doesn&#8217;t exist or isn&#8217;t readable, the <code class="docutils literal"><span class="pre">open()</span></code> call
+will raise an <code class="docutils literal"><span class="pre">IOError</span></code> exception.</li>
+<li>It hard-codes your template location. If you were to use this
+technique for every view function, you&#8217;d be duplicating the template
+locations. Not to mention it involves a lot of typing!</li>
+<li>It includes a lot of boring boilerplate code. You&#8217;ve got better things to
+do than to write calls to <code class="docutils literal"><span class="pre">open()</span></code>, <code class="docutils literal"><span class="pre">fp.read()</span></code>, and <code class="docutils literal"><span class="pre">fp.close()</span></code>
+each time you load a template.</li>
+</ul>
+<p>To solve these issues, we&#8217;ll use <em>template loading</em> and <em>template directories</em>.</p>
+</div>
+<div class="section" id="template-loading">
+<h2>Template Loading<a class="headerlink" href="#template-loading" title="Permalink to this headline">¶</a></h2>
+<p>Django provides a convenient and powerful API for loading templates from the
+filesystem, with the goal of removing redundancy both in your template-loading
+calls and in your templates themselves.</p>
+<p>In order to use this template-loading API, first you&#8217;ll need to tell the
+framework where you store your templates. The place to do this is in your
+settings file &#8211; the <code class="docutils literal"><span class="pre">settings.py</span></code> file that we mentioned last chapter, when
+we introduced the <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code> setting.</p>
+<p>If you&#8217;re following along, open your <code class="docutils literal"><span class="pre">settings.py</span></code> and find the <code class="docutils literal"><span class="pre">TEMPLATES</span></code> setting. It&#8217;s a
+list of configurations, one for each engine:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">TEMPLATES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s">&#39;BACKEND&#39;</span><span class="p">:</span> <span class="s">&#39;django.template.backends.django.DjangoTemplates&#39;</span><span class="p">,</span>
+        <span class="s">&#39;DIRS&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s">&#39;APP_DIRS&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s">&#39;OPTIONS&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c"># ... some options here ...</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">BACKEND</span></code> is a dotted Python path to a template engine class implementing
+Django&#8217;s template backend API. The built-in backends are
+<code class="docutils literal"><span class="pre">django.template.backends.django.DjangoTemplates</span></code> and
+<code class="docutils literal"><span class="pre">django.template.backends.jinja2.Jinja2</span></code>.</p>
+<p>Since most engines load templates from files, the top-level configuration for
+each engine contains two common settings:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">DIRS</span></code> defines a list of directories where the engine should look for
+template source files, in search order.</li>
+<li><code class="docutils literal"><span class="pre">APP_DIRS</span></code> tells whether the engine should look for templates inside
+installed applications. By convention, when <code class="docutils literal"><span class="pre">APPS_DIRS</span></code> is set to
+<code class="docutils literal"><span class="pre">True</span></code>, <code class="docutils literal"><span class="pre">DjangoTemplates</span></code> looks for a &#8220;templates&#8221; subdirectory in each
+of the <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>. This allows the template engine to find
+application templates even if <code class="docutils literal"><span class="pre">DIRS</span></code> is empty.</li>
+<li><code class="docutils literal"><span class="pre">OPTIONS</span></code> contains backend-specific settings.</li>
+</ul>
+<p>While uncommon, it&#8217;s possible to configure several instances of the same
+backend with different options. In that case you should define a unique
+<code class="docutils literal"><span class="pre">NAME</span></code> for each engine.</p>
+<div class="section" id="template-directories">
+<h3>Template directories<a class="headerlink" href="#template-directories" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">DIRS</span></code>, by default, is an empty list. To tell Django&#8217;s template-loading
+mechanism where to look for templates, pick a directory where you&#8217;d like to
+store your templates and add it to <code class="docutils literal"><span class="pre">DIRS</span></code>, like so:</p>
+<div class="highlight-python"><div class="highlight"><pre>&#39;DIRS&#39;: [
+           &#39;/home/html/example.com&#39;,
+           &#39;/home/html/default&#39;,
+       ],
+</pre></div>
+</div>
+<p>There are a few things to note:</p>
+<ul>
+<li><p class="first">Unless there is a good reason to do so, you are better off leaving <code class="docutils literal"><span class="pre">DIRS</span></code>
+empty. The default settings file configures <code class="docutils literal"><span class="pre">APP_DIRS</span></code> to <code class="docutils literal"><span class="pre">True</span></code>, so you
+are better off having a &#8220;templates&#8221; subdirectory in your Django app. More on
+why this is a good thing in Chapter 14.</p>
+</li>
+<li><p class="first">If you want to have a set of master templates at project root, e.g.
+<code class="docutils literal"><span class="pre">mysite/templates</span></code>, you <em>do</em> need to set <code class="docutils literal"><span class="pre">DIRS</span></code>, like so:</p>
+<div class="highlight-python"><div class="highlight"><pre>&#39;DIRS&#39;: [os.path.join(BASE_DIR, &#39;templates&#39;)],
+</pre></div>
+</div>
+<p>Your templates directory does not have to be called <code class="docutils literal"><span class="pre">'templates'</span></code>, by the
+way &#8211; Django doesn&#8217;t put any restrictions on the names you use &#8211; but it
+makes your project structure much easier to understand if you stick to
+convention.</p>
+</li>
+<li><p class="first">If you don&#8217;t want to go with the default, or can&#8217;t for some reason, you can
+specify any directory you want, as long as the directory and
+templates within that directory are readable by the user account under which
+your Web server runs.</p>
+</li>
+<li><p class="first">If you&#8217;re on Windows, include your drive letter and use Unix-style
+forward slashes rather than backslashes, as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>&#39;DIRS&#39;: [
+    &#39;C:/www/django/templates&#39;,
+]
+</pre></div>
+</div>
+</li>
+</ul>
+<p>As we have not yet created a Django app, you will have to set <code class="docutils literal"><span class="pre">DIRS</span></code> to
+<code class="docutils literal"><span class="pre">[os.path.join(BASE_DIR,</span> <span class="pre">'templates')]</span></code> as per the example above for the
+code below to work as expected.</p>
+<p>With <code class="docutils literal"><span class="pre">DIRS</span></code> set, the next step is to change the view code to use Django&#8217;s
+template-loading functionality rather than hard-coding the template paths.
+Returning to our <code class="docutils literal"><span class="pre">current_datetime</span></code> view, let&#8217;s change it like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.template.loader</span> <span class="kn">import</span> <span class="n">get_template</span>
+<span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">Context</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">get_template</span><span class="p">(</span><span class="s">&#39;current_datetime.html&#39;</span><span class="p">)</span>
+    <span class="n">html</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">Context</span><span class="p">({</span><span class="s">&#39;current_date&#39;</span><span class="p">:</span> <span class="n">now</span><span class="p">}))</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example, we&#8217;re using the function
+<code class="docutils literal"><span class="pre">django.template.loader.get_template()</span></code> rather than loading the template from
+the filesystem manually. The <code class="docutils literal"><span class="pre">get_template()</span></code> function takes a template name
+as its argument, figures out where the template lives on the filesystem, opens
+that file, and returns a compiled <code class="docutils literal"><span class="pre">Template</span></code> object.</p>
+<p>Our template in this example is <code class="docutils literal"><span class="pre">current_datetime.html</span></code>, but there&#8217;s nothing
+special about that <code class="docutils literal"><span class="pre">.html</span></code> extension. You can give your templates whatever
+extension makes sense for your application, or you can leave off extensions
+entirely.</p>
+<p>To determine the location of the template on your filesystem,
+<code class="docutils literal"><span class="pre">get_template()</span></code> will look in order:</p>
+<ul class="simple">
+<li>If <code class="docutils literal"><span class="pre">APP_DIRS</span></code> is set to <code class="docutils literal"><span class="pre">True</span></code>, and assuming you are using the DTL, it
+will look for a &#8220;templates&#8221; directory in the current app.</li>
+<li>If it does not
+find your template in the current app, <code class="docutils literal"><span class="pre">get_template()</span></code> combines your
+template directories from <code class="docutils literal"><span class="pre">DIRS</span></code> with the template name that you pass to
+<code class="docutils literal"><span class="pre">get_template()</span></code> and steps through each of them in order until it finds
+your template. For example, if the first entry in your <code class="docutils literal"><span class="pre">DIRS</span></code> is set to
+<code class="docutils literal"><span class="pre">'/home/django/mysite/templates'</span></code>, the above <code class="docutils literal"><span class="pre">get_template()</span></code> call would
+look for the template <code class="docutils literal"><span class="pre">/home/django/mysite/templates/current_datetime.html</span></code>.</li>
+<li>If <code class="docutils literal"><span class="pre">get_template()</span></code> cannot find the template with the given name, it raises
+a <code class="docutils literal"><span class="pre">TemplateDoesNotExist</span></code> exception.</li>
+</ul>
+<p>To see what a template exception looks like, fire up the Django development
+server again by running <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">runserver</span></code> within your Django
+project&#8217;s directory. Then, point your browser at the page that activates the
+<code class="docutils literal"><span class="pre">current_datetime</span></code> view (e.g., <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/time/</span></code>). Assuming
+your <code class="docutils literal"><span class="pre">DEBUG</span></code> setting is set to <code class="docutils literal"><span class="pre">True</span></code> and you haven&#8217;t yet created a
+<code class="docutils literal"><span class="pre">current_datetime.html</span></code> template, you should see a Django error page
+highlighting the <code class="docutils literal"><span class="pre">TemplateDoesNotExist</span></code> error.</p>
+<div class="figure" id="id1">
+<img alt="Screenshot of a &quot;TemplateDoesNotExist&quot; error." src="_images/missing_template.png" />
+<p class="caption"><span class="caption-text">Figure 3-1: The error page shown when a template cannot be found.</span></p>
+</div>
+<p>This error page is similar to the one we explained in Chapter 2, with one
+additional piece of debugging information: a &#8220;Template-loader postmortem&#8221;
+section. This section tells you which templates Django tried to load, along with
+the reason each attempt failed (e.g., &#8220;File does not exist&#8221;). This information
+is invaluable when you&#8217;re trying to debug template-loading errors.</p>
+<p>Moving along, create the <code class="docutils literal"><span class="pre">current_datetime.html</span></code> file using the following
+template code:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;html&gt;&lt;body&gt;It is now {{ current_date }}.&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+</div>
+<p>Save this file to <code class="docutils literal"><span class="pre">mysite/templates</span></code> (create the &#8216;templates&#8217; directory if
+you have not done so already). Refresh the page in your Web browser, and you
+should see the fully rendered page.</p>
+</div>
+<div class="section" id="render">
+<h3>render()<a class="headerlink" href="#render" title="Permalink to this headline">¶</a></h3>
+<p>So far, we&#8217;ve shown you how to load a template, fill a <code class="docutils literal"><span class="pre">Context</span></code> and return an
+<code class="docutils literal"><span class="pre">HttpResponse</span></code> object with the result of the rendered template. Next step
+was to optimize it to use <code class="docutils literal"><span class="pre">get_template()</span></code> instead of hard-coding templates and
+template paths. We took you through this process to ensure you understood how
+Django templates are loaded and rendered to your browser.</p>
+<p>In practice, Django provides a much easier way to do this.</p>
+<p>Django&#8217;s developers recognised that because this is such a common idiom,
+what would be really useful is a shortcut that lets you load a template,
+render it and return an <code class="docutils literal"><span class="pre">HttpResponse</span></code> &#8211; all in one line of code.</p>
+<p>This shortcut is a function called <code class="docutils literal"><span class="pre">render()</span></code>, which lives in the
+module <code class="docutils literal"><span class="pre">django.shortcuts</span></code>. Most of the time, you&#8217;ll be using
+<code class="docutils literal"><span class="pre">render()</span></code> rather than loading templates and creating <code class="docutils literal"><span class="pre">Context</span></code>
+and <code class="docutils literal"><span class="pre">HttpResponse</span></code> objects manually &#8211; unless your employer judges your work
+by total lines of code written, that is.</p>
+<p>Here&#8217;s the ongoing <code class="docutils literal"><span class="pre">current_datetime</span></code> example rewritten to use
+<code class="docutils literal"><span class="pre">render()</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;current_datetime.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;current_date&#39;</span><span class="p">:</span> <span class="n">now</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>What a difference! Let&#8217;s step through the code changes:</p>
+<ul class="simple">
+<li>We no longer have to import <code class="docutils literal"><span class="pre">get_template</span></code>, <code class="docutils literal"><span class="pre">Template</span></code>, <code class="docutils literal"><span class="pre">Context</span></code>,
+or <code class="docutils literal"><span class="pre">HttpResponse</span></code>. Instead, we import
+<code class="docutils literal"><span class="pre">django.shortcuts.render</span></code>. The <code class="docutils literal"><span class="pre">import</span> <span class="pre">datetime</span></code> remains.</li>
+<li>Within the <code class="docutils literal"><span class="pre">current_datetime</span></code> function, we still calculate <code class="docutils literal"><span class="pre">now</span></code>, but
+the template loading, context creation, template rendering, and
+<code class="docutils literal"><span class="pre">HttpResponse</span></code> creation are all taken care of by the
+<code class="docutils literal"><span class="pre">render()</span></code> call. Because <code class="docutils literal"><span class="pre">render()</span></code> returns
+an <code class="docutils literal"><span class="pre">HttpResponse</span></code> object, we can simply <code class="docutils literal"><span class="pre">return</span></code> that value in the
+view.</li>
+</ul>
+<p>The first argument to <code class="docutils literal"><span class="pre">render()</span></code> is the request, the second is the name of
+the template to use. The third argument, if given, should be a dictionary to
+use in creating a <code class="docutils literal"><span class="pre">Context</span></code> for that template. If you don&#8217;t provide a third
+argument, <code class="docutils literal"><span class="pre">render()</span></code> will use an empty dictionary.</p>
+</div>
+<div class="section" id="subdirectories-in-get-template">
+<h3>Subdirectories in get_template()<a class="headerlink" href="#subdirectories-in-get-template" title="Permalink to this headline">¶</a></h3>
+<p>It can get unwieldy to store all of your templates in a single directory. You
+might like to store templates in subdirectories of your template directory, and
+that&#8217;s fine. In fact, we recommend doing so; some more advanced Django
+features (such as the generic views system, which we cover in
+Chapter 110) expect this template layout as a default convention.</p>
+<p>Storing templates in subdirectories of your template directory is easy.
+In your calls to <code class="docutils literal"><span class="pre">get_template()</span></code>, just include
+the subdirectory name and a slash before the template name, like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">t</span> <span class="o">=</span> <span class="n">get_template</span><span class="p">(</span><span class="s">&#39;dateapp/current_datetime.html&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Because <code class="docutils literal"><span class="pre">render()</span></code> is a small wrapper around <code class="docutils literal"><span class="pre">get_template()</span></code>,
+you can do the same thing with the second argument to <code class="docutils literal"><span class="pre">render()</span></code>,
+like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;dateapp/current_datetime.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;current_date&#39;</span><span class="p">:</span> <span class="n">now</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>There&#8217;s no limit to the depth of your subdirectory tree. Feel free to use
+as many subdirectories as you like.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Windows users, be sure to use forward slashes rather than backslashes.
+<code class="docutils literal"><span class="pre">get_template()</span></code> assumes a Unix-style file name designation.</p>
+</div>
+</div>
+<div class="section" id="the-include-template-tag">
+<h3>The <code class="docutils literal"><span class="pre">include</span></code> Template Tag<a class="headerlink" href="#the-include-template-tag" title="Permalink to this headline">¶</a></h3>
+<p>Now that we&#8217;ve covered the template-loading mechanism, we can introduce a
+built-in template tag that takes advantage of it: <code class="docutils literal"><span class="pre">{%</span> <span class="pre">include</span> <span class="pre">%}</span></code>. This tag
+allows you to include the contents of another template. The argument to the tag
+should be the name of the template to include, and the template name can be
+either a variable or a hard-coded (quoted) string, in either single or double
+quotes. Anytime you have the same code in multiple templates,
+consider using an <code class="docutils literal"><span class="pre">{%</span> <span class="pre">include</span> <span class="pre">%}</span></code> to remove the duplication.</p>
+<p>These two examples include the contents of the template <code class="docutils literal"><span class="pre">nav.html</span></code>. The
+examples are equivalent and illustrate that either single or double quotes
+are allowed:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% include &#39;nav.html&#39; %}
+{% include &quot;nav.html&quot; %}
+</pre></div>
+</div>
+<p>This example includes the contents of the template <code class="docutils literal"><span class="pre">includes/nav.html</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% include &#39;includes/nav.html&#39; %}
+</pre></div>
+</div>
+<p>This example includes the contents of the template whose name is contained in
+the variable <code class="docutils literal"><span class="pre">template_name</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% include template_name %}
+</pre></div>
+</div>
+<p>As in <code class="docutils literal"><span class="pre">get_template()</span></code>, the file name of the template is determined by
+either adding the path to the &#8220;templates&#8221; directory in the current Django app
+(if <code class="docutils literal"><span class="pre">APPS_DIR</span></code> is <code class="docutils literal"><span class="pre">True</span></code>) or by adding the template directory from
+<code class="docutils literal"><span class="pre">DIRS</span></code> to the requested template name.</p>
+<p>Included templates are evaluated with the context of the template
+that&#8217;s including them. For example, consider these two templates:</p>
+<div class="highlight-python"><div class="highlight"><pre># mypage.html
+
+&lt;html&gt;
+&lt;body&gt;
+{% include &quot;includes/nav.html&quot; %}
+&lt;h1&gt;{{ title }}&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+# includes/nav.html
+
+&lt;div id=&quot;nav&quot;&gt;
+    You are in: {{ current_section }}
+&lt;/div&gt;
+</pre></div>
+</div>
+<p>If you render <code class="docutils literal"><span class="pre">mypage.html</span></code> with a context containing <code class="docutils literal"><span class="pre">current_section</span></code>,
+then the variable will be available in the &#8220;included&#8221; template, as you would
+expect.</p>
+<p>If, in an <code class="docutils literal"><span class="pre">{%</span> <span class="pre">include</span> <span class="pre">%}</span></code> tag, a template with the given name isn&#8217;t found,
+Django will do one of two things:</p>
+<ul class="simple">
+<li>If <code class="docutils literal"><span class="pre">DEBUG</span></code> is set to <code class="docutils literal"><span class="pre">True</span></code>, you&#8217;ll see the
+<code class="docutils literal"><span class="pre">TemplateDoesNotExist</span></code> exception on a Django error page.</li>
+<li>If <code class="docutils literal"><span class="pre">DEBUG</span></code> is set to <code class="docutils literal"><span class="pre">False</span></code>, the tag will fail
+silently, displaying nothing in the place of the tag.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The <code class="docutils literal"><span class="pre">include</span></code> tag should be considered as an implementation of
+&#8220;render this subtemplate and include the HTML&#8221;, not as &#8220;parse this
+subtemplate and include its contents as if it were part of the parent&#8221;.
+This means that there is no shared state between included templates &#8211;
+each include is a completely independent rendering process.</p>
+<p class="last">Blocks are evaluated <em>before</em> they are included. This means that a template
+that includes blocks from another will contain blocks that have <em>already
+been evaluated and rendered</em> - not blocks that can be overridden by, for
+example, an extending template.</p>
+</div>
+</div>
+</div>
+<div class="section" id="template-inheritance">
+<h2>Template Inheritance<a class="headerlink" href="#template-inheritance" title="Permalink to this headline">¶</a></h2>
+<p>Our template examples so far have been tiny HTML snippets, but in the real
+world, you&#8217;ll be using Django&#8217;s template system to create entire HTML pages.
+This leads to a common Web development problem: across a Web site, how does
+one reduce the duplication and redundancy of common page areas, such as
+sitewide navigation?</p>
+<p>A classic way of solving this problem is to use <em>server-side includes</em>,
+directives you can embed within your HTML pages to &#8220;include&#8221; one Web page
+inside another. Indeed, Django supports that approach, with the
+<code class="docutils literal"><span class="pre">{%</span> <span class="pre">include</span> <span class="pre">%}</span></code> template tag just described. But the preferred way of
+solving this problem with Django is to use a more elegant strategy called
+<em>template inheritance</em>.</p>
+<p>In essence, template inheritance lets you build a base &#8220;skeleton&#8221; template that
+contains all the common parts of your site and defines &#8220;blocks&#8221; that child
+templates can override.</p>
+<p>Let&#8217;s see an example of this by creating a more complete template for our
+<code class="docutils literal"><span class="pre">current_datetime</span></code> view, by editing the <code class="docutils literal"><span class="pre">current_datetime.html</span></code> file:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;title&gt;The current time&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;My helpful timestamp site&lt;/h1&gt;
+    &lt;p&gt;It is now {{ current_date }}.&lt;/p&gt;
+
+    &lt;hr&gt;
+    &lt;p&gt;Thanks for visiting my site.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+</div>
+<p>That looks just fine, but what happens when we want to create a template for
+another view &#8211; say, the <code class="docutils literal"><span class="pre">hours_ahead</span></code> view from Chapter 2? If we want again
+to make a nice, valid, full HTML template, we&#8217;d create something like:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;title&gt;Future time&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;My helpful timestamp site&lt;/h1&gt;
+    &lt;p&gt;In {{ hour_offset }} hour(s), it will be {{ next_time }}.&lt;/p&gt;
+
+    &lt;hr&gt;
+    &lt;p&gt;Thanks for visiting my site.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+</div>
+<p>Clearly, we&#8217;ve just duplicated a lot of HTML. Imagine if we had a more
+typical site, including a navigation bar, a few style sheets, perhaps some
+JavaScript &#8211; we&#8217;d end up putting all sorts of redundant HTML into each
+template.</p>
+<p>The server-side include solution to this problem is to factor out the
+common bits in both templates and save them in separate template snippets,
+which are then included in each template. Perhaps you&#8217;d store the top
+bit of the template in a file called <code class="docutils literal"><span class="pre">header.html</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+</pre></div>
+</div>
+<p>And perhaps you&#8217;d store the bottom bit in a file called <code class="docutils literal"><span class="pre">footer.html</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>    &lt;hr&gt;
+    &lt;p&gt;Thanks for visiting my site.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+</div>
+<p>With an include-based strategy, headers and footers are easy. It&#8217;s the
+middle ground that&#8217;s messy. In this example, both pages feature a title &#8211;
+<code class="docutils literal"><span class="pre">&lt;h1&gt;My</span> <span class="pre">helpful</span> <span class="pre">timestamp</span> <span class="pre">site&lt;/h1&gt;</span></code> &#8211; but that title can&#8217;t fit into
+<code class="docutils literal"><span class="pre">header.html</span></code> because the <code class="docutils literal"><span class="pre">&lt;title&gt;</span></code> on both pages is different. If we
+included the <code class="docutils literal"><span class="pre">&lt;h1&gt;</span></code> in the header, we&#8217;d have to include the <code class="docutils literal"><span class="pre">&lt;title&gt;</span></code>,
+which wouldn&#8217;t allow us to customize it per page. See where this is going?</p>
+<p>Django&#8217;s template inheritance system solves these problems. You can think of it
+as an &#8220;inside-out&#8221; version of server-side includes. Instead of defining the
+snippets that are <em>common</em>, you define the snippets that are <em>different</em>.</p>
+<p>The first step is to define a <em>base template</em> &#8211; a skeleton of your page that
+<em>child templates</em> will later fill in. Here&#8217;s a base template for our ongoing
+example:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot;&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;title&gt;{% block title %}{% endblock %}&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;My helpful timestamp site&lt;/h1&gt;
+    {% block content %}{% endblock %}
+    {% block footer %}
+    &lt;hr&gt;
+    &lt;p&gt;Thanks for visiting my site.&lt;/p&gt;
+    {% endblock %}
+&lt;/body&gt;
+&lt;/html&gt;
+</pre></div>
+</div>
+<p>This template, which we&#8217;ll call <code class="docutils literal"><span class="pre">base.html</span></code>, defines a simple HTML skeleton
+document that we&#8217;ll use for all the pages on the site. It&#8217;s the job of child
+templates to override, or add to, or leave alone the contents of the blocks.
+(If you&#8217;re following along, save this file to your template directory as
+<code class="docutils literal"><span class="pre">base.html</span></code>.)</p>
+<p>We&#8217;re using a template tag here that you haven&#8217;t seen before: the
+<code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">%}</span></code> tag. All the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">%}</span></code> tags do is tell the template
+engine that a child template may override those portions of the template.</p>
+<p>Now that we have this base template, we can modify our existing
+<code class="docutils literal"><span class="pre">current_datetime.html</span></code> template to use it:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% extends &quot;base.html&quot; %}
+
+{% block title %}The current time{% endblock %}
+
+{% block content %}
+&lt;p&gt;It is now {{ current_date }}.&lt;/p&gt;
+{% endblock %}
+</pre></div>
+</div>
+<p>While we&#8217;re at it, let&#8217;s create a template for the <code class="docutils literal"><span class="pre">hours_ahead</span></code> view from
+Chapter 3. (If you&#8217;re following along with code, we&#8217;ll leave it up to you to
+change <code class="docutils literal"><span class="pre">hours_ahead</span></code> to use the template system instead of hard-coded HTML.)
+Here&#8217;s what that could look like:</p>
+<div class="highlight-python"><div class="highlight"><pre>{% extends &quot;base.html&quot; %}
+
+{% block title %}Future time{% endblock %}
+
+{% block content %}
+&lt;p&gt;In {{ hour_offset }} hour(s), it will be {{ next_time }}.&lt;/p&gt;
+{% endblock %}
+</pre></div>
+</div>
+<p>Isn&#8217;t this beautiful? Each template contains only the code that&#8217;s <em>unique</em> to
+that template. No redundancy needed. If you need to make a site-wide design
+change, just make the change to <code class="docutils literal"><span class="pre">base.html</span></code>, and all of the other templates
+will immediately reflect the change.</p>
+<p>Here&#8217;s how it works. When you load the template <code class="docutils literal"><span class="pre">current_datetime.html</span></code>,
+the template engine sees the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">extends</span> <span class="pre">%}</span></code> tag, noting that
+this template is a child template. The engine immediately loads the
+parent template &#8211; in this case, <code class="docutils literal"><span class="pre">base.html</span></code>.</p>
+<p>At that point, the template engine notices the three <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">%}</span></code> tags
+in <code class="docutils literal"><span class="pre">base.html</span></code> and replaces those blocks with the contents of the child
+template. So, the title we&#8217;ve defined in <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">title</span> <span class="pre">%}</span></code> will be
+used, as will the <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">content</span> <span class="pre">%}</span></code>.</p>
+<p>Note that since the child template doesn&#8217;t define the <code class="docutils literal"><span class="pre">footer</span></code> block,
+the template system uses the value from the parent template instead.
+Content within a <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">%}</span></code> tag in a parent template is always
+used as a fallback.</p>
+<p>Inheritance doesn&#8217;t affect the template context. In other words, any template
+in the inheritance tree will have access to every one of your template
+variables from the context.</p>
+<p>You can use as many levels of inheritance as needed. One common way of using
+inheritance is the following three-level approach:</p>
+<ol class="arabic simple">
+<li>Create a <code class="docutils literal"><span class="pre">base.html</span></code> template that holds the main look and feel of
+your site. This is the stuff that rarely, if ever, changes.</li>
+<li>Create a <code class="docutils literal"><span class="pre">base_SECTION.html</span></code> template for each &#8220;section&#8221; of your site
+(e.g., <code class="docutils literal"><span class="pre">base_photos.html</span></code> and <code class="docutils literal"><span class="pre">base_forum.html</span></code>). These templates
+extend <code class="docutils literal"><span class="pre">base.html</span></code> and include section-specific styles/design.</li>
+<li>Create individual templates for each type of page, such as a forum page
+or a photo gallery. These templates extend the appropriate section
+template.</li>
+</ol>
+<p>This approach maximizes code reuse and makes it easy to add items to shared
+areas, such as section-wide navigation.</p>
+<p>Here are some guidelines for working with template inheritance:</p>
+<ul class="simple">
+<li>If you use <code class="docutils literal"><span class="pre">{%</span> <span class="pre">extends</span> <span class="pre">%}</span></code> in a template, it must be the first
+template tag in that template. Otherwise, template inheritance won&#8217;t
+work.</li>
+<li>Generally, the more <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">%}</span></code> tags in your base templates, the
+better. Remember, child templates don&#8217;t have to define all parent blocks,
+so you can fill in reasonable defaults in a number of blocks, and then
+define only the ones you need in the child templates. It&#8217;s better to have
+more hooks than fewer hooks.</li>
+<li>If you find yourself duplicating code in a number of templates, it
+probably means you should move that code to a <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">%}</span></code> in a
+parent template.</li>
+<li>If you need to get the content of the block from the parent template,
+use <code class="docutils literal"><span class="pre">{{</span> <span class="pre">block.super</span> <span class="pre">}}</span></code>, which is a &#8220;magic&#8221; variable providing the
+rendered text of the parent template. This is useful if you want to add
+to the contents of a parent block instead of completely overriding it.</li>
+<li>You may not define multiple <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">%}</span></code> tags with the same name in
+the same template. This limitation exists because a block tag works in
+&#8220;both&#8221; directions. That is, a block tag doesn&#8217;t just provide a hole to
+fill, it also defines the content that fills the hole in the <em>parent</em>.
+If there were two similarly named <code class="docutils literal"><span class="pre">{%</span> <span class="pre">block</span> <span class="pre">%}</span></code> tags in a template,
+that template&#8217;s parent wouldn&#8217;t know which one of the blocks&#8217; content to
+use.</li>
+<li>The template name you pass to <code class="docutils literal"><span class="pre">{%</span> <span class="pre">extends</span> <span class="pre">%}</span></code> is loaded using the same
+method that <code class="docutils literal"><span class="pre">get_template()</span></code> uses. That is, the template name is
+appended to your <code class="docutils literal"><span class="pre">DIRS</span></code> setting, or the &#8220;templates&#8221; folder in the current
+Django app.</li>
+<li>In most cases, the argument to <code class="docutils literal"><span class="pre">{%</span> <span class="pre">extends</span> <span class="pre">%}</span></code> will be a string, but it
+can also be a variable, if you don&#8217;t know the name of the parent template
+until runtime. This lets you do some cool, dynamic stuff.</li>
+</ul>
+</div>
+<div class="section" id="what-s-next">
+<h2>What&#8217;s next?<a class="headerlink" href="#what-s-next" title="Permalink to this headline">¶</a></h2>
+<p>You now have the basics of Django&#8217;s template system under your belt. What&#8217;s next?</p>
+<p>Most modern Web sites are <em>database-driven</em>: the content of the Web site is
+stored in a relational database. This allows a clean separation of data and logic
+(in the same way views and templates allow the separation of logic and display.)</p>
+<p>The next chapter covers the tools Django gives you to interact with a
+database.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Chapter 3: Templates</a><ul>
+<li><a class="reference internal" href="#template-system-basics">Template System Basics</a></li>
+<li><a class="reference internal" href="#using-the-template-system">Using the Template System</a><ul>
+<li><a class="reference internal" href="#creating-template-objects">Creating Template Objects</a></li>
+<li><a class="reference internal" href="#rendering-a-template">Rendering a Template</a></li>
+<li><a class="reference internal" href="#multiple-contexts-same-template">Multiple Contexts, Same Template</a></li>
+<li><a class="reference internal" href="#context-variable-lookup">Context Variable Lookup</a><ul>
+<li><a class="reference internal" href="#method-call-behavior">Method Call Behavior</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-invalid-variables-are-handled">How Invalid Variables Are Handled</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#basic-template-tags-and-filters">Basic Template Tags and Filters</a><ul>
+<li><a class="reference internal" href="#tags">Tags</a><ul>
+<li><a class="reference internal" href="#if-else">if/else</a></li>
+<li><a class="reference internal" href="#for">for</a></li>
+<li><a class="reference internal" href="#ifequal-ifnotequal">ifequal/ifnotequal</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#comments">Comments</a></li>
+<li><a class="reference internal" href="#filters">Filters</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#philosophies-and-limitations">Philosophies and Limitations</a><ul>
+<li><a class="reference internal" href="#separate-logic-from-presentation">Separate logic from presentation</a></li>
+<li><a class="reference internal" href="#discourage-redundancy">Discourage redundancy</a></li>
+<li><a class="reference internal" href="#be-decoupled-from-html">Be decoupled from HTML</a></li>
+<li><a class="reference internal" href="#xml-should-not-be-used-for-template-languages">XML should not be used for template languages</a></li>
+<li><a class="reference internal" href="#assume-designer-competence">Assume designer competence</a></li>
+<li><a class="reference internal" href="#treat-whitespace-obviously">Treat whitespace obviously</a></li>
+<li><a class="reference internal" href="#don-t-invent-a-programming-language">Don&#8217;t invent a programming language</a></li>
+<li><a class="reference internal" href="#safety-and-security">Safety and security</a></li>
+<li><a class="reference internal" href="#extensibility">Extensibility</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#using-templates-in-views">Using Templates in Views</a></li>
+<li><a class="reference internal" href="#template-loading">Template Loading</a><ul>
+<li><a class="reference internal" href="#template-directories">Template directories</a></li>
+<li><a class="reference internal" href="#render">render()</a></li>
+<li><a class="reference internal" href="#subdirectories-in-get-template">Subdirectories in get_template()</a></li>
+<li><a class="reference internal" href="#the-include-template-tag">The <code class="docutils literal"><span class="pre">include</span></code> Template Tag</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#template-inheritance">Template Inheritance</a></li>
+<li><a class="reference internal" href="#what-s-next">What&#8217;s next?</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="chapter_02.html" title="previous chapter">Chapter 2: Views and URLconfs</a></li>
+      <li>Next: <a href="chapter_04.html" title="next chapter">Chapter 4: Models</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chapter_03.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/chapter_03.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
