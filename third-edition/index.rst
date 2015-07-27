@@ -29,6 +29,9 @@ Contents:
    chapter_13
    chapter_14
    chapter_15
+   chapter_16
+   chapter_17
+   chapter_18
    appendix_A		
    appendix_B		
    appendix_C		
