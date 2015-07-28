@@ -350,7 +350,7 @@ in the URLconf and it doesn&#8217;t end in a slash, an HTTP redirect is issued t
 same URL with a slash appended. Note that the redirect may cause any data
 submitted in a POST request to be lost.</p>
 <p>The <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code> setting is only used if
-<code class="xref py py-class docutils literal"><span class="pre">CommonMiddleware</span></code> is installed
+<a class="reference internal" href="chapter_19.html#django.middleware.common.CommonMiddleware" title="django.middleware.common.CommonMiddleware"><code class="xref py py-class docutils literal"><span class="pre">CommonMiddleware</span></code></a> is installed
 . See also <code class="docutils literal"><span class="pre">PREPEND_WWW</span></code>.</p>
 </div>
 <div class="section" id="caches">
@@ -1176,7 +1176,7 @@ query string, if any). Use this if your site does not provide a commonly
 requested file such as <code class="docutils literal"><span class="pre">favicon.ico</span></code> or <code class="docutils literal"><span class="pre">robots.txt</span></code>, or if it gets
 hammered by script kiddies.</p>
 <p>This is only used if
-<code class="xref py py-class docutils literal"><span class="pre">BrokenLinkEmailsMiddleware</span></code> is enabled.</p>
+<a class="reference internal" href="chapter_19.html#django.middleware.common.BrokenLinkEmailsMiddleware" title="django.middleware.common.BrokenLinkEmailsMiddleware"><code class="xref py py-class docutils literal"><span class="pre">BrokenLinkEmailsMiddleware</span></code></a> is enabled.</p>
 </div>
 <div class="section" id="installed-apps">
 <h3>INSTALLED_APPS<a class="headerlink" href="#installed-apps" title="Permalink to this headline">¶</a></h3>
@@ -1225,7 +1225,7 @@ listed first in <code class="docutils literal"><span class="pre">INSTALLED_APPS<
 <h3>LANGUAGE_CODE<a class="headerlink" href="#language-code" title="Permalink to this headline">¶</a></h3>
 <p>Default: <code class="docutils literal"><span class="pre">'en-us'</span></code></p>
 <p>A string representing the language code for this installation. This should be in
-standard <span class="xref std std-term">language ID format</span>. For example, U.S. English
+standard <a class="reference internal" href="chapter_20.html#term-language-code"><span class="xref std std-term">language ID format</span></a>. For example, U.S. English
 is <code class="docutils literal"><span class="pre">&quot;en-us&quot;</span></code>.</p>
 <p><code class="docutils literal"><span class="pre">USE_I18N</span></code> must be active for this setting to have any effect.</p>
 <p>It serves two purposes:</p>
@@ -1343,7 +1343,7 @@ configuration process will be skipped.</p>
 <p>Default: <code class="docutils literal"><span class="pre">[]</span></code> (Empty list)</p>
 <p>A list in the same format as <code class="docutils literal"><span class="pre">ADMINS</span></code> that specifies who should get
 broken link notifications when
-<code class="xref py py-class docutils literal"><span class="pre">BrokenLinkEmailsMiddleware</span></code> is enabled.</p>
+<a class="reference internal" href="chapter_19.html#django.middleware.common.BrokenLinkEmailsMiddleware" title="django.middleware.common.BrokenLinkEmailsMiddleware"><code class="xref py py-class docutils literal"><span class="pre">BrokenLinkEmailsMiddleware</span></code></a> is enabled.</p>
 </div>
 <div class="section" id="media-root">
 <h3>MEDIA_ROOT<a class="headerlink" href="#media-root" title="Permalink to this headline">¶</a></h3>
@@ -1439,7 +1439,7 @@ format has higher precedence and will be applied instead.</p>
 <h3>PREPEND_WWW<a class="headerlink" href="#prepend-www" title="Permalink to this headline">¶</a></h3>
 <p>Default: <code class="docutils literal"><span class="pre">False</span></code></p>
 <p>Whether to prepend the &#8220;www.&#8221; subdomain to URLs that don&#8217;t have it. This is only
-used if <code class="xref py py-class docutils literal"><span class="pre">CommonMiddleware</span></code> is installed. See also <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code>.</p>
+used if <a class="reference internal" href="chapter_19.html#django.middleware.common.CommonMiddleware" title="django.middleware.common.CommonMiddleware"><code class="xref py py-class docutils literal"><span class="pre">CommonMiddleware</span></code></a> is installed. See also <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code>.</p>
 </div>
 <div class="section" id="root-urlconf">
 <h3>ROOT_URLCONF<a class="headerlink" href="#root-urlconf" title="Permalink to this headline">¶</a></h3>
@@ -1470,7 +1470,7 @@ execution vulnerabilities.</p>
 <li>All sessions  if you are using
 any other session backend than <code class="docutils literal"><span class="pre">django.contrib.sessions.backends.cache</span></code>,
 or if you use
-<code class="xref py py-class docutils literal"><span class="pre">SessionAuthenticationMiddleware</span></code>
+<a class="reference internal" href="chapter_19.html#django.contrib.auth.middleware.SessionAuthenticationMiddleware" title="django.contrib.auth.middleware.SessionAuthenticationMiddleware"><code class="xref py py-class docutils literal"><span class="pre">SessionAuthenticationMiddleware</span></code></a>
 and are using the default
 <a class="reference internal" href="chapter_11.html#django.contrib.auth.models.AbstractBaseUser.get_session_auth_hash" title="django.contrib.auth.models.AbstractBaseUser.get_session_auth_hash"><code class="xref py py-meth docutils literal"><span class="pre">get_session_auth_hash()</span></code></a>.</li>
 <li>All messages  if you are using
@@ -1491,20 +1491,20 @@ affect them.</p>
 <div class="section" id="secure-browser-xss-filter">
 <h3>SECURE_BROWSER_XSS_FILTER<a class="headerlink" href="#secure-browser-xss-filter" title="Permalink to this headline">¶</a></h3>
 <p>Default: <code class="docutils literal"><span class="pre">False</span></code></p>
-<p>If <code class="docutils literal"><span class="pre">True</span></code>, the <code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code> sets
+<p>If <code class="docutils literal"><span class="pre">True</span></code>, the <a class="reference internal" href="chapter_19.html#django.middleware.security.SecurityMiddleware" title="django.middleware.security.SecurityMiddleware"><code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code></a> sets
 the xss protection header on all responses that do not already have it.</p>
 </div>
 <div class="section" id="secure-content-type-nosniff">
 <h3>SECURE_CONTENT_TYPE_NOSNIFF<a class="headerlink" href="#secure-content-type-nosniff" title="Permalink to this headline">¶</a></h3>
 <p>Default: <code class="docutils literal"><span class="pre">False</span></code></p>
-<p>If <code class="docutils literal"><span class="pre">True</span></code>, the <code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code>
+<p>If <code class="docutils literal"><span class="pre">True</span></code>, the <a class="reference internal" href="chapter_19.html#django.middleware.security.SecurityMiddleware" title="django.middleware.security.SecurityMiddleware"><code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code></a>
 sets the x content type options header on all responses that do not
 already have it.</p>
 </div>
 <div class="section" id="secure-hsts-include-subdomains">
 <h3>SECURE_HSTS_INCLUDE_SUBDOMAINS<a class="headerlink" href="#secure-hsts-include-subdomains" title="Permalink to this headline">¶</a></h3>
 <p>Default: <code class="docutils literal"><span class="pre">False</span></code></p>
-<p>If <code class="docutils literal"><span class="pre">True</span></code>, the <code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code> adds
+<p>If <code class="docutils literal"><span class="pre">True</span></code>, the <a class="reference internal" href="chapter_19.html#django.middleware.security.SecurityMiddleware" title="django.middleware.security.SecurityMiddleware"><code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code></a> adds
 the <code class="docutils literal"><span class="pre">includeSubDomains</span></code> tag to the http-strict-transport-security
 header. It has no effect unless <code class="docutils literal"><span class="pre">SECURE_HSTS_SECONDS</span></code> is set to a
 non-zero value.</p>
@@ -1518,7 +1518,7 @@ Read the http-strict-transport-security documentation first.</p>
 <h3>SECURE_HSTS_SECONDS<a class="headerlink" href="#secure-hsts-seconds" title="Permalink to this headline">¶</a></h3>
 <p>Default: <code class="docutils literal"><span class="pre">0</span></code></p>
 <p>If set to a non-zero integer value, the
-<code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code> sets the
+<a class="reference internal" href="chapter_19.html#django.middleware.security.SecurityMiddleware" title="django.middleware.security.SecurityMiddleware"><code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code></a> sets the
 http-strict-transport-security header on all responses that do not
 already have it.</p>
 <div class="admonition warning">
@@ -1596,7 +1596,7 @@ setting has no effect.</p>
 <div class="section" id="secure-ssl-redirect">
 <h3>SECURE_SSL_REDIRECT<a class="headerlink" href="#secure-ssl-redirect" title="Permalink to this headline">¶</a></h3>
 <p>Default: <code class="docutils literal"><span class="pre">False</span></code>.</p>
-<p>If <code class="docutils literal"><span class="pre">True</span></code>, the <code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code>
+<p>If <code class="docutils literal"><span class="pre">True</span></code>, the <a class="reference internal" href="chapter_19.html#django.middleware.security.SecurityMiddleware" title="django.middleware.security.SecurityMiddleware"><code class="xref py py-class docutils literal"><span class="pre">SecurityMiddleware</span></code></a>
 redirects all non-HTTPS requests to HTTPS (except for
 those URLs matching a regular expression listed in
 <code class="docutils literal"><span class="pre">SECURE_REDIRECT_EXEMPT</span></code>).</p>
@@ -1914,7 +1914,7 @@ and <code class="docutils literal"><span class="pre">MONTH_DAY_FORMAT</span></co
 <h3>X_FRAME_OPTIONS<a class="headerlink" href="#x-frame-options" title="Permalink to this headline">¶</a></h3>
 <p>Default: <code class="docutils literal"><span class="pre">'SAMEORIGIN'</span></code></p>
 <p>The default value for the X-Frame-Options header used by
-<code class="xref py py-class docutils literal"><span class="pre">XFrameOptionsMiddleware</span></code>. See the
+<a class="reference internal" href="chapter_19.html#django.middleware.clickjacking.XFrameOptionsMiddleware" title="django.middleware.clickjacking.XFrameOptionsMiddleware"><code class="xref py py-class docutils literal"><span class="pre">XFrameOptionsMiddleware</span></code></a>. See the
 clickjacking protection  documentation.</p>
 </div>
 </div>

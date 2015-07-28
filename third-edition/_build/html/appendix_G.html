@@ -209,7 +209,7 @@ else:
 </pre></div>
 </div>
 <p><code class="docutils literal"><span class="pre">user</span></code> is only available if your Django installation has the
-<code class="xref py py-class docutils literal"><span class="pre">AuthenticationMiddleware</span></code>
+<a class="reference internal" href="chapter_19.html#django.contrib.auth.middleware.AuthenticationMiddleware" title="django.contrib.auth.middleware.AuthenticationMiddleware"><code class="xref py py-class docutils literal"><span class="pre">AuthenticationMiddleware</span></code></a>
 activated.</p>
 </dd></dl>
 
@@ -278,8 +278,8 @@ the proxy headers, as in the following example:</p>
 </div>
 <p class="last">This middleware should be positioned before any other middleware that
 relies on the value of <a class="reference internal" href="#HttpRequest.get_host" title="HttpRequest.get_host"><code class="xref py py-meth docutils literal"><span class="pre">get_host()</span></code></a> &#8211; for instance,
-<code class="xref py py-class docutils literal"><span class="pre">CommonMiddleware</span></code> or
-<code class="xref py py-class docutils literal"><span class="pre">CsrfViewMiddleware</span></code>.</p>
+<a class="reference internal" href="chapter_19.html#django.middleware.common.CommonMiddleware" title="django.middleware.common.CommonMiddleware"><code class="xref py py-class docutils literal"><span class="pre">CommonMiddleware</span></code></a> or
+<a class="reference internal" href="chapter_19.html#django.middleware.csrf.CsrfViewMiddleware" title="django.middleware.csrf.CsrfViewMiddleware"><code class="xref py py-class docutils literal"><span class="pre">CsrfViewMiddleware</span></code></a>.</p>
 </div>
 </dd></dl>
 
@@ -352,7 +352,7 @@ checking the <code class="docutils literal"><span class="pre">HTTP_X_REQUESTED_W
 If you write your own XMLHttpRequest call (on the browser side), you&#8217;ll
 have to set this header manually if you want <code class="docutils literal"><span class="pre">is_ajax()</span></code> to work.</p>
 <p>If a response varies on whether or not it&#8217;s requested via AJAX and you are
-using some form of caching like Django&#8217;s <code class="xref py py-mod docutils literal"><span class="pre">cache</span> <span class="pre">middleware</span></code>, you should decorate the view with
+using some form of caching like Django&#8217;s <a class="reference internal" href="chapter_19.html#module-django.middleware.cache" title="django.middleware.cache: Middleware for the site-wide cache."><code class="xref py py-mod docutils literal"><span class="pre">cache</span> <span class="pre">middleware</span></code></a>, you should decorate the view with
 <code class="xref py py-func docutils literal"><span class="pre">vary_on_headers('HTTP_X_REQUESTED_WITH')</span></code> so that the responses are
 properly cached.</p>
 </dd></dl>

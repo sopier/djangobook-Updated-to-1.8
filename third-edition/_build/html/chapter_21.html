@@ -1,0 +1,1242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Chapter 21: Security in Django &mdash; New Django Book v0.1 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="next" title="Appendix A: Model Definition Reference" href="appendix_A.html" />
+    <link rel="prev" title="Chapter 20: Internationalization" href="chapter_20.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="chapter-21-security-in-django">
+<h1>Chapter 21: Security in Django<a class="headerlink" href="#chapter-21-security-in-django" title="Permalink to this headline">¶</a></h1>
+<p>This document is an overview of Django&#8217;s security features. It includes advice
+on securing a Django-powered site.</p>
+<div class="section" id="cross-site-scripting-xss-protection">
+<span id="cross-site-scripting"></span><h2>Cross site scripting (XSS) protection<a class="headerlink" href="#cross-site-scripting-xss-protection" title="Permalink to this headline">¶</a></h2>
+<p>XSS attacks allow a user to inject client side scripts into the browsers of
+other users. This is usually achieved by storing the malicious scripts in the
+database where it will be retrieved and displayed to other users, or by getting
+users to click a link which will cause the attacker&#8217;s JavaScript to be executed
+by the user&#8217;s browser. However, XSS attacks can originate from any untrusted
+source of data, such as cookies or Web services, whenever the data is not
+sufficiently sanitized before including in a page.</p>
+<p>Using Django templates protects you against the majority of XSS attacks.
+However, it is important to understand what protections it provides
+and its limitations.</p>
+<p>Django templates escape specific characters
+which are particularly dangerous to HTML. While this protects users from most
+malicious input, it is not entirely foolproof. For example, it will not
+protect the following:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&lt;style class={{ var }}&gt;...&lt;/style&gt;
+</pre></div>
+</div>
+<p>If <code class="docutils literal"><span class="pre">var</span></code> is set to <code class="docutils literal"><span class="pre">'class1</span> <span class="pre">onmouseover=javascript:func()'</span></code>, this can result
+in unauthorized JavaScript execution, depending on how the browser renders
+imperfect HTML. (Quoting the attribute value would fix this case.)</p>
+<p>It is also important to be particularly careful when using <code class="docutils literal"><span class="pre">is_safe</span></code> with
+custom template tags, the <code class="docutils literal"><span class="pre">safe</span></code> template tag, <code class="xref py py-mod docutils literal"><span class="pre">mark_safe</span></code>, and when autoescape is turned off.</p>
+<p>In addition, if you are using the template system to output something other
+than HTML, there may be entirely separate characters and words which require
+escaping.</p>
+<p>You should also be very careful when storing HTML in the database, especially
+when that HTML is retrieved and displayed.</p>
+</div>
+<div class="section" id="cross-site-request-forgery-csrf-protection">
+<h2>Cross site request forgery (CSRF) protection<a class="headerlink" href="#cross-site-request-forgery-csrf-protection" title="Permalink to this headline">¶</a></h2>
+<p>CSRF attacks allow a malicious user to execute actions using the credentials
+of another user without that user&#8217;s knowledge or consent.</p>
+<p>Django has built-in protection against most types of CSRF attacks, providing you
+have enabled and used it  where appropriate. However, as with
+any mitigation technique, there are limitations. For example, it is possible to
+disable the CSRF module globally or for particular views. You should only do
+this if you know what you are doing. There are other limitations
+if your site has subdomains that are outside of your
+control.</p>
+<p>CSRF protection works  by checking for a nonce in each
+POST request. This ensures that a malicious user cannot simply &#8220;replay&#8221; a form
+POST to your Web site and have another logged in user unwittingly submit that
+form. The malicious user would have to know the nonce, which is user specific
+(using a cookie).</p>
+<p>When deployed with HTTPS ,
+<code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code> will check that the HTTP referer header is set to a
+URL on the same origin (including subdomain and port). Because HTTPS
+provides additional security, it is imperative to ensure connections use HTTPS
+where it is available by forwarding insecure connection requests and using
+HSTS for supported browsers.</p>
+<p>Be very careful with marking views with the <code class="docutils literal"><span class="pre">csrf_exempt</span></code> decorator unless
+it is absolutely necessary.</p>
+</div>
+<div class="section" id="sql-injection-protection">
+<span id="id1"></span><h2>SQL injection protection<a class="headerlink" href="#sql-injection-protection" title="Permalink to this headline">¶</a></h2>
+<p>SQL injection is a type of attack where a malicious user is able to execute
+arbitrary SQL code on a database. This can result in records
+being deleted or data leakage.</p>
+<p>By using Django&#8217;s querysets, the resulting SQL will be properly escaped by
+the underlying database driver. However, Django also gives developers power to
+write raw queries  or execute
+custom sql . These capabilities should be used
+sparingly and you should always be careful to properly escape any parameters
+that the user can control. In addition, you should exercise caution when using
+<code class="xref py py-meth docutils literal"><span class="pre">extra()</span></code>.</p>
+</div>
+<div class="section" id="clickjacking-protection">
+<h2>Clickjacking protection<a class="headerlink" href="#clickjacking-protection" title="Permalink to this headline">¶</a></h2>
+<p>Clickjacking is a type of attack where a malicious site wraps another site
+in a frame. This attack can result in an unsuspecting user being tricked
+into performing unintended actions on the target site.</p>
+<p>Django contains clickjacking protection  in
+the form of the
+<a class="reference internal" href="chapter_19.html#django.middleware.clickjacking.XFrameOptionsMiddleware" title="django.middleware.clickjacking.XFrameOptionsMiddleware"><code class="xref py py-mod docutils literal"><span class="pre">X-Frame-Options</span> <span class="pre">middleware</span></code></a>
+which in a supporting browser can prevent a site from being rendered inside
+a frame. It is possible to disable the protection on a per view basis
+or to configure the exact header value sent.</p>
+<p>The middleware is strongly recommended for any site that does not need to have
+its pages wrapped in a frame by third party sites, or only needs to allow that
+for a small section of the site.</p>
+</div>
+<div class="section" id="ssl-https">
+<span id="security-recommendation-ssl"></span><h2>SSL/HTTPS<a class="headerlink" href="#ssl-https" title="Permalink to this headline">¶</a></h2>
+<p>It is always better for security, though not always practical in all cases, to
+deploy your site behind HTTPS. Without this, it is possible for malicious
+network users to sniff authentication credentials or any other information
+transferred between client and server, and in some cases &#8211; <strong>active</strong> network
+attackers &#8211; to alter data that is sent in either direction.</p>
+<p>If you want the protection that HTTPS provides, and have enabled it on your
+server, there are some additional steps you may need:</p>
+<ul>
+<li><p class="first">If necessary, set <code class="docutils literal"><span class="pre">SECURE_PROXY_SSL_HEADER</span></code>, ensuring that you have
+understood the warnings there thoroughly. Failure to do this can result
+in CSRF vulnerabilities, and failure to do it correctly can also be
+dangerous!</p>
+</li>
+<li><p class="first">Set up redirection so that requests over HTTP are redirected to HTTPS.</p>
+<p>This could be done using a custom middleware. Please note the caveats under
+<code class="docutils literal"><span class="pre">SECURE_PROXY_SSL_HEADER</span></code>. For the case of a reverse proxy, it may be
+easier or more secure to configure the main Web server to do the redirect to
+HTTPS.</p>
+</li>
+<li><p class="first">Use &#8216;secure&#8217; cookies.</p>
+<p>If a browser connects initially via HTTP, which is the default for most
+browsers, it is possible for existing cookies to be leaked. For this reason,
+you should set your <code class="docutils literal"><span class="pre">SESSION_COOKIE_SECURE</span></code> and
+<code class="docutils literal"><span class="pre">CSRF_COOKIE_SECURE</span></code> settings to <code class="docutils literal"><span class="pre">True</span></code>. This instructs the browser
+to only send these cookies over HTTPS connections. Note that this will mean
+that sessions will not work over HTTP, and the CSRF protection will prevent
+any POST data being accepted over HTTP (which will be fine if you are
+redirecting all HTTP traffic to HTTPS).</p>
+</li>
+<li><p class="first">Use HTTP Strict Transport Security (HSTS)</p>
+<p>HSTS is an HTTP header that informs a browser that all future connections
+to a particular site should always use HTTPS. Combined with redirecting
+requests over HTTP to HTTPS, this will ensure that connections always enjoy
+the added security of SSL provided one successful connection has occurred.
+HSTS is usually configured on the web server.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="host-header-validation">
+<span id="host-headers-virtual-hosting"></span><h2>Host header validation<a class="headerlink" href="#host-header-validation" title="Permalink to this headline">¶</a></h2>
+<p>Django uses the <code class="docutils literal"><span class="pre">Host</span></code> header provided by the client to construct URLs in
+certain cases. While these values are sanitized to prevent Cross Site Scripting
+attacks, a fake <code class="docutils literal"><span class="pre">Host</span></code> value can be used for Cross-Site Request Forgery,
+cache poisoning attacks, and poisoning links in emails.</p>
+<p>Because even seemingly-secure web server configurations are susceptible to fake
+<code class="docutils literal"><span class="pre">Host</span></code> headers, Django validates <code class="docutils literal"><span class="pre">Host</span></code> headers against the
+<code class="docutils literal"><span class="pre">ALLOWED_HOSTS</span></code> setting in the
+<code class="xref py py-meth docutils literal"><span class="pre">django.http.HttpRequest.get_host()</span></code> method.</p>
+<p>This validation only applies via <code class="xref py py-meth docutils literal"><span class="pre">get_host()</span></code>;
+if your code accesses the <code class="docutils literal"><span class="pre">Host</span></code> header directly from <code class="docutils literal"><span class="pre">request.META</span></code> you
+are bypassing this security protection.</p>
+<p>For more details see the full <code class="docutils literal"><span class="pre">ALLOWED_HOSTS</span></code> documentation.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Previous versions of this document recommended configuring your web server to
+ensure it validates incoming HTTP <code class="docutils literal"><span class="pre">Host</span></code> headers. While this is still
+recommended, in many common web servers a configuration that seems to
+validate the <code class="docutils literal"><span class="pre">Host</span></code> header may not in fact do so. For instance, even if
+Apache is configured such that your Django site is served from a non-default
+virtual host with the <code class="docutils literal"><span class="pre">ServerName</span></code> set, it is still possible for an HTTP
+request to match this virtual host and supply a fake <code class="docutils literal"><span class="pre">Host</span></code> header. Thus,
+Django now requires that you set <code class="docutils literal"><span class="pre">ALLOWED_HOSTS</span></code> explicitly rather
+than relying on web server configuration.</p>
+</div>
+<p>Additionally, as of 1.3.1, Django requires you to explicitly enable support for
+the <code class="docutils literal"><span class="pre">X-Forwarded-Host</span></code> header (via the <code class="docutils literal"><span class="pre">USE_X_FORWARDED_HOST</span></code>
+setting) if your configuration requires it.</p>
+</div>
+<div class="section" id="session-security">
+<h2>Session security<a class="headerlink" href="#session-security" title="Permalink to this headline">¶</a></h2>
+<p>Similar to the CSRF limitations  requiring a site to
+be deployed such that untrusted users don&#8217;t have access to any subdomains,
+<code class="xref py py-mod docutils literal"><span class="pre">django.contrib.sessions</span></code> also has limitations. See the session
+topic guide section on security for details.</p>
+</div>
+<div class="section" id="user-uploaded-content">
+<span id="user-uploaded-content-security"></span><h2>User-uploaded content<a class="headerlink" href="#user-uploaded-content" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Consider serving static files from a cloud service or CDN
+to avoid some of these issues.</p>
+</div>
+<ul>
+<li><p class="first">If your site accepts file uploads, it is strongly advised that you limit
+these uploads in your Web server configuration to a reasonable
+size in order to prevent denial of service (DOS) attacks. In Apache, this
+can be easily set using the <a class="reference external" href="http://httpd.apache.org/docs/2.2/mod/core.html#limitrequestbody">LimitRequestBody</a> directive.</p>
+</li>
+<li><p class="first">If you are serving your own static files, be sure that handlers like Apache&#8217;s
+<code class="docutils literal"><span class="pre">mod_php</span></code>, which would execute static files as code, are disabled. You don&#8217;t
+want users to be able to execute arbitrary code by uploading and requesting a
+specially crafted file.</p>
+</li>
+<li><p class="first">Django&#8217;s media upload handling poses some vulnerabilities when that media is
+served in ways that do not follow security best practices. Specifically, an
+HTML file can be uploaded as an image if that file contains a valid PNG
+header followed by malicious HTML. This file will pass verification of the
+library that Django uses for <a class="reference internal" href="appendix_A.html#django.db.models.ImageField" title="django.db.models.ImageField"><code class="xref py py-class docutils literal"><span class="pre">ImageField</span></code></a> image
+processing (Pillow). When this file is subsequently displayed to a
+user, it may be displayed as HTML depending on the type and configuration of
+your web server.</p>
+<p>No bulletproof technical solution exists at the framework level to safely
+validate all user uploaded file content, however, there are some other steps
+you can take to mitigate these attacks:</p>
+<ol class="arabic simple">
+<li>One class of attacks can be prevented by always serving user uploaded
+content from a distinct top-level or second-level domain. This prevents
+any exploit blocked by <a class="reference external" href="http://en.wikipedia.org/wiki/Same-origin_policy">same-origin policy</a> protections such as cross
+site scripting. For example, if your site runs on <code class="docutils literal"><span class="pre">example.com</span></code>, you
+would want to serve uploaded content (the <code class="docutils literal"><span class="pre">MEDIA_URL</span></code> setting)
+from something like <code class="docutils literal"><span class="pre">usercontent-example.com</span></code>. It&#8217;s <em>not</em> sufficient to
+serve content from a subdomain like <code class="docutils literal"><span class="pre">usercontent.example.com</span></code>.</li>
+<li>Beyond this, applications may choose to define a whitelist of allowable
+file extensions for user uploaded files and configure the web server
+to only serve such files.</li>
+</ol>
+</li>
+</ul>
+</div>
+<div class="section" id="additional-security-topics">
+<span id="id2"></span><h2>Additional security topics<a class="headerlink" href="#additional-security-topics" title="Permalink to this headline">¶</a></h2>
+<p>While Django provides good security protection out of the box, it is still
+important to properly deploy your application and take advantage of the
+security protection of the Web server, operating system and other components.</p>
+<ul class="simple">
+<li>Make sure that your Python code is outside of the Web server&#8217;s root. This
+will ensure that your Python code is not accidentally served as plain text
+(or accidentally executed).</li>
+<li>Take care with any user uploaded files .</li>
+<li>Django does not throttle requests to authenticate users. To protect against
+brute-force attacks against the authentication system, you may consider
+deploying a Django plugin or Web server module to throttle these requests.</li>
+<li>Keep your <code class="docutils literal"><span class="pre">SECRET_KEY</span></code> a secret.</li>
+<li>It is a good idea to limit the accessibility of your caching system and
+database using a firewall.</li>
+</ul>
+</div>
+<div class="section" id="archive-of-security-issues">
+<h2>Archive of security issues<a class="headerlink" href="#archive-of-security-issues" title="Permalink to this headline">¶</a></h2>
+<p>Django&#8217;s development team is strongly committed to responsible reporting and
+disclosure of security-related issues, as outlined in Django&#8217;s security
+policies.</p>
+<p>As part of that commitment, they maintain an historical list of issues which
+have been fixed and disclosed. For the up to date list, see <a class="reference external" href="https://docs.djangoproject.com/en/1.8/releases/security/">https://docs.djangoproject.com/en/1.8/releases/security/</a></p>
+</div>
+<div class="section" id="id3">
+<h2>Clickjacking Protection<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-django.middleware.clickjacking"></span><p>The clickjacking middleware and decorators provide easy-to-use protection
+against <a class="reference external" href="http://en.wikipedia.org/wiki/Clickjacking">clickjacking</a>.  This type of attack occurs when a malicious site
+tricks a user into clicking on a concealed element of another site which they
+have loaded in a hidden frame or iframe.</p>
+<div class="section" id="an-example-of-clickjacking">
+<h3>An example of clickjacking<a class="headerlink" href="#an-example-of-clickjacking" title="Permalink to this headline">¶</a></h3>
+<p>Suppose an online store has a page where a logged in user can click &#8220;Buy Now&#8221; to
+purchase an item. A user has chosen to stay logged into the store all the time
+for convenience. An attacker site might create an &#8220;I Like Ponies&#8221; button on one
+of their own pages, and load the store&#8217;s page in a transparent iframe such that
+the &#8220;Buy Now&#8221; button is invisibly overlaid on the &#8220;I Like Ponies&#8221; button. If the
+user visits the attacker&#8217;s site, clicking &#8220;I Like Ponies&#8221; will cause an
+inadvertent click on the &#8220;Buy Now&#8221; button and an unknowing purchase of the item.</p>
+</div>
+<div class="section" id="preventing-clickjacking">
+<span id="clickjacking-prevention"></span><h3>Preventing clickjacking<a class="headerlink" href="#preventing-clickjacking" title="Permalink to this headline">¶</a></h3>
+<p>Modern browsers honor the <a class="reference external" href="https://developer.mozilla.org/en/The_X-FRAME-OPTIONS_response_header">X-Frame-Options</a> HTTP header that indicates whether
+or not a resource is allowed to load within a frame or iframe. If the response
+contains the header with a value of <code class="docutils literal"><span class="pre">SAMEORIGIN</span></code> then the browser will only
+load the resource in a frame if the request originated from the same site. If
+the header is set to <code class="docutils literal"><span class="pre">DENY</span></code> then the browser will block the resource from
+loading in a frame no matter which site made the request.</p>
+<p>Django provides a few simple ways to include this header in responses from your
+site:</p>
+<ol class="arabic simple">
+<li>A simple middleware that sets the header in all responses.</li>
+<li>A set of view decorators that can be used to override the middleware or to
+only set the header for certain views.</li>
+</ol>
+</div>
+<div class="section" id="how-to-use-it">
+<h3>How to use it<a class="headerlink" href="#how-to-use-it" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="setting-x-frame-options-for-all-responses">
+<h4>Setting X-Frame-Options for all responses<a class="headerlink" href="#setting-x-frame-options-for-all-responses" title="Permalink to this headline">¶</a></h4>
+<p>To set the same <code class="docutils literal"><span class="pre">X-Frame-Options</span></code> value for all responses in your site, put
+<code class="docutils literal"><span class="pre">'django.middleware.clickjacking.XFrameOptionsMiddleware'</span></code> to
+<code class="docutils literal"><span class="pre">MIDDLEWARE_CLASSES</span></code>:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>MIDDLEWARE_CLASSES = [
+    ...
+    &#39;django.middleware.clickjacking.XFrameOptionsMiddleware&#39;,
+    ...
+]
+</pre></div>
+</div>
+<p>This middleware is enabled in the settings file generated by
+<code class="docutils literal"><span class="pre">startproject</span></code>.</p>
+<p>By default, the middleware will set the <code class="docutils literal"><span class="pre">X-Frame-Options</span></code> header to
+<code class="docutils literal"><span class="pre">SAMEORIGIN</span></code> for every outgoing <code class="docutils literal"><span class="pre">HttpResponse</span></code>. If you want <code class="docutils literal"><span class="pre">DENY</span></code>
+instead, set the <code class="docutils literal"><span class="pre">X_FRAME_OPTIONS</span></code> setting:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>X_FRAME_OPTIONS = &#39;DENY&#39;
+</pre></div>
+</div>
+<p>When using the middleware there may be some views where you do <strong>not</strong> want the
+<code class="docutils literal"><span class="pre">X-Frame-Options</span></code> header set. For those cases, you can use a view decorator
+that tells the middleware not to set the header:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>from django.http import HttpResponse
+from django.views.decorators.clickjacking import xframe_options_exempt
+
+@xframe_options_exempt
+def ok_to_load_in_a_frame(request):
+    return HttpResponse(&quot;This page is safe to load in a frame on any site.&quot;)
+</pre></div>
+</div>
+</div>
+<div class="section" id="setting-x-frame-options-per-view">
+<h4>Setting X-Frame-Options per view<a class="headerlink" href="#setting-x-frame-options-per-view" title="Permalink to this headline">¶</a></h4>
+<p>To set the <code class="docutils literal"><span class="pre">X-Frame-Options</span></code> header on a per view basis, Django provides these
+decorators:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>from django.http import HttpResponse
+from django.views.decorators.clickjacking import xframe_options_deny
+from django.views.decorators.clickjacking import xframe_options_sameorigin
+
+@xframe_options_deny
+def view_one(request):
+    return HttpResponse(&quot;I won&#39;t display in any frame!&quot;)
+
+@xframe_options_sameorigin
+def view_two(request):
+    return HttpResponse(&quot;Display in a frame if it&#39;s from the same origin as me.&quot;)
+</pre></div>
+</div>
+<p>Note that you can use the decorators in conjunction with the middleware. Use of
+a decorator overrides the middleware.</p>
+</div>
+</div>
+<div class="section" id="limitations">
+<h3>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">X-Frame-Options</span></code> header will only protect against clickjacking in a
+modern browser. Older browsers will quietly ignore the header and need <a class="reference external" href="http://en.wikipedia.org/wiki/Clickjacking#Prevention">other
+clickjacking prevention techniques</a>.</p>
+<div class="section" id="browsers-that-support-x-frame-options">
+<h4>Browsers that support X-Frame-Options<a class="headerlink" href="#browsers-that-support-x-frame-options" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Internet Explorer 8+</li>
+<li>Firefox 3.6.9+</li>
+<li>Opera 10.5+</li>
+<li>Safari 4+</li>
+<li>Chrome 4.1+</li>
+</ul>
+</div>
+<div class="section" id="see-also">
+<h4>See also<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h4>
+<p>A <a class="reference external" href="https://developer.mozilla.org/en/The_X-FRAME-OPTIONS_response_header#Browser_compatibility">complete list</a> of browsers supporting <code class="docutils literal"><span class="pre">X-Frame-Options</span></code>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="module-django.middleware.csrf">
+<span id="cross-site-request-forgery-protection"></span><h2>Cross Site Request Forgery protection<a class="headerlink" href="#module-django.middleware.csrf" title="Permalink to this headline">¶</a></h2>
+<p>The CSRF middleware and template tag provides easy-to-use protection against
+<a class="reference external" href="http://www.squarefree.com/securitytips/web-developers.html#CSRF">Cross Site Request Forgeries</a>.  This type of attack occurs when a malicious
+Web site contains a link, a form button or some javascript that is intended to
+perform some action on your Web site, using the credentials of a logged-in user
+who visits the malicious site in their browser.  A related type of attack,
+&#8216;login CSRF&#8217;, where an attacking site tricks a user&#8217;s browser into logging into
+a site with someone else&#8217;s credentials, is also covered.</p>
+<p>The first defense against CSRF attacks is to ensure that GET requests (and other
+&#8216;safe&#8217; methods, as defined by 9.1.1 Safe Methods, HTTP 1.1,
+<span class="target" id="index-0"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2616.html#section-9.1.1"><strong>RFC 2616#section-9.1.1</strong></a>) are side-effect free. Requests via &#8216;unsafe&#8217; methods,
+such as POST, PUT and DELETE, can then be protected by following the steps
+below.</p>
+<div class="section" id="using-csrf">
+<span id="id4"></span><h3>How to use it<a class="headerlink" href="#using-csrf" title="Permalink to this headline">¶</a></h3>
+<p>To take advantage of CSRF protection in your views, follow these steps:</p>
+<ol class="arabic">
+<li><p class="first">The CSRF middleware is activated by default in the
+<code class="docutils literal"><span class="pre">MIDDLEWARE_CLASSES</span></code> setting. If you override that setting, remember
+that <code class="docutils literal"><span class="pre">'django.middleware.csrf.CsrfViewMiddleware'</span></code> should come before any
+view middleware that assume that CSRF attacks have been dealt with.</p>
+<p>If you disabled it, which is not recommended, you can use
+<a class="reference internal" href="#django.views.decorators.csrf.csrf_protect" title="django.views.decorators.csrf.csrf_protect"><code class="xref py py-func docutils literal"><span class="pre">csrf_protect()</span></code></a> on particular views
+you want to protect (see below).</p>
+</li>
+<li><p class="first">In any template that uses a POST form, use the <code class="docutils literal"><span class="pre">csrf_token</span></code> tag inside
+the <code class="docutils literal"><span class="pre">&lt;form&gt;</span></code> element if the form is for an internal URL, e.g.:</p>
+<div class="highlight-html+django"><div class="highlight"><pre><span class="nt">&lt;form</span> <span class="na">action=</span><span class="s">&quot;.&quot;</span> <span class="na">method=</span><span class="s">&quot;post&quot;</span><span class="nt">&gt;</span><span class="cp">{%</span> <span class="k">csrf_token</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+<p>This should not be done for POST forms that target external URLs, since
+that would cause the CSRF token to be leaked, leading to a vulnerability.</p>
+</li>
+<li><p class="first">In the corresponding view functions, ensure that the
+<code class="docutils literal"><span class="pre">'django.template.context_processors.csrf'</span></code> context processor is
+being used. Usually, this can be done in one of two ways:</p>
+<ol class="arabic">
+<li><p class="first">Use RequestContext, which always uses
+<code class="docutils literal"><span class="pre">'django.template.context_processors.csrf'</span></code> (no matter what template
+context processors are configured in the <code class="docutils literal"><span class="pre">TEMPLATES</span></code> setting).
+If you are using generic views or contrib apps, you are covered already,
+since these apps use RequestContext throughout.</p>
+</li>
+<li><p class="first">Manually import and use the processor to generate the CSRF token and
+add it to the template context. e.g.:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>from django.shortcuts import render_to_response
+from django.template.context_processors import csrf
+
+def my_view(request):
+    c = {}
+    c.update(csrf(request))
+    # ... view code here
+    return render_to_response(&quot;a_template.html&quot;, c)
+</pre></div>
+</div>
+<p>You may want to write your own
+<code class="xref py py-func docutils literal"><span class="pre">render_to_response()</span></code> wrapper that takes care
+of this step for you.</p>
+</li>
+</ol>
+</li>
+</ol>
+</div>
+<div class="section" id="ajax">
+<span id="csrf-ajax"></span><h3>AJAX<a class="headerlink" href="#ajax" title="Permalink to this headline">¶</a></h3>
+<p>While the above method can be used for AJAX POST requests, it has some
+inconveniences: you have to remember to pass the CSRF token in as POST data with
+every POST request. For this reason, there is an alternative method: on each
+XMLHttpRequest, set a custom <code class="docutils literal"><span class="pre">X-CSRFToken</span></code> header to the value of the CSRF
+token. This is often easier, because many javascript frameworks provide hooks
+that allow headers to be set on every request.</p>
+<p>As a first step, you must get the CSRF token itself. The recommended source for
+the token is the <code class="docutils literal"><span class="pre">csrftoken</span></code> cookie, which will be set if you&#8217;ve enabled CSRF
+protection for your views as outlined above.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The CSRF token cookie is named <code class="docutils literal"><span class="pre">csrftoken</span></code> by default, but you can control
+the cookie name via the <code class="docutils literal"><span class="pre">CSRF_COOKIE_NAME</span></code> setting.</p>
+</div>
+<p>Acquiring the token is straightforward:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="c1">// using jQuery</span>
+<span class="kd">function</span> <span class="nx">getCookie</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">cookieValue</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span> <span class="o">&amp;&amp;</span> <span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">cookies</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">cookie</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">cookies</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">cookie</span> <span class="o">=</span> <span class="nx">jQuery</span><span class="p">.</span><span class="nx">trim</span><span class="p">(</span><span class="nx">cookies</span><span class="p">[</span><span class="nx">i</span><span class="p">]);</span>
+            <span class="c1">// Does this cookie string begin with the name we want?</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">cookie</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">name</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="nx">name</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span><span class="p">))</span> <span class="p">{</span>
+                <span class="nx">cookieValue</span> <span class="o">=</span> <span class="nb">decodeURIComponent</span><span class="p">(</span><span class="nx">cookie</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="nx">name</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">));</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">cookieValue</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">csrftoken</span> <span class="o">=</span> <span class="nx">getCookie</span><span class="p">(</span><span class="s1">&#39;csrftoken&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The above code could be simplified by using the <a class="reference external" href="http://plugins.jquery.com/cookie/">jQuery cookie plugin</a> to replace <code class="docutils literal"><span class="pre">getCookie</span></code>:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">csrftoken</span> <span class="o">=</span> <span class="nx">$</span><span class="p">.</span><span class="nx">cookie</span><span class="p">(</span><span class="s1">&#39;csrftoken&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The CSRF token is also present in the DOM, but only if explicitly included
+using <code class="docutils literal"><span class="pre">csrf_token</span></code> in a template. The cookie contains the canonical
+token; the <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code> will prefer the cookie to the token in
+the DOM. Regardless, you&#8217;re guaranteed to have the cookie if the token is
+present in the DOM, so you should use the cookie!</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If your view is not rendering a template containing the <code class="docutils literal"><span class="pre">csrf_token</span></code>
+template tag, Django might not set the CSRF token cookie. This is common in
+cases where forms are dynamically added to the page. To address this case,
+Django provides a view decorator which forces setting of the cookie:
+<a class="reference internal" href="#django.views.decorators.csrf.ensure_csrf_cookie" title="django.views.decorators.csrf.ensure_csrf_cookie"><code class="xref py py-func docutils literal"><span class="pre">ensure_csrf_cookie()</span></code></a>.</p>
+</div>
+<p>Finally, you&#8217;ll have to actually set the header on your AJAX request, while
+protecting the CSRF token from being sent to other domains using
+<a class="reference external" href="http://api.jquery.com/jQuery.ajax">settings.crossDomain</a> in jQuery 1.5.1 and
+newer:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span class="kd">function</span> <span class="nx">csrfSafeMethod</span><span class="p">(</span><span class="nx">method</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// these HTTP methods do not require CSRF protection</span>
+    <span class="k">return</span> <span class="p">(</span><span class="sr">/^(GET|HEAD|OPTIONS|TRACE)$/</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">method</span><span class="p">));</span>
+<span class="p">}</span>
+<span class="nx">$</span><span class="p">.</span><span class="nx">ajaxSetup</span><span class="p">({</span>
+    <span class="nx">beforeSend</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">xhr</span><span class="p">,</span> <span class="nx">settings</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">csrfSafeMethod</span><span class="p">(</span><span class="nx">settings</span><span class="p">.</span><span class="nx">type</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">crossDomain</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">xhr</span><span class="p">.</span><span class="nx">setRequestHeader</span><span class="p">(</span><span class="s2">&quot;X-CSRFToken&quot;</span><span class="p">,</span> <span class="nx">csrftoken</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="other-template-engines">
+<h3>Other template engines<a class="headerlink" href="#other-template-engines" title="Permalink to this headline">¶</a></h3>
+<p>When using a different template engine than Django&#8217;s built-in engine, you can
+set the token in your forms manually after making sure it&#8217;s available in the
+template context.</p>
+<p>For example, in the Jinja2 template language, your form could contain the
+following:</p>
+<div class="highlight-html"><div class="highlight"><pre><span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;display:none&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;hidden&quot;</span> <span class="na">name=</span><span class="s">&quot;csrfmiddlewaretoken&quot;</span> <span class="na">value=</span><span class="s">&quot;{{ csrf_token }}&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+</div>
+<p>You can use JavaScript similar to the AJAX code  above to get
+the value of the CSRF token.</p>
+</div>
+<div class="section" id="module-django.views.decorators.csrf">
+<span id="the-decorator-method"></span><h3>The decorator method<a class="headerlink" href="#module-django.views.decorators.csrf" title="Permalink to this headline">¶</a></h3>
+<p>Rather than adding <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code> as a blanket protection, you can use
+the <code class="docutils literal"><span class="pre">csrf_protect</span></code> decorator, which has exactly the same functionality, on
+particular views that need the protection. It must be used <strong>both</strong> on views
+that insert the CSRF token in the output, and on those that accept the POST form
+data. (These are often the same view function, but not always).</p>
+<p>Use of the decorator by itself is <strong>not recommended</strong>, since if you forget to
+use it, you will have a security hole. The &#8216;belt and braces&#8217; strategy of using
+both is fine, and will incur minimal overhead.</p>
+<dl class="function">
+<dt id="django.views.decorators.csrf.csrf_protect">
+<code class="descclassname">django.views.decorators.csrf.</code><code class="descname">csrf_protect</code><span class="sig-paren">(</span><em>view</em><span class="sig-paren">)</span><a class="headerlink" href="#django.views.decorators.csrf.csrf_protect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator that provides the protection of <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code> to a view.</p>
+<p>Usage:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>from django.views.decorators.csrf import csrf_protect
+from django.shortcuts import render
+
+@csrf_protect
+def my_view(request):
+    c = {}
+    # ...
+    return render(request, &quot;a_template.html&quot;, c)
+</pre></div>
+</div>
+<p>If you are using class-based views, you can refer to
+Decorating class-based views.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="rejected-requests">
+<h2>Rejected requests<a class="headerlink" href="#rejected-requests" title="Permalink to this headline">¶</a></h2>
+<p>By default, a &#8216;403 Forbidden&#8217; response is sent to the user if an incoming
+request fails the checks performed by <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code>.  This should
+usually only be seen when there is a genuine Cross Site Request Forgery, or
+when, due to a programming error, the CSRF token has not been included with a
+POST form.</p>
+<p>The error page, however, is not very friendly, so you may want to provide your
+own view for handling this condition.  To do this, simply set the
+<code class="docutils literal"><span class="pre">CSRF_FAILURE_VIEW</span></code> setting.</p>
+<div class="section" id="how-it-works">
+<span id="how-csrf-works"></span><h3>How it works<a class="headerlink" href="#how-it-works" title="Permalink to this headline">¶</a></h3>
+<p>The CSRF protection is based on the following things:</p>
+<ol class="arabic">
+<li><p class="first">A CSRF cookie that is set to a random value (a session independent nonce, as
+it is called), which other sites will not have access to.</p>
+<p>This cookie is set by <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code>.  It is meant to be permanent,
+but since there is no way to set a cookie that never expires, it is sent with
+every response that has called <code class="docutils literal"><span class="pre">django.middleware.csrf.get_token()</span></code>
+(the function used internally to retrieve the CSRF token).</p>
+</li>
+<li><p class="first">A hidden form field with the name &#8216;csrfmiddlewaretoken&#8217; present in all
+outgoing POST forms.  The value of this field is the value of the CSRF
+cookie.</p>
+<p>This part is done by the template tag.</p>
+</li>
+<li><p class="first">For all incoming requests that are not using HTTP GET, HEAD, OPTIONS or
+TRACE, a CSRF cookie must be present, and the &#8216;csrfmiddlewaretoken&#8217; field
+must be present and correct. If it isn&#8217;t, the user will get a 403 error.</p>
+<p>This check is done by <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code>.</p>
+</li>
+<li><p class="first">In addition, for HTTPS requests, strict referer checking is done by
+<code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code>.  This is necessary to address a Man-In-The-Middle
+attack that is possible under HTTPS when using a session independent nonce,
+due to the fact that HTTP &#8216;Set-Cookie&#8217; headers are (unfortunately) accepted
+by clients that are talking to a site under HTTPS.  (Referer checking is not
+done for HTTP requests because the presence of the Referer header is not
+reliable enough under HTTP.)</p>
+</li>
+</ol>
+<p>This ensures that only forms that have originated from your Web site can be used
+to POST data back.</p>
+<p>It deliberately ignores GET requests (and other requests that are defined as
+&#8216;safe&#8217; by <span class="target" id="index-1"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2616.html"><strong>RFC 2616</strong></a>). These requests ought never to have any potentially
+dangerous side effects , and so a CSRF attack with a GET request ought to be
+harmless. <span class="target" id="index-2"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2616.html"><strong>RFC 2616</strong></a> defines POST, PUT and DELETE as &#8216;unsafe&#8217;, and all other
+methods are assumed to be unsafe, for maximum protection.</p>
+</div>
+</div>
+<div class="section" id="caching">
+<h2>Caching<a class="headerlink" href="#caching" title="Permalink to this headline">¶</a></h2>
+<p>If the <code class="docutils literal"><span class="pre">csrf_token</span></code> template tag is used by a template (or the
+<code class="docutils literal"><span class="pre">get_token</span></code> function is called some other way), <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code> will
+add a cookie and a <code class="docutils literal"><span class="pre">Vary:</span> <span class="pre">Cookie</span></code> header to the response. This means that the
+middleware will play well with the cache middleware if it is used as instructed
+(<code class="docutils literal"><span class="pre">UpdateCacheMiddleware</span></code> goes before all other middleware).</p>
+<p>However, if you use cache decorators on individual views, the CSRF middleware
+will not yet have been able to set the Vary header or the CSRF cookie, and the
+response will be cached without either one. In this case, on any views that
+will require a CSRF token to be inserted you should use the
+<a class="reference internal" href="#django.views.decorators.csrf.csrf_protect" title="django.views.decorators.csrf.csrf_protect"><code class="xref py py-func docutils literal"><span class="pre">django.views.decorators.csrf.csrf_protect()</span></code></a> decorator first:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_protect
+
+@cache_page(60 * 15)
+@csrf_protect
+def my_view(request):
+    ...
+</pre></div>
+</div>
+<p>If you are using class-based views, you can refer to Decorating
+class-based views.</p>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code> will usually be a big hindrance to testing view
+functions, due to the need for the CSRF token which must be sent with every POST
+request.  For this reason, Django&#8217;s HTTP client for tests has been modified to
+set a flag on requests which relaxes the middleware and the <code class="docutils literal"><span class="pre">csrf_protect</span></code>
+decorator so that they no longer rejects requests.  In every other respect
+(e.g. sending cookies etc.), they behave the same.</p>
+<p>If, for some reason, you <em>want</em> the test client to perform CSRF
+checks, you can create an instance of the test client that enforces
+CSRF checks:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; from django.test import Client
+&gt;&gt;&gt; csrf_client = Client(enforce_csrf_checks=True)
+</pre></div>
+</div>
+</div>
+<div class="section" id="csrf-limitations">
+<span id="id5"></span><h2>Limitations<a class="headerlink" href="#csrf-limitations" title="Permalink to this headline">¶</a></h2>
+<p>Subdomains within a site will be able to set cookies on the client for the whole
+domain.  By setting the cookie and using a corresponding token, subdomains will
+be able to circumvent the CSRF protection.  The only way to avoid this is to
+ensure that subdomains are controlled by trusted users (or, are at least unable
+to set cookies).  Note that even without CSRF, there are other vulnerabilities,
+such as session fixation, that make giving subdomains to untrusted parties a bad
+idea, and these vulnerabilities cannot easily be fixed with current browsers.</p>
+</div>
+<div class="section" id="edge-cases">
+<h2>Edge cases<a class="headerlink" href="#edge-cases" title="Permalink to this headline">¶</a></h2>
+<p>Certain views can have unusual requirements that mean they don&#8217;t fit the normal
+pattern envisaged here. A number of utilities can be useful in these
+situations. The scenarios they might be needed in are described in the following
+section.</p>
+<div class="section" id="utilities">
+<h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
+<p>The examples below assume you are using function-based views. If you
+are working with class-based views, you can refer to Decorating
+class-based views.</p>
+<dl class="function">
+<dt id="django.views.decorators.csrf.csrf_exempt">
+<code class="descclassname">django.views.decorators.csrf.</code><code class="descname">csrf_exempt</code><span class="sig-paren">(</span><em>view</em><span class="sig-paren">)</span><a class="headerlink" href="#django.views.decorators.csrf.csrf_exempt" title="Permalink to this definition">¶</a></dt>
+<dd><p>This decorator marks a view as being exempt from the protection ensured by
+the middleware. Example:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+
+@csrf_exempt
+def my_view(request):
+    return HttpResponse(&#39;Hello world&#39;)
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="django.views.decorators.csrf.requires_csrf_token">
+<code class="descclassname">django.views.decorators.csrf.</code><code class="descname">requires_csrf_token</code><span class="sig-paren">(</span><em>view</em><span class="sig-paren">)</span><a class="headerlink" href="#django.views.decorators.csrf.requires_csrf_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normally the <code class="docutils literal"><span class="pre">csrf_token</span></code> template tag will not work if
+<code class="docutils literal"><span class="pre">CsrfViewMiddleware.process_view</span></code> or an equivalent like <code class="docutils literal"><span class="pre">csrf_protect</span></code>
+has not run. The view decorator <code class="docutils literal"><span class="pre">requires_csrf_token</span></code> can be used to
+ensure the template tag does work. This decorator works similarly to
+<code class="docutils literal"><span class="pre">csrf_protect</span></code>, but never rejects an incoming request.</p>
+<p>Example:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>from django.views.decorators.csrf import requires_csrf_token
+from django.shortcuts import render
+
+@requires_csrf_token
+def my_view(request):
+    c = {}
+    # ...
+    return render(request, &quot;a_template.html&quot;, c)
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="django.views.decorators.csrf.ensure_csrf_cookie">
+<code class="descclassname">django.views.decorators.csrf.</code><code class="descname">ensure_csrf_cookie</code><span class="sig-paren">(</span><em>view</em><span class="sig-paren">)</span><a class="headerlink" href="#django.views.decorators.csrf.ensure_csrf_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>This decorator forces a view to send the CSRF cookie.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="scenarios">
+<h3>Scenarios<a class="headerlink" href="#scenarios" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="csrf-protection-should-be-disabled-for-just-a-few-views">
+<h4>CSRF protection should be disabled for just a few views<a class="headerlink" href="#csrf-protection-should-be-disabled-for-just-a-few-views" title="Permalink to this headline">¶</a></h4>
+<p>Most views requires CSRF protection, but a few do not.</p>
+<p>Solution: rather than disabling the middleware and applying <code class="docutils literal"><span class="pre">csrf_protect</span></code> to
+all the views that need it, enable the middleware and use
+<a class="reference internal" href="#django.views.decorators.csrf.csrf_exempt" title="django.views.decorators.csrf.csrf_exempt"><code class="xref py py-func docutils literal"><span class="pre">csrf_exempt()</span></code></a>.</p>
+</div>
+<div class="section" id="csrfviewmiddleware-process-view-not-used">
+<h4>CsrfViewMiddleware.process_view not used<a class="headerlink" href="#csrfviewmiddleware-process-view-not-used" title="Permalink to this headline">¶</a></h4>
+<p>There are cases when <code class="docutils literal"><span class="pre">CsrfViewMiddleware.process_view</span></code> may not have run
+before your view is run - 404 and 500 handlers, for example - but you still
+need the CSRF token in a form.</p>
+<p>Solution: use <a class="reference internal" href="#django.views.decorators.csrf.requires_csrf_token" title="django.views.decorators.csrf.requires_csrf_token"><code class="xref py py-func docutils literal"><span class="pre">requires_csrf_token()</span></code></a></p>
+</div>
+<div class="section" id="unprotected-view-needs-the-csrf-token">
+<h4>Unprotected view needs the CSRF token<a class="headerlink" href="#unprotected-view-needs-the-csrf-token" title="Permalink to this headline">¶</a></h4>
+<p>There may be some views that are unprotected and have been exempted by
+<code class="docutils literal"><span class="pre">csrf_exempt</span></code>, but still need to include the CSRF token.</p>
+<p>Solution: use <a class="reference internal" href="#django.views.decorators.csrf.csrf_exempt" title="django.views.decorators.csrf.csrf_exempt"><code class="xref py py-func docutils literal"><span class="pre">csrf_exempt()</span></code></a> followed by
+<a class="reference internal" href="#django.views.decorators.csrf.requires_csrf_token" title="django.views.decorators.csrf.requires_csrf_token"><code class="xref py py-func docutils literal"><span class="pre">requires_csrf_token()</span></code></a>. (i.e. <code class="docutils literal"><span class="pre">requires_csrf_token</span></code>
+should be the innermost decorator).</p>
+</div>
+<div class="section" id="view-needs-protection-for-one-path">
+<h4>View needs protection for one path<a class="headerlink" href="#view-needs-protection-for-one-path" title="Permalink to this headline">¶</a></h4>
+<p>A view needs CSRF protection under one set of conditions only, and mustn&#8217;t have
+it for the rest of the time.</p>
+<p>Solution: use <a class="reference internal" href="#django.views.decorators.csrf.csrf_exempt" title="django.views.decorators.csrf.csrf_exempt"><code class="xref py py-func docutils literal"><span class="pre">csrf_exempt()</span></code></a> for the whole
+view function, and <a class="reference internal" href="#django.views.decorators.csrf.csrf_protect" title="django.views.decorators.csrf.csrf_protect"><code class="xref py py-func docutils literal"><span class="pre">csrf_protect()</span></code></a> for the
+path within it that needs protection. Example:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>from django.views.decorators.csrf import csrf_exempt, csrf_protect
+
+@csrf_exempt
+def my_view(request):
+
+    @csrf_protect
+    def protected_path(request):
+        do_something()
+
+    if some_condition():
+       return protected_path(request)
+    else:
+       do_something_else()
+</pre></div>
+</div>
+</div>
+<div class="section" id="page-uses-ajax-without-any-html-form">
+<h4>Page uses AJAX without any HTML form<a class="headerlink" href="#page-uses-ajax-without-any-html-form" title="Permalink to this headline">¶</a></h4>
+<p>A page makes a POST request via AJAX, and the page does not have an HTML form
+with a <code class="docutils literal"><span class="pre">csrf_token</span></code> that would cause the required CSRF cookie to be sent.</p>
+<p>Solution: use <a class="reference internal" href="#django.views.decorators.csrf.ensure_csrf_cookie" title="django.views.decorators.csrf.ensure_csrf_cookie"><code class="xref py py-func docutils literal"><span class="pre">ensure_csrf_cookie()</span></code></a> on the
+view that sends the page.</p>
+</div>
+</div>
+</div>
+<div class="section" id="contrib-and-reusable-apps">
+<h2>Contrib and reusable apps<a class="headerlink" href="#contrib-and-reusable-apps" title="Permalink to this headline">¶</a></h2>
+<p>Because it is possible for the developer to turn off the <code class="docutils literal"><span class="pre">CsrfViewMiddleware</span></code>,
+all relevant views in contrib apps use the <code class="docutils literal"><span class="pre">csrf_protect</span></code> decorator to ensure
+the security of these applications against CSRF.  It is recommended that the
+developers of other reusable apps that want the same guarantees also use the
+<code class="docutils literal"><span class="pre">csrf_protect</span></code> decorator on their views.</p>
+</div>
+<div class="section" id="settings">
+<h2>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<p>A number of settings can be used to control Django&#8217;s CSRF behavior:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">CSRF_COOKIE_AGE</span></code></li>
+<li><code class="docutils literal"><span class="pre">CSRF_COOKIE_DOMAIN</span></code></li>
+<li><code class="docutils literal"><span class="pre">CSRF_COOKIE_HTTPONLY</span></code></li>
+<li><code class="docutils literal"><span class="pre">CSRF_COOKIE_NAME</span></code></li>
+<li><code class="docutils literal"><span class="pre">CSRF_COOKIE_PATH</span></code></li>
+<li><code class="docutils literal"><span class="pre">CSRF_COOKIE_SECURE</span></code></li>
+<li><code class="docutils literal"><span class="pre">CSRF_FAILURE_VIEW</span></code></li>
+</ul>
+</div>
+<div class="section" id="module-django.core.signing">
+<span id="cryptographic-signing"></span><h2>Cryptographic signing<a class="headerlink" href="#module-django.core.signing" title="Permalink to this headline">¶</a></h2>
+<p>The golden rule of Web application security is to never trust data from
+untrusted sources. Sometimes it can be useful to pass data through an
+untrusted medium. Cryptographically signed values can be passed through an
+untrusted channel safe in the knowledge that any tampering will be detected.</p>
+<p>Django provides both a low-level API for signing values and a high-level API
+for setting and reading signed cookies, one of the most common uses of
+signing in Web applications.</p>
+<p>You may also find signing useful for the following:</p>
+<ul class="simple">
+<li>Generating &#8220;recover my account&#8221; URLs for sending to users who have
+lost their password.</li>
+<li>Ensuring data stored in hidden form fields has not been tampered with.</li>
+<li>Generating one-time secret URLs for allowing temporary access to a
+protected resource, for example a downloadable file that a user has
+paid for.</li>
+</ul>
+</div>
+<div class="section" id="protecting-the-secret-key">
+<h2>Protecting the SECRET_KEY<a class="headerlink" href="#protecting-the-secret-key" title="Permalink to this headline">¶</a></h2>
+<p>When you create a new Django project using <code class="docutils literal"><span class="pre">startproject</span></code>, the
+<code class="docutils literal"><span class="pre">settings.py</span></code> file is generated automatically and gets a random
+<code class="docutils literal"><span class="pre">SECRET_KEY</span></code> value. This value is the key to securing signed
+data &#8211; it is vital you keep this secure, or attackers could use it to
+generate their own signed values.</p>
+</div>
+<div class="section" id="using-the-low-level-api">
+<h2>Using the low-level API<a class="headerlink" href="#using-the-low-level-api" title="Permalink to this headline">¶</a></h2>
+<p>Django&#8217;s signing methods live in the <code class="docutils literal"><span class="pre">django.core.signing</span></code> module.
+To sign a value, first instantiate a <code class="docutils literal"><span class="pre">Signer</span></code> instance:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; from django.core.signing import Signer
+&gt;&gt;&gt; signer = Signer()
+&gt;&gt;&gt; value = signer.sign(&#39;My string&#39;)
+&gt;&gt;&gt; value
+&#39;My string:GdMGD6HNQ_qdgxYP8yBZAdAIV1w&#39;
+</pre></div>
+</div>
+<p>The signature is appended to the end of the string, following the colon.
+You can retrieve the original value using the <code class="docutils literal"><span class="pre">unsign</span></code> method:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; original = signer.unsign(value)
+&gt;&gt;&gt; original
+&#39;My string&#39;
+</pre></div>
+</div>
+<p>If the signature or value have been altered in any way, a
+<code class="docutils literal"><span class="pre">django.core.signing.BadSignature</span></code> exception will be raised:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; from django.core import signing
+&gt;&gt;&gt; value += &#39;m&#39;
+&gt;&gt;&gt; try:
+...    original = signer.unsign(value)
+... except signing.BadSignature:
+...    print(&quot;Tampering detected!&quot;)
+</pre></div>
+</div>
+<p>By default, the <code class="docutils literal"><span class="pre">Signer</span></code> class uses the <code class="docutils literal"><span class="pre">SECRET_KEY</span></code> setting to
+generate signatures. You can use a different secret by passing it to the
+<code class="docutils literal"><span class="pre">Signer</span></code> constructor:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; signer = Signer(&#39;my-other-secret&#39;)
+&gt;&gt;&gt; value = signer.sign(&#39;My string&#39;)
+&gt;&gt;&gt; value
+&#39;My string:EkfQJafvGyiofrdGnuthdxImIJw&#39;
+</pre></div>
+</div>
+<dl class="class">
+<dt id="django.core.signing.Signer">
+<em class="property">class </em><code class="descclassname">django.core.signing.</code><code class="descname">Signer</code><span class="sig-paren">(</span><em>key=None</em>, <em>sep=':'</em>, <em>salt=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.signing.Signer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a signer which uses <code class="docutils literal"><span class="pre">key</span></code> to generate signatures and <code class="docutils literal"><span class="pre">sep</span></code> to
+separate values. <code class="docutils literal"><span class="pre">sep</span></code> cannot be in the <a class="reference external" href="http://tools.ietf.org/html/rfc4648#section-5">URL safe base64 alphabet</a>.  This alphabet contains
+alphanumeric characters, hyphens, and underscores.</p>
+</dd></dl>
+
+<div class="section" id="using-the-salt-argument">
+<h3>Using the salt argument<a class="headerlink" href="#using-the-salt-argument" title="Permalink to this headline">¶</a></h3>
+<p>If you do not wish for every occurrence of a particular string to have the same
+signature hash, you can use the optional <code class="docutils literal"><span class="pre">salt</span></code> argument to the <code class="docutils literal"><span class="pre">Signer</span></code>
+class. Using a salt will seed the signing hash function with both the salt and
+your <code class="docutils literal"><span class="pre">SECRET_KEY</span></code>:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; signer = Signer()
+&gt;&gt;&gt; signer.sign(&#39;My string&#39;)
+&#39;My string:GdMGD6HNQ_qdgxYP8yBZAdAIV1w&#39;
+&gt;&gt;&gt; signer = Signer(salt=&#39;extra&#39;)
+&gt;&gt;&gt; signer.sign(&#39;My string&#39;)
+&#39;My string:Ee7vGi-ING6n02gkcJ-QLHg6vFw&#39;
+&gt;&gt;&gt; signer.unsign(&#39;My string:Ee7vGi-ING6n02gkcJ-QLHg6vFw&#39;)
+&#39;My string&#39;
+</pre></div>
+</div>
+<p>Using salt in this way puts the different signatures into different
+namespaces.  A signature that comes from one namespace (a particular salt
+value) cannot be used to validate the same plaintext string in a different
+namespace that is using a different salt setting. The result is to prevent an
+attacker from using a signed string generated in one place in the code as input
+to another piece of code that is generating (and verifying) signatures using a
+different salt.</p>
+<p>Unlike your <code class="docutils literal"><span class="pre">SECRET_KEY</span></code>, your salt argument does not need to stay
+secret.</p>
+</div>
+<div class="section" id="verifying-timestamped-values">
+<h3>Verifying timestamped values<a class="headerlink" href="#verifying-timestamped-values" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal"><span class="pre">TimestampSigner</span></code> is a subclass of <a class="reference internal" href="#django.core.signing.Signer" title="django.core.signing.Signer"><code class="xref py py-class docutils literal"><span class="pre">Signer</span></code></a> that appends a signed
+timestamp to the value. This allows you to confirm that a signed value was
+created within a specified period of time:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; from datetime import timedelta
+&gt;&gt;&gt; from django.core.signing import TimestampSigner
+&gt;&gt;&gt; signer = TimestampSigner()
+&gt;&gt;&gt; value = signer.sign(&#39;hello&#39;)
+&gt;&gt;&gt; value
+&#39;hello:1NMg5H:oPVuCqlJWmChm1rA2lyTUtelC-c&#39;
+&gt;&gt;&gt; signer.unsign(value)
+&#39;hello&#39;
+&gt;&gt;&gt; signer.unsign(value, max_age=10)
+...
+SignatureExpired: Signature age 15.5289158821 &gt; 10 seconds
+&gt;&gt;&gt; signer.unsign(value, max_age=20)
+&#39;hello&#39;
+&gt;&gt;&gt; signer.unsign(value, max_age=timedelta(seconds=20))
+&#39;hello&#39;
+</pre></div>
+</div>
+<dl class="class">
+<dt id="django.core.signing.TimestampSigner">
+<em class="property">class </em><code class="descclassname">django.core.signing.</code><code class="descname">TimestampSigner</code><span class="sig-paren">(</span><em>key=None</em>, <em>sep=':'</em>, <em>salt=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.signing.TimestampSigner" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="django.core.signing.TimestampSigner.sign">
+<code class="descname">sign</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.signing.TimestampSigner.sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sign <code class="docutils literal"><span class="pre">value</span></code> and append current timestamp to it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="django.core.signing.TimestampSigner.unsign">
+<code class="descname">unsign</code><span class="sig-paren">(</span><em>value</em>, <em>max_age=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.signing.TimestampSigner.unsign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if <code class="docutils literal"><span class="pre">value</span></code> was signed less than <code class="docutils literal"><span class="pre">max_age</span></code> seconds ago,
+otherwise raises <code class="docutils literal"><span class="pre">SignatureExpired</span></code>. The <code class="docutils literal"><span class="pre">max_age</span></code> parameter can
+accept an integer or a <code class="xref py py-class docutils literal"><span class="pre">datetime.timedelta</span></code> object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="protecting-complex-data-structures">
+<h3>Protecting complex data structures<a class="headerlink" href="#protecting-complex-data-structures" title="Permalink to this headline">¶</a></h3>
+<p>If you wish to protect a list, tuple or dictionary you can do so using the
+signing module&#8217;s <code class="docutils literal"><span class="pre">dumps</span></code> and <code class="docutils literal"><span class="pre">loads</span></code> functions. These imitate Python&#8217;s
+pickle module, but use JSON serialization under the hood. JSON ensures that
+even if your <code class="docutils literal"><span class="pre">SECRET_KEY</span></code> is stolen an attacker will not be able
+to execute arbitrary commands by exploiting the pickle format:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; from django.core import signing
+&gt;&gt;&gt; value = signing.dumps({&quot;foo&quot;: &quot;bar&quot;})
+&gt;&gt;&gt; value
+&#39;eyJmb28iOiJiYXIifQ:1NMg1b:zGcDE4-TCkaeGzLeW9UQwZesciI&#39;
+&gt;&gt;&gt; signing.loads(value)
+{&#39;foo&#39;: &#39;bar&#39;}
+</pre></div>
+</div>
+<p>Because of the nature of JSON (there is no native distinction between lists
+and tuples) if you pass in a tuple, you will get a list from
+<code class="docutils literal"><span class="pre">signing.loads(object)</span></code>:</p>
+<div class="highlight-html+django"><div class="highlight"><pre>&gt;&gt;&gt; from django.core import signing
+&gt;&gt;&gt; value = signing.dumps((&#39;a&#39;,&#39;b&#39;,&#39;c&#39;))
+&gt;&gt;&gt; signing.loads(value)
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]
+</pre></div>
+</div>
+<dl class="function">
+<dt id="django.core.signing.dumps">
+<code class="descclassname">django.core.signing.</code><code class="descname">dumps</code><span class="sig-paren">(</span><em>obj</em>, <em>key=None</em>, <em>salt='django.core.signing'</em>, <em>compress=False</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.signing.dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns URL-safe, sha1 signed base64 compressed JSON string. Serialized
+object is signed using <a class="reference internal" href="#django.core.signing.TimestampSigner" title="django.core.signing.TimestampSigner"><code class="xref py py-class docutils literal"><span class="pre">TimestampSigner</span></code></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="django.core.signing.loads">
+<code class="descclassname">django.core.signing.</code><code class="descname">loads</code><span class="sig-paren">(</span><em>string</em>, <em>key=None</em>, <em>salt='django.core.signing'</em>, <em>max_age=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.core.signing.loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverse of <code class="docutils literal"><span class="pre">dumps()</span></code>, raises <code class="docutils literal"><span class="pre">BadSignature</span></code> if signature fails.
+Checks <code class="docutils literal"><span class="pre">max_age</span></code> (in seconds) if given.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-django.middleware.security">
+<span id="security-middleware"></span><h3>Security middleware<a class="headerlink" href="#module-django.middleware.security" title="Permalink to this headline">¶</a></h3>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If your deployment situation allows, it&#8217;s usually a good idea to have your
+front-end Web server perform the functionality provided by the
+<code class="docutils literal"><span class="pre">SecurityMiddleware</span></code>. That way, if there are requests that aren&#8217;t served
+by Django (such as static media or user-uploaded files), they will have
+the same protections as requests to your Django application.</p>
+</div>
+<p>The <code class="docutils literal"><span class="pre">django.middleware.security.SecurityMiddleware</span></code> provides several security
+enhancements to the request/response cycle. Each one can be independently
+enabled or disabled with a setting.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">SECURE_BROWSER_XSS_FILTER</span></code></li>
+<li><code class="docutils literal"><span class="pre">SECURE_CONTENT_TYPE_NOSNIFF</span></code></li>
+<li><code class="docutils literal"><span class="pre">SECURE_HSTS_INCLUDE_SUBDOMAINS</span></code></li>
+<li><code class="docutils literal"><span class="pre">SECURE_HSTS_SECONDS</span></code></li>
+<li><code class="docutils literal"><span class="pre">SECURE_REDIRECT_EXEMPT</span></code></li>
+<li><code class="docutils literal"><span class="pre">SECURE_SSL_HOST</span></code></li>
+<li><code class="docutils literal"><span class="pre">SECURE_SSL_REDIRECT</span></code></li>
+</ul>
+<div class="section" id="http-strict-transport-security">
+<h4>HTTP Strict Transport Security<a class="headerlink" href="#http-strict-transport-security" title="Permalink to this headline">¶</a></h4>
+<p>For sites that should only be accessed over HTTPS, you can instruct modern
+browsers to refuse to connect to your domain name via an insecure connection
+(for a given period of time) by setting the <a class="reference external" href="http://en.wikipedia.org/wiki/Strict_Transport_Security">&#8220;Strict-Transport-Security&#8221;
+header</a>. This reduces your exposure to some SSL-stripping man-in-the-middle
+(MITM) attacks.</p>
+<p><code class="docutils literal"><span class="pre">SecurityMiddleware</span></code> will set this header for you on all HTTPS responses if
+you set the <code class="docutils literal"><span class="pre">SECURE_HSTS_SECONDS</span></code> setting to a non-zero integer value.</p>
+<p>When enabling HSTS, it&#8217;s a good idea to first use a small value for testing,
+for example, <code class="docutils literal"><span class="pre">SECURE_HSTS_SECONDS</span> <span class="pre">=</span> <span class="pre">3600&lt;SECURE_HSTS_SECONDS&gt;</span></code> for one
+hour. Each time a Web browser sees the HSTS header from your site, it will
+refuse to communicate non-securely (using HTTP) with your domain for the given
+period of time. Once you confirm that all assets are served securely on your
+site (i.e. HSTS didn&#8217;t break anything), it&#8217;s a good idea to increase this value
+so that infrequent visitors will be protected (31536000 seconds, i.e. 1 year,
+is common).</p>
+<p>Additionally, if you set the <code class="docutils literal"><span class="pre">SECURE_HSTS_INCLUDE_SUBDOMAINS</span></code> setting
+to <code class="docutils literal"><span class="pre">True</span></code>, <code class="docutils literal"><span class="pre">SecurityMiddleware</span></code> will add the <code class="docutils literal"><span class="pre">includeSubDomains</span></code> tag to
+the <code class="docutils literal"><span class="pre">Strict-Transport-Security</span></code> header. This is recommended (assuming all
+subdomains are served exclusively using HTTPS), otherwise your site may still
+be vulnerable via an insecure connection to a subdomain.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>The HSTS policy applies to your entire domain, not just the URL of the
+response that you set the header on. Therefore, you should only use it if
+your entire domain is served via HTTPS only.</p>
+<p class="last">Browsers properly respecting the HSTS header will refuse to allow users to
+bypass warnings and connect to a site with an expired, self-signed, or
+otherwise invalid SSL certificate. If you use HSTS, make sure your
+certificates are in good shape and stay that way!</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are deployed behind a load-balancer or reverse-proxy server, and the
+<code class="docutils literal"><span class="pre">Strict-Transport-Security</span></code> header is not being added to your responses,
+it may be because Django doesn&#8217;t realize that it&#8217;s on a secure connection;
+you may need to set the <code class="docutils literal"><span class="pre">SECURE_PROXY_SSL_HEADER</span></code> setting.</p>
+</div>
+</div>
+<div class="section" id="x-content-type-options-nosniff">
+<h4><code class="docutils literal"><span class="pre">X-Content-Type-Options:</span> <span class="pre">nosniff</span></code><a class="headerlink" href="#x-content-type-options-nosniff" title="Permalink to this headline">¶</a></h4>
+<p>Some browsers will try to guess the content types of the assets that they
+fetch, overriding the <code class="docutils literal"><span class="pre">Content-Type</span></code> header. While this can help display
+sites with improperly configured servers, it can also pose a security
+risk.</p>
+<p>If your site serves user-uploaded files, a malicious user could upload a
+specially-crafted file that would be interpreted as HTML or Javascript by
+the browser when you expected it to be something harmless.</p>
+<p>To learn more about this header and how the browser treats it, you can
+read about it on the <a class="reference external" href="http://blogs.msdn.com/b/ie/archive/2008/09/02/ie8-security-part-vi-beta-2-update.aspx">IE Security Blog</a>.</p>
+<p>To prevent the browser from guessing the content type and force it to
+always use the type provided in the <code class="docutils literal"><span class="pre">Content-Type</span></code> header, you can pass
+the <code class="docutils literal"><span class="pre">X-Content-Type-Options:</span> <span class="pre">nosniff</span></code> header.  <code class="docutils literal"><span class="pre">SecurityMiddleware</span></code> will
+do this for all responses if the <code class="docutils literal"><span class="pre">SECURE_CONTENT_TYPE_NOSNIFF</span></code> setting
+is <code class="docutils literal"><span class="pre">True</span></code>.</p>
+<p>Note that in most deployment situations where Django isn&#8217;t involved in serving
+user-uploaded files, this setting won&#8217;t help you. For example, if your
+<code class="docutils literal"><span class="pre">MEDIA_URL</span></code> is served directly by your front-end Web server (nginx,
+Apache, etc.) then you&#8217;d want to set this header there. On the other hand, if
+you are using Django to do something like require authorization in order to
+download files and you cannot set the header using your Web server, this
+setting will be useful.</p>
+</div>
+<div class="section" id="x-xss-protection-1-mode-block">
+<h4><code class="docutils literal"><span class="pre">X-XSS-Protection:</span> <span class="pre">1;</span> <span class="pre">mode=block</span></code><a class="headerlink" href="#x-xss-protection-1-mode-block" title="Permalink to this headline">¶</a></h4>
+<p>Some browsers have the ability to block content that appears to be an <a class="reference external" href="http://en.wikipedia.org/wiki/Cross-site_scripting">XSS
+attack</a>. They work by looking for Javascript content in the GET or POST
+parameters of a page. If the Javascript is replayed in the server&#8217;s response,
+the page is blocked from rendering and an error page is shown instead.</p>
+<p>The <a class="reference external" href="http://blogs.msdn.com/b/ie/archive/2008/07/02/ie8-security-part-iv-the-xss-filter.aspx">X-XSS-Protection header</a> is used to control the operation of the
+XSS filter.</p>
+<p>To enable the XSS filter in the browser, and force it to always block
+suspected XSS attacks, you can pass the <code class="docutils literal"><span class="pre">X-XSS-Protection:</span> <span class="pre">1;</span> <span class="pre">mode=block</span></code>
+header. <code class="docutils literal"><span class="pre">SecurityMiddleware</span></code> will do this for all responses if the
+<code class="docutils literal"><span class="pre">SECURE_BROWSER_XSS_FILTER</span></code> setting is <code class="docutils literal"><span class="pre">True</span></code>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The browser XSS filter is a useful defense measure, but must not be
+relied upon exclusively. It cannot detect all XSS attacks and not all
+browsers support the header. Ensure you are still validating and
+sanitizing all input to prevent XSS attacks.</p>
+</div>
+</div>
+<div class="section" id="ssl-redirect">
+<h4>SSL Redirect<a class="headerlink" href="#ssl-redirect" title="Permalink to this headline">¶</a></h4>
+<p>If your site offers both HTTP and HTTPS connections, most users will end up
+with an unsecured connection by default. For best security, you should redirect
+all HTTP connections to HTTPS.</p>
+<p>If you set the <code class="docutils literal"><span class="pre">SECURE_SSL_REDIRECT</span></code> setting to True,
+<code class="docutils literal"><span class="pre">SecurityMiddleware</span></code> will permanently (HTTP 301) redirect all HTTP
+connections to HTTPS.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For performance reasons, it&#8217;s preferable to do these redirects outside of
+Django, in a front-end load balancer or reverse-proxy server such as
+<a class="reference external" href="http://nginx.org">nginx</a>. <code class="docutils literal"><span class="pre">SECURE_SSL_REDIRECT</span></code> is intended for the deployment
+situations where this isn&#8217;t an option.</p>
+</div>
+<p>If the <code class="docutils literal"><span class="pre">SECURE_SSL_HOST</span></code> setting has a value, all redirects will be
+sent to that host instead of the originally-requested host.</p>
+<p>If there are a few pages on your site that should be available over HTTP, and
+not redirected to HTTPS, you can list regular expressions to match those URLs
+in the <code class="docutils literal"><span class="pre">SECURE_REDIRECT_EXEMPT</span></code> setting.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are deployed behind a load-balancer or reverse-proxy server and
+Django can&#8217;t seem to tell when a request actually is already secure, you
+may need to set the <code class="docutils literal"><span class="pre">SECURE_PROXY_SSL_HEADER</span></code> setting.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Chapter 21: Security in Django</a><ul>
+<li><a class="reference internal" href="#cross-site-scripting-xss-protection">Cross site scripting (XSS) protection</a></li>
+<li><a class="reference internal" href="#cross-site-request-forgery-csrf-protection">Cross site request forgery (CSRF) protection</a></li>
+<li><a class="reference internal" href="#sql-injection-protection">SQL injection protection</a></li>
+<li><a class="reference internal" href="#clickjacking-protection">Clickjacking protection</a></li>
+<li><a class="reference internal" href="#ssl-https">SSL/HTTPS</a></li>
+<li><a class="reference internal" href="#host-header-validation">Host header validation</a></li>
+<li><a class="reference internal" href="#session-security">Session security</a></li>
+<li><a class="reference internal" href="#user-uploaded-content">User-uploaded content</a></li>
+<li><a class="reference internal" href="#additional-security-topics">Additional security topics</a></li>
+<li><a class="reference internal" href="#archive-of-security-issues">Archive of security issues</a></li>
+<li><a class="reference internal" href="#id3">Clickjacking Protection</a><ul>
+<li><a class="reference internal" href="#an-example-of-clickjacking">An example of clickjacking</a></li>
+<li><a class="reference internal" href="#preventing-clickjacking">Preventing clickjacking</a></li>
+<li><a class="reference internal" href="#how-to-use-it">How to use it</a><ul>
+<li><a class="reference internal" href="#setting-x-frame-options-for-all-responses">Setting X-Frame-Options for all responses</a></li>
+<li><a class="reference internal" href="#setting-x-frame-options-per-view">Setting X-Frame-Options per view</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#limitations">Limitations</a><ul>
+<li><a class="reference internal" href="#browsers-that-support-x-frame-options">Browsers that support X-Frame-Options</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-django.middleware.csrf">Cross Site Request Forgery protection</a><ul>
+<li><a class="reference internal" href="#using-csrf">How to use it</a></li>
+<li><a class="reference internal" href="#ajax">AJAX</a></li>
+<li><a class="reference internal" href="#other-template-engines">Other template engines</a></li>
+<li><a class="reference internal" href="#module-django.views.decorators.csrf">The decorator method</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rejected-requests">Rejected requests</a><ul>
+<li><a class="reference internal" href="#how-it-works">How it works</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#caching">Caching</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#csrf-limitations">Limitations</a></li>
+<li><a class="reference internal" href="#edge-cases">Edge cases</a><ul>
+<li><a class="reference internal" href="#utilities">Utilities</a></li>
+<li><a class="reference internal" href="#scenarios">Scenarios</a><ul>
+<li><a class="reference internal" href="#csrf-protection-should-be-disabled-for-just-a-few-views">CSRF protection should be disabled for just a few views</a></li>
+<li><a class="reference internal" href="#csrfviewmiddleware-process-view-not-used">CsrfViewMiddleware.process_view not used</a></li>
+<li><a class="reference internal" href="#unprotected-view-needs-the-csrf-token">Unprotected view needs the CSRF token</a></li>
+<li><a class="reference internal" href="#view-needs-protection-for-one-path">View needs protection for one path</a></li>
+<li><a class="reference internal" href="#page-uses-ajax-without-any-html-form">Page uses AJAX without any HTML form</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#contrib-and-reusable-apps">Contrib and reusable apps</a></li>
+<li><a class="reference internal" href="#settings">Settings</a></li>
+<li><a class="reference internal" href="#module-django.core.signing">Cryptographic signing</a></li>
+<li><a class="reference internal" href="#protecting-the-secret-key">Protecting the SECRET_KEY</a></li>
+<li><a class="reference internal" href="#using-the-low-level-api">Using the low-level API</a><ul>
+<li><a class="reference internal" href="#using-the-salt-argument">Using the salt argument</a></li>
+<li><a class="reference internal" href="#verifying-timestamped-values">Verifying timestamped values</a></li>
+<li><a class="reference internal" href="#protecting-complex-data-structures">Protecting complex data structures</a></li>
+<li><a class="reference internal" href="#module-django.middleware.security">Security middleware</a><ul>
+<li><a class="reference internal" href="#http-strict-transport-security">HTTP Strict Transport Security</a></li>
+<li><a class="reference internal" href="#x-content-type-options-nosniff"><code class="docutils literal"><span class="pre">X-Content-Type-Options:</span> <span class="pre">nosniff</span></code></a></li>
+<li><a class="reference internal" href="#x-xss-protection-1-mode-block"><code class="docutils literal"><span class="pre">X-XSS-Protection:</span> <span class="pre">1;</span> <span class="pre">mode=block</span></code></a></li>
+<li><a class="reference internal" href="#ssl-redirect">SSL Redirect</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="chapter_20.html" title="previous chapter">Chapter 20: Internationalization</a></li>
+      <li>Next: <a href="appendix_A.html" title="next chapter">Appendix A: Model Definition Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/chapter_21.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Nigel George.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/chapter_21.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

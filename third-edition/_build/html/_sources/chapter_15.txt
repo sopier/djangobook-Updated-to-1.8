@@ -561,8 +561,8 @@ into those elements.
     }}`` or ``{{ site.name }}``. If you do *not* have the Django sites
     framework installed, this will be set to a
     :class:`~django.contrib.sites.requests.RequestSite` object. See the
-    :ref:`RequestSite section of the sites framework documentation
-    <requestsite-objects>` for more.
+    RequestSite section of the sites framework documentation
+    for more.
 
   See `a complex example`_ below that uses a description template.
 

@@ -1,49 +1,113 @@
 sphinx-build -b html -d _build/doctrees   . _build/html
 Running Sphinx v1.3.1
-loading pickled environment... done
+making output directory...
+loading pickled environment... not yet created
 building [mo]: targets for 0 po files that are out of date
-building [html]: targets for 6 source files that are out of date
-updating environment: 3 added, 6 changed, 0 removed
-reading sources... [ 11%] chapter_11
-reading sources... [ 22%] chapter_12
-reading sources... [ 33%] chapter_13
-reading sources... [ 44%] chapter_14
-reading sources... [ 55%] chapter_15
-reading sources... [ 66%] chapter_16
-reading sources... [ 77%] chapter_17
-reading sources... [ 88%] chapter_18
-reading sources... [100%] index
+building [html]: targets for 33 source files that are out of date
+updating environment: 33 added, 0 changed, 0 removed
+reading sources... [  3%] appendix_A
+reading sources... [  6%] appendix_B
+reading sources... [  9%] appendix_C
+reading sources... [ 12%] appendix_D
+reading sources... [ 15%] appendix_E
+reading sources... [ 18%] appendix_F
+reading sources... [ 21%] appendix_G
+reading sources... [ 24%] chapter_01
+reading sources... [ 27%] chapter_02
+reading sources... [ 30%] chapter_03
+reading sources... [ 33%] chapter_04
+reading sources... [ 36%] chapter_05
+reading sources... [ 39%] chapter_06
+reading sources... [ 42%] chapter_07
+reading sources... [ 45%] chapter_08
+reading sources... [ 48%] chapter_09
+reading sources... [ 51%] chapter_10
+reading sources... [ 54%] chapter_11
+reading sources... [ 57%] chapter_12
+reading sources... [ 60%] chapter_13
+reading sources... [ 63%] chapter_14
+reading sources... [ 66%] chapter_15
+reading sources... [ 69%] chapter_16
+reading sources... [ 72%] chapter_17
+reading sources... [ 75%] chapter_18
+reading sources... [ 78%] chapter_19
+reading sources... [ 81%] chapter_20
+reading sources... [ 84%] chapter_21
+reading sources... [ 87%] front_matter
+reading sources... [ 90%] index
+reading sources... [ 93%] introduction
+reading sources... [ 96%] introduction_3e
+reading sources... [100%] license
 
 looking for now-outdated files... none found
 pickling environment... done
 checking consistency... done
 preparing documents... done
-writing output... [ 11%] chapter_11
-writing output... [ 22%] chapter_12
-None:None: WARNING: no matching candidate for image URI '_images/django_unittest_classes_hierarchy.*'
-writing output... [ 33%] chapter_13
-writing output... [ 44%] chapter_14
-writing output... [ 55%] chapter_15
-writing output... [ 66%] chapter_16
-writing output... [ 77%] chapter_17
-writing output... [ 88%] chapter_18
-writing output... [100%] index
+writing output... [  3%] appendix_A
+writing output... [  6%] appendix_B
+writing output... [  9%] appendix_C
+writing output... [ 12%] appendix_D
+writing output... [ 15%] appendix_E
+writing output... [ 18%] appendix_F
+writing output... [ 21%] appendix_G
+writing output... [ 24%] chapter_01
+writing output... [ 27%] chapter_02
+writing output... [ 30%] chapter_03
+writing output... [ 33%] chapter_04
+writing output... [ 36%] chapter_05
+writing output... [ 39%] chapter_06
+writing output... [ 42%] chapter_07
+writing output... [ 45%] chapter_08
+writing output... [ 48%] chapter_09
+writing output... [ 51%] chapter_10
+writing output... [ 54%] chapter_11
+writing output... [ 57%] chapter_12
+writing output... [ 60%] chapter_13
+writing output... [ 63%] chapter_14
+writing output... [ 66%] chapter_15
+writing output... [ 69%] chapter_16
+writing output... [ 72%] chapter_17
+writing output... [ 75%] chapter_18
+writing output... [ 78%] chapter_19
+writing output... [ 81%] chapter_20
+writing output... [ 84%] chapter_21
+writing output... [ 87%] front_matter
+writing output... [ 90%] index
+writing output... [ 93%] introduction
+writing output... [ 96%] introduction_3e
+writing output... [100%] license
 
-/home/nigel/git-djangobook/djangobook.com/third-edition/chapter_15.rst:559: WARNING: undefined label: requestsite-objects (if the link has no caption the label must precede a section header)
-/home/nigel/git-djangobook/djangobook.com/third-edition/chapter_17.rst:489: WARNING: term not in glossary: language code
-/home/nigel/git-djangobook/djangobook.com/third-edition/chapter_17.rst:494: WARNING: term not in glossary: language code
 generating indices... genindex py-modindex
 writing additional pages... search
-copying images... [ 20%] graphics/chapter_13/scaling-5.png
-copying images... [ 40%] graphics/chapter_13/scaling-1.png
-copying images... [ 60%] graphics/chapter_13/scaling-4.png
-copying images... [ 80%] graphics/chapter_13/scaling-2.png
-copying images... [100%] graphics/chapter_13/scaling-3.png
+copying images... [  4%] graphics/chapter_05/author_changelist2.png
+copying images... [  8%] graphics/chapter_05/book_editform1.png
+copying images... [ 12%] graphics/chapter_03/missing_template.png
+copying images... [ 16%] graphics/chapter_05/admin01.png
+copying images... [ 20%] graphics/chapter_05/book_changelist1.png
+copying images... [ 25%] graphics/chapter_05/user_editform.png
+copying images... [ 29%] graphics/chapter_13/scaling-5.png
+copying images... [ 33%] graphics/chapter_05/admin02.png
+copying images... [ 37%] graphics/chapter_13/scaling-3.png
+copying images... [ 41%] graphics/chapter_13/scaling-2.png
+copying images... [ 45%] graphics/chapter_05/author_changelist3.png
+copying images... [ 50%] graphics/chapter_05/user_changelist.png
+copying images... [ 54%] graphics/chapter_13/scaling-1.png
+copying images... [ 58%] graphics/chapter_13/scaling-4.png
+copying images... [ 62%] graphics/chapter_02/helloworld.png
+copying images... [ 66%] graphics/chapter_05/book_changelist3.png
+copying images... [ 70%] graphics/chapter_05/author_changelist1.png
+copying images... [ 75%] graphics/chapter_01/welcome2django.png
+copying images... [ 79%] graphics/chapter_05/user_editform_errors.png
+copying images... [ 83%] graphics/chapter_02/typeerror.png
+copying images... [ 87%] graphics/chapter_05/book_editform2.png
+copying images... [ 91%] graphics/chapter_05/user_history.png
+copying images... [ 95%] graphics/chapter_05/book_changelist2.png
+copying images... [100%] graphics/chapter_02/404.png
 
 copying static files... done
 copying extra files... done
 dumping search index in English (code: en) ... done
 dumping object inventory... done
-build succeeded, 4 warnings.
+build succeeded.
 
 Build finished. The HTML pages are in _build/html.

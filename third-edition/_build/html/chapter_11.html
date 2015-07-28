@@ -156,7 +156,7 @@ of the user whose username matches the current system user.</p>
 </pre></div>
 </div>
 <p>Changing a user&#8217;s password will log out all their sessions if the
-<code class="xref py py-class docutils literal"><span class="pre">SessionAuthenticationMiddleware</span></code> is
+<a class="reference internal" href="chapter_19.html#django.contrib.auth.middleware.SessionAuthenticationMiddleware" title="django.contrib.auth.middleware.SessionAuthenticationMiddleware"><code class="xref py py-class docutils literal"><span class="pre">SessionAuthenticationMiddleware</span></code></a> is
 enabled.</p>
 </div>
 <div class="section" id="authenticating-users">
@@ -188,7 +188,7 @@ for the given username. If the password is invalid,
 <p class="first admonition-title">Note</p>
 <p class="last">This is a low level way to authenticate a set of credentials; for
 example, it&#8217;s used by the
-<code class="xref py py-class docutils literal"><span class="pre">RemoteUserMiddleware</span></code>. Unless
+<a class="reference internal" href="chapter_19.html#django.contrib.auth.middleware.RemoteUserMiddleware" title="django.contrib.auth.middleware.RemoteUserMiddleware"><code class="xref py py-class docutils literal"><span class="pre">RemoteUserMiddleware</span></code></a>. Unless
 you are writing your own authentication system, you probably won&#8217;t use
 this. Rather if you are looking for a way to limit access to logged in
 users, see the <a class="reference internal" href="#django.contrib.auth.decorators.login_required" title="django.contrib.auth.decorators.login_required"><code class="xref py py-func docutils literal"><span class="pre">login_required()</span></code></a>
@@ -610,7 +610,7 @@ write a mixin that wraps as_view().</p>
 method, authenticated sessions will include the hash returned by this function.
 In the <a class="reference internal" href="#django.contrib.auth.models.AbstractBaseUser" title="django.contrib.auth.models.AbstractBaseUser"><code class="xref py py-class docutils literal"><span class="pre">AbstractBaseUser</span></code></a> case, this is an
 HMAC of the password field. If the
-<code class="xref py py-class docutils literal"><span class="pre">SessionAuthenticationMiddleware</span></code> is
+<a class="reference internal" href="chapter_19.html#django.contrib.auth.middleware.SessionAuthenticationMiddleware" title="django.contrib.auth.middleware.SessionAuthenticationMiddleware"><code class="xref py py-class docutils literal"><span class="pre">SessionAuthenticationMiddleware</span></code></a> is
 enabled, Django verifies that the hash sent along with each request matches
 the one that&#8217;s computed server-side. This allows a user to log out all of their
 sessions by changing their password.</p>
