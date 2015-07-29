@@ -90,9 +90,8 @@ front of all your commands, rather than ``python`` to run Django with Python 3.
 Installing Django
 -----------------
 
-.. note:: Using ''virtualenv``
-
-	Before you install Django, it is worth considering whether you want to work within a virtual environment while you learn 	Django. ``virtualenv`` is a Python tool that is used to create isolated Python environments. It is easy to set up and will 	ensure that any other applications on your computer that depend on Python don't get messed up if you accidentally overwrite 	and important dependency. Setup and use of ``virtualenv`` is detailed in Chapter 22.
+.. note:: Using ``virtualenv``
+   Before you install Django, it is worth considering whether you want to work within a virtual environment while you learn 	   Django. ``virtualenv`` is a Python tool that is used to create isolated Python environments. It is easy to set up and     will ensure that any other applications on your computer that depend on Python don't get messed up if you accidentally       overwrite and important dependency. Setup and use of ``virtualenv`` is detailed in Chapter 22.
 
 At any given time, two distinct versions of Django are available to you: the
 latest official release and the bleeding-edge development version. The version you
