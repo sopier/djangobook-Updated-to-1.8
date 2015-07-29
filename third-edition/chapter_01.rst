@@ -11,7 +11,7 @@ The first, installing Django, is really simple and detailed in the first part of
 this chapter.
 
 The second is just as important, especially if you are a new programmer or 
-coming from using a programming language that does not clearly separate the data
+coming from using a programming language that does not clearly separate the data and logic
 behind your website from the way it is displayed.
 
 Django's entire philosophy is based on *loose coupling*, which is the underlying
@@ -23,20 +23,16 @@ understanding Django *so* much easier.
 Installing Django
 =================
 
-Installing Django is a multi-step process, due to the multiple moving parts in
-modern Web development environments. In this chapter, we'll walk you through
-how to install the framework and its few dependencies.
+There are a few steps to installing Django, but they are all very straight forward. In this chapter, we'll walk you through how to install the framework and its few dependencies.
 
-Because Django is "just" Python code, it runs anywhere Python does -- including
-on some cell phones! But this chapter just covers the common scenarios for
-Django installations. This chapter assumes you're installing Django on a
+This chapter assumes you're installing Django on a
 desktop/laptop machine and will be using the development server and SQLite to
 run all the example code in this book.
 
 This is by far the easiest, and best way to setup Django when you are first
 starting out. If you do want to go to a more advanced installation of Django,
-your options are covered in Chapter 13: Deploying Django, Chapter 22: Complete
-Installation Guide and Chapter 22: Advanced Database Management.
+your options are covered in Chapter 13 - Deploying Django, Chapter 22 - Complete
+Installation Guide and Chapter 22 - Advanced Database Management.
 
 Installing Python
 -----------------
@@ -94,6 +90,10 @@ front of all your commands, rather than ``python`` to run Django with Python 3.
 Installing Django
 -----------------
 
+.. note:: Using ''virtualenv``
+
+	Before you install Django, it is worth considering whether you want to work within a virtual environment while you learn 	Django. ``virtualenv`` is a Python tool that is used to create isolated Python environments. It is easy to set up and will 	ensure that any other applications on your computer that depend on Python don't get messed up if you accidentally overwrite 	and important dependency. Setup and use of ``virtualenv`` is detailed in Chapter 22.
+
 At any given time, two distinct versions of Django are available to you: the
 latest official release and the bleeding-edge development version. The version you
 decide to install depends on your priorities. Do you want a stable and tested
@@ -113,13 +113,6 @@ You've got two easy options to install Django:
 
 #. Install an official release from the Django Project website.
 
-.. admonition:: Always refer to the documentation that corresponds to the
-    version of Django you're using!
-
-    Keep an eye out for parts of the documentation marked **new in development version**.
-    That phrase flags features that are only available in development versions of Django, and
-    they likely won't work with an official release.
-
 Installing OS Distribution Version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -129,9 +122,7 @@ much easier for users of Django since the integration includes the ability to
 automatically install dependencies (like database adapters) that Django
 requires.
 
-Typically, these packages are based on the latest stable release of Django, so
-if you want to use the development version of Django you'll need to follow the
-instructions for installing the development version from Django's Git repository.
+Typically, these packages are based on the latest stable release of Django, but not always. If your distro version is 1.8 or later, you are ok - all the code in this book should work (check the release notes if you are using a later version though, some functions are deprecated over time.). If your distro uses a version of Django older than 1.8, you will need to install an official release from the Django Project website.
 
 If you're using Linux or a Unix installation, such as OpenSolaris,
 check with your distributor to see if they already package Django. If
@@ -220,7 +211,7 @@ book. Django comes with SQLite installed by default. SQLite requires no
 configuration on your part.
 
 If you would like to work with a "large" database engine like PostgreSQL, MySQL, or Oracle, see 
-Chapter 23: Advanced Database Management
+Chapter 23.
 
 Starting a Project
 ------------------
@@ -239,7 +230,7 @@ Django `project` -- a collection of settings for an instance of Django,
 including database configuration, Django-specific options and
 application-specific settings.
 
-From the command line, ``cd`` into a directory where you'd like to store your
+From the command line, change into a directory where you'd like to store your
 code, then run the following command:
 
 .. code-block:: bash
@@ -265,7 +256,7 @@ This will create a ``mysite`` directory in your current directory.
     to view your code over the Web. That's not good for security.
 
     Put your code in some directory **outside** of the document root, such as
-    `/home/mycode`.
+    ``/home/mycode``.
 
 	If you are following along and using the development server, this does not
 	matter right now, but it is important that you remember this when you go to
@@ -312,24 +303,16 @@ These files are:
 
 .. _more about packages: https://docs.python.org/tutorial/modules.html#packages
 
-Database setup
---------------
+Django settings
+---------------
 
 Now, edit `mysite/settings.py`. It's a normal Python module with
 module-level variables representing Django settings.
 
-By default, the configuration uses SQLite. If you're new to databases, or
-you're just interested in trying Django, this is the easiest choice. SQLite is
-included in Python, so you won't need to install anything else to support your
-database. All the examples in this books assume that you are running SQLite.
-
-If you wish to use another database, check out Chapter 23: Advanced Database
-Management.
-
-While you're editing `mysite/settings.py`, set `TIME_ZONE` to
+First step while you're editing `mysite/settings.py`, is to set `TIME_ZONE` to
 your time zone.
 
-Also, note the `INSTALLED_APPS` setting at the top of the file. That
+Note the `INSTALLED_APPS` setting at the top of the file. That
 holds the names of all Django applications that are activated in this Django
 instance. Apps can be used in multiple projects, and you can package and
 distribute them for use by others in their projects.
@@ -337,17 +320,17 @@ distribute them for use by others in their projects.
 By default, `INSTALLED_APPS` contains the following apps, all of which
 come with Django:
 
-* `django.contrib.admin` -- The admin site. 
+* ``django.contrib.admin`` -- The admin site. 
 
-* `django.contrib.auth` -- An authentication system.
+* ``django.contrib.auth`` -- An authentication system.
 
-* `django.contrib.contenttypes` -- A framework for content types.
+* ``django.contrib.contenttypes`` -- A framework for content types.
 
-* `django.contrib.sessions` -- A session framework.
+* ``django.contrib.sessions`` -- A session framework.
 
-* `django.contrib.messages` -- A messaging framework.
+* ``django.contrib.messages`` -- A messaging framework.
 
-* `django.contrib.staticfiles` -- A framework for managing
+* ``django.contrib.staticfiles`` -- A framework for managing
   static files.
 
 These applications are included by default as a convenience for the common case.
@@ -364,18 +347,7 @@ The `migrate` command looks at the `INSTALLED_APPS` setting
 and creates any necessary database tables according to the database settings
 in your `mysite/settings.py` file and the database migrations shipped
 with the app (we'll cover those later). You'll see a message for each
-migration it applies. If you're interested, run the command-line client for your
-database and type ``\dt`` (PostgreSQL), ``SHOW TABLES;`` (MySQL), or
-``.schema`` (SQLite) to display the tables Django created.
-
-.. admonition:: For the minimalists
-
-    Like we said above, the default applications are included for the common
-    case, but not everybody needs them. If you don't need any or all of them,
-    feel free to comment-out or delete the appropriate line(s) from
-    `INSTALLED_APPS` before running `migrate`. The
-    `migrate` command will only run migrations for apps in
-    `INSTALLED_APPS`.
+migration it applies. 
 
 The development server
 ----------------------
@@ -405,8 +377,7 @@ rapidly, without having to deal with configuring a production server -- such as
 Apache -- until you're ready for production.
 
 Now's a good time to note: **don't** use this server in anything resembling a
-production environment. It's intended only for use while developing. (We're in
-the business of making Web frameworks, not Web servers.)
+production environment. **It's intended only for use while developing**. 
 
 Now that the server's running, visit http://127.0.0.1:8000/ with your Web
 browser. You'll see a "Welcome to Django" page, in pleasant, light-blue pastel.
@@ -415,30 +386,6 @@ It worked!
 .. figure:: graphics/chapter_01/welcome2django.png
 
    Figure 1-1. Django's welcome page
-
-.. admonition:: Changing the port
-
-    By default, the `runserver` command starts the development server
-    on the internal IP at port 8000.
-
-    If you want to change the server's port, pass
-    it as a command-line argument. For instance, this command starts the server
-    on port 8080:
-
-    .. code-block:: bash
-
-        $ python manage.py runserver 8080
-
-    If you want to change the server's IP, pass it along with the port. So to
-    listen on all public IPs (useful if you want to show off your work on other
-    computers), use:
-
-    .. code-block:: bash
-
-        $ python manage.py runserver 0.0.0.0:8000
-
-    Full docs for the development server can be found in the
-    `runserver` reference.
 
 Automatic reloading of `runserver`
 ----------------------------------
@@ -477,7 +424,7 @@ As concept, the MVC design pattern is really simple to understand:
 
 Where it gets difficult is the vastly different interpretation of what actually
 happens at each layer - different frameworks implement the same functionality in
-different ways. One might say a certain function belongs in a view, while an
+different ways. One framework "guru" might say a certain function belongs in a view, while an
 other might vehemently defend the need for it to be in the controller.
 
 You, as a budding programmer who Gets Stuff Done, do not have to care about this
@@ -489,7 +436,9 @@ distraction...
 Django follows the MVC pattern closely, however it does implement it's own logic
 in the implementation. Because the "C" is handled by the framework itself and
 most of the excitement in Django happens in models, templates and views, Django
-is often referred to as an *MTV framework*. In the MTV development pattern,
+is often referred to as an *MTV framework*. 
+
+In the MTV development pattern:
 
 * *M* stands for "Model," the data access layer. This layer contains
   anything and everything about the data: how to access it, how to validate
