@@ -408,21 +408,6 @@ unless it should *always* be capitalized (e.g., ``"USA state"``). Django will
 automatically capitalize it when it needs to, and it will use the exact
 ``verbose_name`` value in other places that don't require capitalization.
 
-Finally, note that you can pass the ``verbose_name`` as a positional argument,
-for a slightly more compact syntax. This example is equivalent to the previous
-one:
-
-.. parsed-literal::
-
-    class Author(models.Model):
-        first_name = models.CharField(max_length=30)
-        last_name = models.CharField(max_length=40)
-        email = models.EmailField(**'e-mail',** blank=True)
-
-This won't work with ``ManyToManyField`` or ``ForeignKey`` fields, though,
-because they require the first argument to be a model class. In those cases,
-specifying ``verbose_name`` explicitly is the way to go.
-
 Custom ModelAdmin classes
 =========================
 
@@ -456,7 +441,7 @@ first name and last name together:
             **return u'%s %s' % (self.first_name, self.last_name)**
 
 As a result, the change list for ``Author`` objects displays each other's
-first name and last name together, as you can see in Figure 6-7.
+first name and last name together, as you can see in Figure 5-7.
 
 .. figure:: graphics/chapter_05/author_changelist1.png
    :alt: Screenshot of the author change list page.
@@ -506,7 +491,7 @@ Here's what we've done:
 With that tweak made, reload the author change list page, and you'll see it's
 now displaying three columns -- the first name, last name and e-mail address.
 In addition, each of those columns is sortable by clicking on the column
-header. (See Figure 6-8.)
+header. (See Figure 5-8.)
 
 .. figure:: graphics/chapter_05/author_changelist2.png
    :alt: Screenshot of the author change list page after list_display.
