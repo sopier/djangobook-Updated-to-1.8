@@ -54,13 +54,7 @@ templates are equally capable of generating any text-based format.
     HTML. This is by design: the template system is meant to express
     presentation, not program logic.
 
-    The Django template system provides tags which function similarly to some
-    programming constructs -- an `if` tag for boolean tests, a `for`
-    tag for looping, etc. -- but these are not simply executed as the
-    corresponding Python code, and the template system will not execute
-    arbitrary Python expressions. Only the tags, filters and syntax listed below
-    are supported by default (although you can add your own extensions
-    to the template language as needed).
+    See later in this chapter for a more detailed description of the
 
 Let's start with a simple example template. This Django template describes an
 HTML page that thanks a person for placing an order with a company. Think of it
@@ -397,7 +391,7 @@ elegantly handles more complex data structures, such as lists, dictionaries, and
 custom objects.
 
 The key to traversing complex data structures in Django templates is the dot
-character (.). Use a dot to access dictionary keys, attributes, methods,
+character ('.'). Use a dot to access dictionary keys, attributes, methods,
 or indices of an object.
 
 This is best illustrated with a few examples. For instance, suppose
@@ -990,7 +984,7 @@ The following are a few of the most important filters. Appendix E covers the res
 
 * ``length``: Returns the length of the value. For a list, this returns the
   number of elements. For a string, this returns the number of characters.
-  If the variable is undefined, ``length`` returns **0**.
+  If the variable is undefined, ``length`` returns '0'.
 
 Philosophies and Limitations
 ============================
@@ -1103,9 +1097,7 @@ existing template languages inadequate.
 
 Because Django is intended to be a full-stack Web framework that provides all
 the pieces necessary for Web developers to be productive, most times it's *more
-convenient* to use the DTL, but it's not a strict requirement in any sense. As
-you'll see in the upcoming section "Using Templates in Views", it's very easy
-to use another template language with Django. 
+convenient* to use the DTL, but it's not a strict requirement in any sense.
 
 Using Templates in Views
 ========================
@@ -1238,10 +1230,11 @@ store your templates and add it to ``DIRS``, like so::
 
 There are a few things to note:
 
-* Unless there is a good reason to do so, you are better off leaving ``DIRS``
-  empty. The default settings file configures ``APP_DIRS`` to ``True``, so you
-  are better off having a "templates" subdirectory in your Django app. More on
-  why this is a good thing in Chapter 14.
+* Unless you are building a very simple program with no apps, you are better
+  off leaving ``DIRS`` empty. The default settings file configures
+  ``APP_DIRS`` to ``True``, so you are better off having a "templates"
+  subdirectory in your Django app. More on why this is a good thing in Chapter
+  14.
 
 * If you want to have a set of master templates at project root, e.g.
   ``mysite/templates``, you *do* need to set ``DIRS``, like so::
@@ -1352,7 +1345,7 @@ Django templates are loaded and rendered to your browser.
 In practice, Django provides a much easier way to do this.
 
 Django's developers recognized that because this is such a common idiom,
-what would be really useful was a shortcut that could do all this in one line of code.
+Django needed a shortcut that could do all this in one line of code.
 
 This shortcut is a function called ``render()``, which lives in the
 module ``django.shortcuts``. Most of the time, you'll be using
@@ -1481,10 +1474,7 @@ Django will do one of two things:
   silently, displaying nothing in the place of the tag.
 
 .. note::
-    The ``include`` tag should be considered as an implementation of
-    "render this subtemplate and include the HTML", not as "parse this
-    subtemplate and include its contents as if it were part of the parent".
-    This means that there is no shared state between included templates --
+    There is no shared state between included templates --
     each include is a completely independent rendering process.
 
     Blocks are evaluated *before* they are included. This means that a template

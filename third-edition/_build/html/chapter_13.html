@@ -6,9 +6,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Chapter 13: Deploying Django &mdash; New Django Book v0.1 0.1 documentation</title>
+    <title>Chapter 13: Deploying Django &mdash; Mastering Django</title>
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -23,17 +23,32 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="top" title="Mastering Django" href="index.html" />
     <link rel="next" title="Chapter 14 - How to write reusable apps" href="chapter_14.html" />
-    <link rel="prev" title="Chapter 12 - testing in Django" href="chapter_12.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
-
+    <link rel="prev" title="Chapter 12 - testing in Django" href="chapter_12.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Mastering Django</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="chapter_12.html" title="Chapter 12 - testing in Django"
+             accesskey="P">previous</a> |
+          <a href="chapter_14.html" title="Chapter 14 - How to write reusable apps"
+             accesskey="N">next</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
 
-    <div class="document">
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -876,128 +891,96 @@ choose.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Chapter 13: Deploying Django</a><ul>
-<li><a class="reference internal" href="#preparing-your-codebase-for-production">Preparing Your Codebase for Production</a><ul>
-<li><a class="reference internal" href="#deployment-checklist">Deployment checklist</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#critical-settings">Critical settings</a><ul>
-<li><a class="reference internal" href="#secret-key">SECRET_KEY</a></li>
-<li><a class="reference internal" href="#debug">DEBUG</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#environment-specific-settings">Environment-specific settings</a><ul>
-<li><a class="reference internal" href="#allowed-hosts">ALLOWED_HOSTS</a></li>
-<li><a class="reference internal" href="#caches">CACHES</a></li>
-<li><a class="reference internal" href="#databases">DATABASES</a></li>
-<li><a class="reference internal" href="#email-backend-and-related-settings">EMAIL_BACKEND and related settings</a></li>
-<li><a class="reference internal" href="#static-root-and-static-url">STATIC_ROOT and STATIC_URL</a></li>
-<li><a class="reference internal" href="#media-root-and-media-url">MEDIA_ROOT and MEDIA_URL</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#https">HTTPS</a><ul>
-<li><a class="reference internal" href="#csrf-cookie-secure"><code class="docutils literal"><span class="pre">CSRF_COOKIE_SECURE</span></code></a></li>
-<li><a class="reference internal" href="#session-cookie-secure"><code class="docutils literal"><span class="pre">SESSION_COOKIE_SECURE</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#performance-optimizations">Performance optimizations</a><ul>
-<li><a class="reference internal" href="#conn-max-age"><code class="docutils literal"><span class="pre">CONN_MAX_AGE</span></code></a></li>
-<li><a class="reference internal" href="#templates"><code class="docutils literal"><span class="pre">TEMPLATES</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#error-reporting">Error reporting</a><ul>
-<li><a class="reference internal" href="#logging"><code class="docutils literal"><span class="pre">LOGGING</span></code></a></li>
-<li><a class="reference internal" href="#admins-and-managers"><code class="docutils literal"><span class="pre">ADMINS</span></code> and <code class="docutils literal"><span class="pre">MANAGERS</span></code></a></li>
-<li><a class="reference internal" href="#customize-the-default-error-views">Customize the default error views</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#python-options">Python Options</a></li>
-<li><a class="reference internal" href="#using-different-settings-for-production">Using Different Settings for Production</a></li>
-<li><a class="reference internal" href="#deploying-django-with-apache-and-mod-wsgi">Deploying Django with Apache and mod_wsgi</a></li>
-<li><a class="reference internal" href="#basic-configuration">Basic configuration</a></li>
-<li><a class="reference internal" href="#using-a-virtualenv">Using a virtualenv</a></li>
-<li><a class="reference internal" href="#using-mod-wsgi-daemon-mode">Using mod_wsgi daemon mode</a></li>
-<li><a class="reference internal" href="#serving-files">Serving files</a></li>
-<li><a class="reference internal" href="#serving-the-admin-files">Serving the admin files</a></li>
-<li><a class="reference internal" href="#authenticating-against-django-s-user-database-from-apache">Authenticating against Django&#8217;s user database from Apache</a></li>
-<li><a class="reference internal" href="#if-you-get-a-unicodeencodeerror">If you get a UnicodeEncodeError</a></li>
-<li><a class="reference internal" href="#serving-static-files-in-production">Serving static files in production</a><ul>
-<li><a class="reference internal" href="#serving-the-site-and-your-static-files-from-the-same-server">Serving the site and your static files from the same server</a></li>
-<li><a class="reference internal" href="#serving-static-files-from-a-dedicated-server">Serving static files from a dedicated server</a></li>
-<li><a class="reference internal" href="#serving-static-files-from-a-cloud-service-or-cdn">Serving static files from a cloud service or CDN</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#scaling">Scaling</a><ul>
-<li><a class="reference internal" href="#running-on-a-single-server">Running on a Single Server</a></li>
-<li><a class="reference internal" href="#separating-out-the-database-server">Separating Out the Database Server</a></li>
-<li><a class="reference internal" href="#running-a-separate-media-server">Running a Separate Media Server</a></li>
-<li><a class="reference internal" href="#implementing-load-balancing-and-redundancy">Implementing Load Balancing and Redundancy</a></li>
-<li><a class="reference internal" href="#going-big">Going Big</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#performance-tuning">Performance Tuning</a><ul>
-<li><a class="reference internal" href="#there-s-no-such-thing-as-too-much-ram">There&#8217;s No Such Thing As Too Much RAM</a></li>
-<li><a class="reference internal" href="#turn-off-keep-alive">Turn Off Keep-Alive</a></li>
-<li><a class="reference internal" href="#use-memcached">Use memcached</a></li>
-<li><a class="reference internal" href="#use-memcached-often">Use memcached Often</a></li>
-<li><a class="reference internal" href="#join-the-conversation">Join the Conversation</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#what-s-next">What&#8217;s Next?</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="chapter_12.html" title="previous chapter">Chapter 12 - testing in Django</a></li>
-      <li>Next: <a href="chapter_14.html" title="next chapter">Chapter 14 - How to write reusable apps</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/chapter_13.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_01.html">Chapter 1: Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_02.html">Chapter 2: Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_03.html">Chapter 3: Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_04.html">Chapter 4: Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_05.html">Chapter 5: The Django Admin Site</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_06.html">Chapter 6: Forms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_07.html">Chapter 7: Advanced Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_08.html">Chapter 8: Advanced Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_09.html">Chapter 9: Advanced Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_10.html">Chapter 10: Generic Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_11.html">Chapter 11: User authentication in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_12.html">Chapter 12 - testing in Django</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 13: Deploying Django</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_14.html">Chapter 14 - How to write reusable apps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_15.html">Chapter 15: Generating Non-HTML Content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_16.html">Chapter 16 - Django sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_D.html">Appendix D: Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html">Appendix F: The django-admin Utility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html#running-management-commands-from-your-code">Running management commands from your code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2015, Nigel George.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
-      
-      |
-      <a href="_sources/chapter_13.txt"
-          rel="nofollow">Page source</a>
     </div>
 
-    
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="chapter_12.html" title="Chapter 12 - testing in Django"
+              >previous</a> |
+            <a href="chapter_14.html" title="Chapter 14 - How to write reusable apps"
+              >next</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/chapter_13.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
 
-    
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Nigel George.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
   </body>
 </html>

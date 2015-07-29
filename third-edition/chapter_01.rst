@@ -90,8 +90,16 @@ front of all your commands, rather than ``python`` to run Django with Python 3.
 Installing Django
 -----------------
 
-.. note:: Using ``virtualenv``
-   Before you install Django, it is worth considering whether you want to work within a virtual environment while you learn 	   Django. ``virtualenv`` is a Python tool that is used to create isolated Python environments. It is easy to set up and     will ensure that any other applications on your computer that depend on Python don't get messed up if you accidentally       overwrite and important dependency. Setup and use of ``virtualenv`` is detailed in Chapter 22.
+.. admonition:: Using ``virtualenv``
+
+    Before you install Django, it is worth considering whether you want to work
+    within a virtual environment while you learn Django. 
+    
+    ``virtualenv`` is a Python tool that is used to create isolated Python
+    environments. It is easy to set up and will ensure that any other
+    applications on your computer that depend on Python don't get messed up if
+    you accidentally overwrite something important. Setup and use of
+    ``virtualenv`` is detailed in Chapter 22.
 
 At any given time, two distinct versions of Django are available to you: the
 latest official release and the bleeding-edge development version. The version you
@@ -273,31 +281,31 @@ Let's look at what `startproject` created::
 
 These files are:
 
-* The outer `mysite/` root directory is just a container for your
+* The outer ``mysite/`` root directory is just a container for your
   project. Its name doesn't matter to Django; you can rename it to anything
   you like.
 
-* `manage.py`: A command-line utility that lets you interact with this
+* ``manage.py``: A command-line utility that lets you interact with this
   Django project in various ways. You can read all the details about
-  `manage.py` in Appendix F. 
+  ``manage.py`` in Appendix F. 
 
-* The inner `mysite/` directory is the actual Python package for your
+* The inner ``mysite/`` directory is the actual Python package for your
   project. Its name is the Python package name you'll need to use to import
   anything inside it (e.g. ``mysite.urls``).
 
-* `mysite/__init__.py`: An empty file that tells Python that this
+* ``mysite/__init__.py``: An empty file that tells Python that this
   directory should be considered a Python package. (Read `more about
   packages`_ in the official Python docs if you're a Python beginner.)
 
-* `mysite/settings.py`: Settings/configuration for this Django
+* ``mysite/settings.py``: Settings/configuration for this Django
   project. Appendix D will tell you all about how settings
   work.
 
-* `mysite/urls.py`: The URL declarations for this Django project; a
+* ``mysite/urls.py``: The URL declarations for this Django project; a
   "table of contents" of your Django-powered site. You can read more about
   URLs in Chapters 2 and 7.
 
-* `mysite/wsgi.py`: An entry-point for WSGI-compatible web servers to
+* ``mysite/wsgi.py``: An entry-point for WSGI-compatible web servers to
   serve your project. See Chapter 13 for more details.
 
 .. _more about packages: https://docs.python.org/tutorial/modules.html#packages
@@ -305,18 +313,18 @@ These files are:
 Django settings
 ---------------
 
-Now, edit `mysite/settings.py`. It's a normal Python module with
+Now, edit ``mysite/settings.py``. It's a normal Python module with
 module-level variables representing Django settings.
 
-First step while you're editing `mysite/settings.py`, is to set `TIME_ZONE` to
+First step while you're editing ``mysite/settings.py``, is to set ``TIME_ZONE`` to
 your time zone.
 
-Note the `INSTALLED_APPS` setting at the top of the file. That
+Note the ``INSTALLED_APPS`` setting at the top of the file. That
 holds the names of all Django applications that are activated in this Django
 instance. Apps can be used in multiple projects, and you can package and
 distribute them for use by others in their projects.
 
-By default, `INSTALLED_APPS` contains the following apps, all of which
+By default, ``INSTALLED_APPS`` contains the following apps, all of which
 come with Django:
 
 * ``django.contrib.admin`` -- The admin site. 
@@ -342,16 +350,16 @@ that, run the following command:
 
     $ python manage.py migrate
 
-The `migrate` command looks at the `INSTALLED_APPS` setting
+The ``migrate`` command looks at the ``INSTALLED_APPS`` setting
 and creates any necessary database tables according to the database settings
-in your `mysite/settings.py` file and the database migrations shipped
+in your ``mysite/settings.py`` file and the database migrations shipped
 with the app (we'll cover those later). You'll see a message for each
 migration it applies. 
 
 The development server
 ----------------------
 
-Let's verify your Django project works. Change into the outer `mysite` directory, if
+Let's verify your Django project works. Change into the outer ``mysite`` directory, if
 you haven't already, and run the following commands:
 
 .. code-block:: bash
@@ -458,7 +466,9 @@ This is probably the only unfortunate bit of naming in Django, because Django's
 view is more like the controller in MVC, and MVC's view is actually a Template in
 Django. It is a little confusing at first, but as a programmer getting a job
 done, you really won't care for long. It is only a problem for those of us who
-have to teach it. Oh, and to the flamers of course.
+have to teach it. 
+
+Oh, and to the flamers of course.
 
 What's Next?
 ============

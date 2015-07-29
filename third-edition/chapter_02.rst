@@ -170,7 +170,7 @@ We made two changes here:
 
 .. note::
 
-	One more important detail we've introduced here is that ``r`` character in
+	One more important detail we've introduced here is that 'r' character in
 	front of the regular expression string. This tells Python that the string is a
 	"raw string" -- its contents should not interpret backslashes. In normal
 	Python strings, backslashes are used for escaping special characters -- such
@@ -180,7 +180,7 @@ We made two changes here:
 	literal backslash and a lowercase "n". There's a natural collision between
 	Python's usage of backslashes and the backslashes that are found in regular
 	expressions, so it's best practice to use raw strings any time
-	you're defining a regular expression in Python. Unless you have a good reason to do so, always use raw strings in 		your URLpatterns in Django.
+	you're defining a regular expression in Django.
 
 In a nutshell, we just told Django that any request to the URL ``/hello/`` should
 be handled by the ``hello`` view function.
@@ -556,7 +556,7 @@ duplication. We need to do some abstraction here.
 	If you're experienced in another Web development platform, you may be
 	thinking, "Hey, let's use a query string parameter!" -- something like
 	``/time/plus?hours=3``, in which the hours would be designated by the ``hours``
-	parameter in the URL's query string (the part after the ``?``).
+	parameter in the URL's query string (the part after the '?').
 
 	You *can* do that with Django (and we'll tell you how in Chapter 7), but
 	one of Django's core philosophies is that URLs should be beautiful. The URL
@@ -583,18 +583,12 @@ trimmed from this example.)
 
 This new URLpattern will match any URL such as ``/time/plus/2/``,
 ``/time/plus/25/``, or even ``/time/plus/100000000000/``. Come to think of it,
-let's limit it so that the maximum allowed offset is 99 hours. That means we
-want to allow either one- or two-digit numbers -- and in regular expression
-syntax, that translates into ``\d{1,2}``::
+let's limit it so that the maximum allowed offset is something reasonable. In
+this example, we will set a maximum 99 hours by only allowing either one- or
+two-digit numbers -- and in regular expression syntax, that translates into
+``\d{1,2}``::
 
     url(r'^time/plus/\d{1,2}/$', hours_ahead),
-
-.. note::
-
-    When building Web applications, it's always important to consider the most
-    outlandish data input possible, and decide whether or not the application
-    should support that input. We've curtailed the outlandishness here by
-    limiting the offset to 99 hours.
 
 Now that we've designated a wildcard for the URL, we need a way of passing that
 wildcard data to the view function, so that we can use a single view function

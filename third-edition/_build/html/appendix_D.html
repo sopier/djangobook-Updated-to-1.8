@@ -6,9 +6,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Appendix D: Settings &mdash; New Django Book v0.1 0.1 documentation</title>
+    <title>Appendix D: Settings &mdash; Mastering Django</title>
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -23,17 +23,32 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="top" title="Mastering Django" href="index.html" />
     <link rel="next" title="Appendix E: Built-in Template Tags and Filters" href="appendix_E.html" />
-    <link rel="prev" title="Appendix C: Generic View Reference" href="appendix_C.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
-
+    <link rel="prev" title="Appendix C: Generic View Reference" href="appendix_C.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Mastering Django</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="appendix_C.html" title="Appendix C: Generic View Reference"
+             accesskey="P">previous</a> |
+          <a href="appendix_E.html" title="Appendix E: Built-in Template Tags and Filters"
+             accesskey="N">next</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
 
-    <div class="document">
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -2292,281 +2307,96 @@ interface is thus undocumented.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Appendix D: Settings</a><ul>
-<li><a class="reference internal" href="#what-s-a-settings-file">What&#8217;s a Settings File?</a><ul>
-<li><a class="reference internal" href="#default-settings">Default Settings</a></li>
-<li><a class="reference internal" href="#seeing-which-settings-you-ve-changed">Seeing which settings you&#8217;ve changed</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#using-settings-in-python-code">Using settings in Python code</a></li>
-<li><a class="reference internal" href="#altering-settings-at-runtime">Altering settings at runtime</a></li>
-<li><a class="reference internal" href="#security">Security</a></li>
-<li><a class="reference internal" href="#creating-your-own-settings">Creating your own settings</a></li>
-<li><a class="reference internal" href="#designating-the-settings-django-settings-module">Designating the Settings: DJANGO_SETTINGS_MODULE</a><ul>
-<li><a class="reference internal" href="#the-django-admin-utility">The django-admin utility</a></li>
-<li><a class="reference internal" href="#on-the-server-mod-wsgi">On the server (mod_wsgi)</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#using-settings-without-setting-django-settings-module">Using Settings Without Setting DJANGO_SETTINGS_MODULE</a><ul>
-<li><a class="reference internal" href="#custom-default-settings">Custom default settings</a></li>
-<li><a class="reference internal" href="#either-configure-or-django-settings-module-is-required">Either configure() or DJANGO_SETTINGS_MODULE is required</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#available-settings">Available Settings</a></li>
-<li><a class="reference internal" href="#core-settings">Core settings</a><ul>
-<li><a class="reference internal" href="#absolute-url-overrides">ABSOLUTE_URL_OVERRIDES</a></li>
-<li><a class="reference internal" href="#admins">ADMINS</a></li>
-<li><a class="reference internal" href="#allowed-hosts">ALLOWED_HOSTS</a></li>
-<li><a class="reference internal" href="#append-slash">APPEND_SLASH</a></li>
-<li><a class="reference internal" href="#caches">CACHES</a><ul>
-<li><a class="reference internal" href="#backend">BACKEND</a></li>
-<li><a class="reference internal" href="#key-function">KEY_FUNCTION</a></li>
-<li><a class="reference internal" href="#key-prefix">KEY_PREFIX</a></li>
-<li><a class="reference internal" href="#location">LOCATION</a></li>
-<li><a class="reference internal" href="#options">OPTIONS</a></li>
-<li><a class="reference internal" href="#timeout">TIMEOUT</a></li>
-<li><a class="reference internal" href="#version">VERSION</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#cache-middleware-alias">CACHE_MIDDLEWARE_ALIAS</a></li>
-<li><a class="reference internal" href="#cache-middleware-key-prefix">CACHE_MIDDLEWARE_KEY_PREFIX</a></li>
-<li><a class="reference internal" href="#cache-middleware-seconds">CACHE_MIDDLEWARE_SECONDS</a></li>
-<li><a class="reference internal" href="#csrf-cookie-age">CSRF_COOKIE_AGE</a></li>
-<li><a class="reference internal" href="#csrf-cookie-domain">CSRF_COOKIE_DOMAIN</a></li>
-<li><a class="reference internal" href="#csrf-cookie-httponly">CSRF_COOKIE_HTTPONLY</a></li>
-<li><a class="reference internal" href="#csrf-cookie-name">CSRF_COOKIE_NAME</a></li>
-<li><a class="reference internal" href="#csrf-cookie-path">CSRF_COOKIE_PATH</a></li>
-<li><a class="reference internal" href="#csrf-cookie-secure">CSRF_COOKIE_SECURE</a></li>
-<li><a class="reference internal" href="#csrf-failure-view">CSRF_FAILURE_VIEW</a></li>
-<li><a class="reference internal" href="#databases">DATABASES</a><ul>
-<li><a class="reference internal" href="#atomic-requests">ATOMIC_REQUESTS</a></li>
-<li><a class="reference internal" href="#autocommit">AUTOCOMMIT</a></li>
-<li><a class="reference internal" href="#engine">ENGINE</a></li>
-<li><a class="reference internal" href="#host">HOST</a></li>
-<li><a class="reference internal" href="#name">NAME</a></li>
-<li><a class="reference internal" href="#conn-max-age">CONN_MAX_AGE</a></li>
-<li><a class="reference internal" href="#id1">OPTIONS</a></li>
-<li><a class="reference internal" href="#password">PASSWORD</a></li>
-<li><a class="reference internal" href="#port">PORT</a></li>
-<li><a class="reference internal" href="#user">USER</a></li>
-<li><a class="reference internal" href="#test">TEST</a><ul>
-<li><a class="reference internal" href="#charset">CHARSET</a></li>
-<li><a class="reference internal" href="#collation">COLLATION</a></li>
-<li><a class="reference internal" href="#dependencies">DEPENDENCIES</a></li>
-<li><a class="reference internal" href="#id2">NAME</a></li>
-<li><a class="reference internal" href="#serialize">SERIALIZE</a></li>
-<li><a class="reference internal" href="#create-db">CREATE_DB</a></li>
-<li><a class="reference internal" href="#create-user">CREATE_USER</a></li>
-<li><a class="reference internal" href="#id3">USER</a></li>
-<li><a class="reference internal" href="#id4">PASSWORD</a></li>
-<li><a class="reference internal" href="#tblspace">TBLSPACE</a></li>
-<li><a class="reference internal" href="#tblspace-tmp">TBLSPACE_TMP</a></li>
-<li><a class="reference internal" href="#datafile">DATAFILE</a></li>
-<li><a class="reference internal" href="#datafile-tmp">DATAFILE_TMP</a></li>
-<li><a class="reference internal" href="#datafile-maxsize">DATAFILE_MAXSIZE</a></li>
-<li><a class="reference internal" href="#datafile-tmp-maxsize">DATAFILE_TMP_MAXSIZE</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#database-routers">DATABASE_ROUTERS</a></li>
-<li><a class="reference internal" href="#date-format">DATE_FORMAT</a></li>
-<li><a class="reference internal" href="#date-input-formats">DATE_INPUT_FORMATS</a></li>
-<li><a class="reference internal" href="#datetime-format">DATETIME_FORMAT</a></li>
-<li><a class="reference internal" href="#datetime-input-formats">DATETIME_INPUT_FORMATS</a></li>
-<li><a class="reference internal" href="#debug">DEBUG</a></li>
-<li><a class="reference internal" href="#debug-propagate-exceptions">DEBUG_PROPAGATE_EXCEPTIONS</a></li>
-<li><a class="reference internal" href="#decimal-separator">DECIMAL_SEPARATOR</a></li>
-<li><a class="reference internal" href="#default-charset">DEFAULT_CHARSET</a></li>
-<li><a class="reference internal" href="#default-content-type">DEFAULT_CONTENT_TYPE</a></li>
-<li><a class="reference internal" href="#default-exception-reporter-filter">DEFAULT_EXCEPTION_REPORTER_FILTER</a></li>
-<li><a class="reference internal" href="#default-file-storage">DEFAULT_FILE_STORAGE</a></li>
-<li><a class="reference internal" href="#default-from-email">DEFAULT_FROM_EMAIL</a></li>
-<li><a class="reference internal" href="#default-index-tablespace">DEFAULT_INDEX_TABLESPACE</a></li>
-<li><a class="reference internal" href="#default-tablespace">DEFAULT_TABLESPACE</a></li>
-<li><a class="reference internal" href="#disallowed-user-agents">DISALLOWED_USER_AGENTS</a></li>
-<li><a class="reference internal" href="#email-backend">EMAIL_BACKEND</a></li>
-<li><a class="reference internal" href="#email-host">EMAIL_HOST</a></li>
-<li><a class="reference internal" href="#email-host-password">EMAIL_HOST_PASSWORD</a></li>
-<li><a class="reference internal" href="#email-host-user">EMAIL_HOST_USER</a></li>
-<li><a class="reference internal" href="#email-port">EMAIL_PORT</a></li>
-<li><a class="reference internal" href="#email-subject-prefix">EMAIL_SUBJECT_PREFIX</a></li>
-<li><a class="reference internal" href="#email-use-tls">EMAIL_USE_TLS</a></li>
-<li><a class="reference internal" href="#email-use-ssl">EMAIL_USE_SSL</a></li>
-<li><a class="reference internal" href="#email-ssl-certfile">EMAIL_SSL_CERTFILE</a></li>
-<li><a class="reference internal" href="#email-ssl-keyfile">EMAIL_SSL_KEYFILE</a></li>
-<li><a class="reference internal" href="#email-timeout">EMAIL_TIMEOUT</a></li>
-<li><a class="reference internal" href="#file-charset">FILE_CHARSET</a></li>
-<li><a class="reference internal" href="#file-upload-handlers">FILE_UPLOAD_HANDLERS</a></li>
-<li><a class="reference internal" href="#file-upload-max-memory-size">FILE_UPLOAD_MAX_MEMORY_SIZE</a></li>
-<li><a class="reference internal" href="#file-upload-directory-permissions">FILE_UPLOAD_DIRECTORY_PERMISSIONS</a></li>
-<li><a class="reference internal" href="#file-upload-permissions">FILE_UPLOAD_PERMISSIONS</a></li>
-<li><a class="reference internal" href="#file-upload-temp-dir">FILE_UPLOAD_TEMP_DIR</a></li>
-<li><a class="reference internal" href="#first-day-of-week">FIRST_DAY_OF_WEEK</a></li>
-<li><a class="reference internal" href="#fixture-dirs">FIXTURE_DIRS</a></li>
-<li><a class="reference internal" href="#force-script-name">FORCE_SCRIPT_NAME</a></li>
-<li><a class="reference internal" href="#format-module-path">FORMAT_MODULE_PATH</a></li>
-<li><a class="reference internal" href="#ignorable-404-urls">IGNORABLE_404_URLS</a></li>
-<li><a class="reference internal" href="#installed-apps">INSTALLED_APPS</a></li>
-<li><a class="reference internal" href="#internal-ips">INTERNAL_IPS</a></li>
-<li><a class="reference internal" href="#language-code">LANGUAGE_CODE</a></li>
-<li><a class="reference internal" href="#language-cookie-age">LANGUAGE_COOKIE_AGE</a></li>
-<li><a class="reference internal" href="#language-cookie-domain">LANGUAGE_COOKIE_DOMAIN</a></li>
-<li><a class="reference internal" href="#language-cookie-name">LANGUAGE_COOKIE_NAME</a></li>
-<li><a class="reference internal" href="#languages">LANGUAGES</a></li>
-<li><a class="reference internal" href="#locale-paths">LOCALE_PATHS</a></li>
-<li><a class="reference internal" href="#logging">LOGGING</a></li>
-<li><a class="reference internal" href="#logging-config">LOGGING_CONFIG</a></li>
-<li><a class="reference internal" href="#managers">MANAGERS</a></li>
-<li><a class="reference internal" href="#media-root">MEDIA_ROOT</a></li>
-<li><a class="reference internal" href="#media-url">MEDIA_URL</a></li>
-<li><a class="reference internal" href="#middleware-classes">MIDDLEWARE_CLASSES</a></li>
-<li><a class="reference internal" href="#migration-modules">MIGRATION_MODULES</a></li>
-<li><a class="reference internal" href="#month-day-format">MONTH_DAY_FORMAT</a></li>
-<li><a class="reference internal" href="#number-grouping">NUMBER_GROUPING</a></li>
-<li><a class="reference internal" href="#prepend-www">PREPEND_WWW</a></li>
-<li><a class="reference internal" href="#root-urlconf">ROOT_URLCONF</a></li>
-<li><a class="reference internal" href="#secret-key">SECRET_KEY</a></li>
-<li><a class="reference internal" href="#secure-browser-xss-filter">SECURE_BROWSER_XSS_FILTER</a></li>
-<li><a class="reference internal" href="#secure-content-type-nosniff">SECURE_CONTENT_TYPE_NOSNIFF</a></li>
-<li><a class="reference internal" href="#secure-hsts-include-subdomains">SECURE_HSTS_INCLUDE_SUBDOMAINS</a></li>
-<li><a class="reference internal" href="#secure-hsts-seconds">SECURE_HSTS_SECONDS</a></li>
-<li><a class="reference internal" href="#secure-proxy-ssl-header">SECURE_PROXY_SSL_HEADER</a></li>
-<li><a class="reference internal" href="#secure-redirect-exempt">SECURE_REDIRECT_EXEMPT</a></li>
-<li><a class="reference internal" href="#secure-ssl-host">SECURE_SSL_HOST</a></li>
-<li><a class="reference internal" href="#secure-ssl-redirect">SECURE_SSL_REDIRECT</a></li>
-<li><a class="reference internal" href="#serialization-modules">SERIALIZATION_MODULES</a></li>
-<li><a class="reference internal" href="#server-email">SERVER_EMAIL</a></li>
-<li><a class="reference internal" href="#short-date-format">SHORT_DATE_FORMAT</a></li>
-<li><a class="reference internal" href="#short-datetime-format">SHORT_DATETIME_FORMAT</a></li>
-<li><a class="reference internal" href="#signing-backend">SIGNING_BACKEND</a></li>
-<li><a class="reference internal" href="#silenced-system-checks">SILENCED_SYSTEM_CHECKS</a></li>
-<li><a class="reference internal" href="#templates">TEMPLATES</a><ul>
-<li><a class="reference internal" href="#id7">BACKEND</a></li>
-<li><a class="reference internal" href="#id8">NAME</a></li>
-<li><a class="reference internal" href="#dirs">DIRS</a></li>
-<li><a class="reference internal" href="#app-dirs">APP_DIRS</a></li>
-<li><a class="reference internal" href="#id9">OPTIONS</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#template-debug">TEMPLATE_DEBUG</a></li>
-<li><a class="reference internal" href="#test-runner">TEST_RUNNER</a></li>
-<li><a class="reference internal" href="#test-non-serialized-apps">TEST_NON_SERIALIZED_APPS</a></li>
-<li><a class="reference internal" href="#thousand-separator">THOUSAND_SEPARATOR</a></li>
-<li><a class="reference internal" href="#time-format">TIME_FORMAT</a></li>
-<li><a class="reference internal" href="#time-input-formats">TIME_INPUT_FORMATS</a></li>
-<li><a class="reference internal" href="#time-zone">TIME_ZONE</a></li>
-<li><a class="reference internal" href="#use-etags">USE_ETAGS</a></li>
-<li><a class="reference internal" href="#use-i18n">USE_I18N</a></li>
-<li><a class="reference internal" href="#use-l10n">USE_L10N</a></li>
-<li><a class="reference internal" href="#use-thousand-separator">USE_THOUSAND_SEPARATOR</a></li>
-<li><a class="reference internal" href="#use-tz">USE_TZ</a></li>
-<li><a class="reference internal" href="#use-x-forwarded-host">USE_X_FORWARDED_HOST</a></li>
-<li><a class="reference internal" href="#wsgi-application">WSGI_APPLICATION</a></li>
-<li><a class="reference internal" href="#year-month-format">YEAR_MONTH_FORMAT</a></li>
-<li><a class="reference internal" href="#x-frame-options">X_FRAME_OPTIONS</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#auth">Auth</a><ul>
-<li><a class="reference internal" href="#authentication-backends">AUTHENTICATION_BACKENDS</a></li>
-<li><a class="reference internal" href="#auth-user-model">AUTH_USER_MODEL</a></li>
-<li><a class="reference internal" href="#login-redirect-url">LOGIN_REDIRECT_URL</a></li>
-<li><a class="reference internal" href="#login-url">LOGIN_URL</a></li>
-<li><a class="reference internal" href="#logout-url">LOGOUT_URL</a></li>
-<li><a class="reference internal" href="#password-reset-timeout-days">PASSWORD_RESET_TIMEOUT_DAYS</a></li>
-<li><a class="reference internal" href="#password-hashers">PASSWORD_HASHERS</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#messages">Messages</a><ul>
-<li><a class="reference internal" href="#message-level">MESSAGE_LEVEL</a></li>
-<li><a class="reference internal" href="#message-storage">MESSAGE_STORAGE</a></li>
-<li><a class="reference internal" href="#message-tags">MESSAGE_TAGS</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#sessions">Sessions</a><ul>
-<li><a class="reference internal" href="#session-cache-alias">SESSION_CACHE_ALIAS</a></li>
-<li><a class="reference internal" href="#session-cookie-age">SESSION_COOKIE_AGE</a></li>
-<li><a class="reference internal" href="#session-cookie-domain">SESSION_COOKIE_DOMAIN</a></li>
-<li><a class="reference internal" href="#session-cookie-httponly">SESSION_COOKIE_HTTPONLY</a></li>
-<li><a class="reference internal" href="#session-cookie-name">SESSION_COOKIE_NAME</a></li>
-<li><a class="reference internal" href="#session-cookie-path">SESSION_COOKIE_PATH</a></li>
-<li><a class="reference internal" href="#session-cookie-secure">SESSION_COOKIE_SECURE</a></li>
-<li><a class="reference internal" href="#session-engine">SESSION_ENGINE</a></li>
-<li><a class="reference internal" href="#session-expire-at-browser-close">SESSION_EXPIRE_AT_BROWSER_CLOSE</a></li>
-<li><a class="reference internal" href="#session-file-path">SESSION_FILE_PATH</a></li>
-<li><a class="reference internal" href="#session-save-every-request">SESSION_SAVE_EVERY_REQUEST</a></li>
-<li><a class="reference internal" href="#session-serializer">SESSION_SERIALIZER</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#sites">Sites</a><ul>
-<li><a class="reference internal" href="#site-id">SITE_ID</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#static-files">Static files</a><ul>
-<li><a class="reference internal" href="#static-root">STATIC_ROOT</a></li>
-<li><a class="reference internal" href="#static-url">STATIC_URL</a></li>
-<li><a class="reference internal" href="#staticfiles-dirs">STATICFILES_DIRS</a><ul>
-<li><a class="reference internal" href="#prefixes-optional">Prefixes (optional)</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#staticfiles-storage">STATICFILES_STORAGE</a></li>
-<li><a class="reference internal" href="#staticfiles-finders">STATICFILES_FINDERS</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="appendix_C.html" title="previous chapter">Appendix C: Generic View Reference</a></li>
-      <li>Next: <a href="appendix_E.html" title="next chapter">Appendix E: Built-in Template Tags and Filters</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/appendix_D.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_01.html">Chapter 1: Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_02.html">Chapter 2: Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_03.html">Chapter 3: Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_04.html">Chapter 4: Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_05.html">Chapter 5: The Django Admin Site</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_06.html">Chapter 6: Forms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_07.html">Chapter 7: Advanced Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_08.html">Chapter 8: Advanced Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_09.html">Chapter 9: Advanced Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_10.html">Chapter 10: Generic Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_11.html">Chapter 11: User authentication in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_12.html">Chapter 12 - testing in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_13.html">Chapter 13: Deploying Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_14.html">Chapter 14 - How to write reusable apps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_15.html">Chapter 15: Generating Non-HTML Content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_16.html">Chapter 16 - Django sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Appendix D: Settings</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html">Appendix F: The django-admin Utility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html#running-management-commands-from-your-code">Running management commands from your code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2015, Nigel George.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
-      
-      |
-      <a href="_sources/appendix_D.txt"
-          rel="nofollow">Page source</a>
     </div>
 
-    
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="appendix_C.html" title="Appendix C: Generic View Reference"
+              >previous</a> |
+            <a href="appendix_E.html" title="Appendix E: Built-in Template Tags and Filters"
+              >next</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/appendix_D.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
 
-    
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Nigel George.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
   </body>
 </html>

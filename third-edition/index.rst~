@@ -13,8 +13,7 @@ Contents:
 
 .. toctree::
    :titlesonly:
-   :maxdepth: 2
-
+   :maxdepth: 0
    front_matter	    
    introduction	    
    introduction_3e	

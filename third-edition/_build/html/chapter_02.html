@@ -6,9 +6,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Chapter 2: Views and URLconfs &mdash; New Django Book v0.1 0.1 documentation</title>
+    <title>Chapter 2: Views and URLconfs &mdash; Mastering Django</title>
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -23,17 +23,32 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="top" title="Mastering Django" href="index.html" />
     <link rel="next" title="Chapter 3: Templates" href="chapter_03.html" />
-    <link rel="prev" title="Chapter 1: Getting Started" href="chapter_01.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
-
+    <link rel="prev" title="Chapter 1: Getting Started" href="chapter_01.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Mastering Django</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="chapter_01.html" title="Chapter 1: Getting Started"
+             accesskey="P">previous</a> |
+          <a href="chapter_03.html" title="Chapter 3: Templates"
+             accesskey="N">next</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
 
-    <div class="document">
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -61,10 +76,7 @@ specified in a <em>URLconf</em>. First, let&#8217;s write our &#8220;Hello world
 <h3>Your First View<a class="headerlink" href="#your-first-view" title="Permalink to this headline">¶</a></h3>
 <p>Within the <code class="docutils literal"><span class="pre">mysite</span></code> directory that <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">startproject</span></code> made in
 the last chapter, create an empty file called <code class="docutils literal"><span class="pre">views.py</span></code>. This Python module
-will contain our views for this chapter. Note that there&#8217;s nothing special
-about the name <code class="docutils literal"><span class="pre">views.py</span></code> &#8211; Django doesn&#8217;t care what the file is called, as
-you&#8217;ll see in a bit &#8211; but it&#8217;s a good idea to call it <code class="docutils literal"><span class="pre">views.py</span></code> as a
-convention, for the benefit of other developers reading your code.</p>
+will contain our views for this chapter.</p>
 <p>Our &#8220;Hello world&#8221; view is simple. Here&#8217;s the entire function, plus import
 statements, which you should type into the <code class="docutils literal"><span class="pre">views.py</span></code> file:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
@@ -112,8 +124,8 @@ anywhere. That&#8217;s because our <code class="docutils literal"><span class="p
 view at a particular URL. (Continuing our previous analogy of publishing
 static HTML files, at this point we&#8217;ve created the HTML file but haven&#8217;t
 uploaded it to a directory on the server yet.) To hook a view function to a
-particular URL with Django, use a URLconf.</p>
-<p>A <em>URLconf</em> is like a table of contents for your Django-powered Web site.
+particular URL with Django, we use a <em>URLconf</em>.</p>
+<p>A URLconf is like a table of contents for your Django-powered Web site.
 Basically, it&#8217;s a mapping between URLs and the view functions that
 should be called for those URLs. It&#8217;s how you tell Django, &#8220;For this
 URL, call this code, and for that URL, call that code.&#8221; For example, &#8220;When
@@ -196,7 +208,7 @@ Chapter 7.</li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">One more important detail we&#8217;ve introduced here is that <code class="docutils literal"><span class="pre">r</span></code> character in
+<p class="last">One more important detail we&#8217;ve introduced here is that &#8216;r&#8217; character in
 front of the regular expression string. This tells Python that the string is a
 &#8220;raw string&#8221; &#8211; its contents should not interpret backslashes. In normal
 Python strings, backslashes are used for escaping special characters &#8211; such
@@ -205,36 +217,11 @@ newline. When you add the <code class="docutils literal"><span class="pre">r</sp
 its backslash escaping &#8211; so, <code class="docutils literal"><span class="pre">r'\n'</span></code> is a two-character string containing a
 literal backslash and a lowercase &#8220;n&#8221;. There&#8217;s a natural collision between
 Python&#8217;s usage of backslashes and the backslashes that are found in regular
-expressions, so it&#8217;s strongly suggested that you use raw strings any time
-you&#8217;re defining a regular expression in Python. All of the URLpatterns in this
-book will be raw strings.</p>
+expressions, so it&#8217;s best practice to use raw strings any time
+you&#8217;re defining a regular expression in Django.</p>
 </div>
 <p>In a nutshell, we just told Django that any request to the URL <code class="docutils literal"><span class="pre">/hello/</span></code> should
 be handled by the <code class="docutils literal"><span class="pre">hello</span></code> view function.</p>
-<div class="admonition-your-python-path admonition">
-<p class="first admonition-title">Your Python Path</p>
-<p>Your <em>Python path</em> is the list of directories on your system where Python
-looks when you use the Python <code class="docutils literal"><span class="pre">import</span></code> statement.</p>
-<p>For example, let&#8217;s say your Python path is set to <code class="docutils literal"><span class="pre">['',</span>
-<span class="pre">'/usr/lib/python3.4/site-packages',</span> <span class="pre">'/home/username/djcode']</span></code>. If you
-execute the Python statement <code class="docutils literal"><span class="pre">from</span> <span class="pre">foo</span> <span class="pre">import</span> <span class="pre">bar</span></code>, Python will look for
-a module called <code class="docutils literal"><span class="pre">foo.py</span></code> in the current directory. (The first entry in the
-Python path, an empty string, means &#8220;the current directory.&#8221;) If that file
-doesn&#8217;t exist, Python will look for the file
-<code class="docutils literal"><span class="pre">/usr/lib/python3.4/site-packages/foo.py</span></code>. If that file doesn&#8217;t exist, it
-will try <code class="docutils literal"><span class="pre">/home/username/djcode/foo.py</span></code>. Finally, if <em>that</em> file doesn&#8217;t
-exist, it will raise <code class="docutils literal"><span class="pre">ImportError</span></code>.</p>
-<p>If you&#8217;re interested in seeing the value of your Python path, start the
-Python interactive interpreter and type this:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-</pre></div>
-</div>
-<p class="last">Generally you don&#8217;t have to worry about setting your Python path &#8211; Python
-and Django take care of things for you automatically behind the scenes.
-(Setting the Python path is one of the things that the <code class="docutils literal"><span class="pre">manage.py</span></code> script
-does.)</p>
-</div>
 <p>It&#8217;s worth discussing the syntax of this URLpattern, as it may not be
 immediately obvious. Although we want to match the URL <code class="docutils literal"><span class="pre">/hello/</span></code>, the pattern
 looks a bit different than that. Here&#8217;s why:</p>
@@ -245,7 +232,7 @@ the leading slash in <code class="docutils literal"><span class="pre">/hello/</s
 but this requirement simplifies things &#8211; such as the inclusion of
 URLconfs within other URLconfs, which we&#8217;ll cover in Chapter 7.)</p>
 </li>
-<li><p class="first">The pattern includes a caret (<code class="docutils literal"><span class="pre">^</span></code>) and a dollar sign (<code class="docutils literal"><span class="pre">$</span></code>). These are
+<li><p class="first">The pattern includes a caret (^) and a dollar sign ($). These are
 regular expression characters that have a special meaning: the caret
 means &#8220;require that the pattern matches the start of the string,&#8221; and the
 dollar sign means &#8220;require that the pattern matches the end of the
@@ -270,12 +257,6 @@ request to a URL that <em>doesn&#8217;t</em> match a URLpattern and <em>doesn&#8
 a slash will be redirected to the same URL with a trailing slash. (This
 is regulated by the <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code> Django setting, which is covered in
 Appendix D.)</p>
-<p>If you&#8217;re the type of person who likes all URLs to end with slashes
-(which is the preference of Django&#8217;s developers), all you&#8217;ll need to do
-is add a trailing slash to each URLpattern and leave <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code> set
-to <code class="docutils literal"><span class="pre">True</span></code>. If you prefer your URLs <em>not</em> to have trailing slashes, or
-if you want to decide it on a per-URL basis, set <code class="docutils literal"><span class="pre">APPEND_SLASH</span></code> to
-<code class="docutils literal"><span class="pre">False</span></code> and put trailing slashes in your URLpatterns as you see fit.</p>
 </li>
 </ul>
 <p>The other thing to note about this URLconf is that we&#8217;ve passed the
@@ -363,7 +344,7 @@ different URL?</p>
 <p>To find out, try running the Django development server and visiting a page such
 as <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/goodbye/</span></code> or
 <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/hello/subdirectory/</span></code>, or even <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/</span></code>
-(the site &#8220;root&#8221;). You should see a &#8220;Page not found&#8221; message (see Figure 3-1).
+(the site &#8220;root&#8221;). You should see a &#8220;Page not found&#8221; message (see Figure 2-2).
 Django displays this message because you requested a URL that&#8217;s not defined in
 your URLconf.</p>
 <div class="figure" id="id2">
@@ -477,19 +458,7 @@ be able to apply your knowledge to other Python projects that don&#8217;t necess
 use Django.)</p>
 <p>To make a Django view that displays the current date and time, then, we just
 need to hook this <code class="docutils literal"><span class="pre">datetime.datetime.now()</span></code> statement into a view and return
-an <code class="docutils literal"><span class="pre">HttpResponse</span></code>. Here&#8217;s how that looks:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
-<span class="kn">import</span> <span class="nn">datetime</span>
-
-<span class="k">def</span> <span class="nf">current_datetime</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
-    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-    <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&lt;html&gt;&lt;body&gt;It is now </span><span class="si">%s</span><span class="s">.&lt;/body&gt;&lt;/html&gt;&quot;</span> <span class="o">%</span> <span class="n">now</span>
-    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>As with our <code class="docutils literal"><span class="pre">hello</span></code> view function, this should live in <code class="docutils literal"><span class="pre">views.py</span></code>. Note
-that we&#8217;ve hidden the <code class="docutils literal"><span class="pre">hello</span></code> function from this example for brevity, but for
-the sake of completeness, here&#8217;s what the entire <code class="docutils literal"><span class="pre">views.py</span></code> looks like:</p>
+an <code class="docutils literal"><span class="pre">HttpResponse</span></code>. Here&#8217;s what the updated <code class="docutils literal"><span class="pre">views.py</span></code> looks like:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 
@@ -541,15 +510,7 @@ function at the top. Second, and more importantly, we added a URLpattern
 mapping the URL <code class="docutils literal"><span class="pre">/time/</span></code> to that new view. Getting the hang of this?</p>
 <p>With the view written and URLconf updated, fire up the <code class="docutils literal"><span class="pre">runserver</span></code> and visit
 <code class="docutils literal"><span class="pre">http://127.0.0.1:8000/time/</span></code> in your browser. You should see the current
-date and time.</p>
-<div class="admonition-django-s-time-zone admonition">
-<p class="first admonition-title">Django&#8217;s Time Zone</p>
-<p class="last">Depending on your computer, the date and time may be a few hours off.
-That&#8217;s because Django is time zone-aware and defaults to the <code class="docutils literal"><span class="pre">UTC</span></code> time
-zone. If you live elsewhere, you&#8217;ll want to change it in <code class="docutils literal"><span class="pre">settings.py</span></code>.
-See the comment in that file for a link to an up-to-date list of worldwide
-time zone options.</p>
-</div>
+date and time. If you don&#8217;t see your local time, it is because you did not change the default timezone in your <code class="docutils literal"><span class="pre">settings.py</span></code> (see Chapter 1).</p>
 </div>
 <div class="section" id="urlconfs-and-loose-coupling">
 <h2>URLconfs and Loose Coupling<a class="headerlink" href="#urlconfs-and-loose-coupling" title="Permalink to this headline">¶</a></h2>
@@ -620,7 +581,7 @@ duplication. We need to do some abstraction here.</p>
 <p>If you&#8217;re experienced in another Web development platform, you may be
 thinking, &#8220;Hey, let&#8217;s use a query string parameter!&#8221; &#8211; something like
 <code class="docutils literal"><span class="pre">/time/plus?hours=3</span></code>, in which the hours would be designated by the <code class="docutils literal"><span class="pre">hours</span></code>
-parameter in the URL&#8217;s query string (the part after the <code class="docutils literal"><span class="pre">?</span></code>).</p>
+parameter in the URL&#8217;s query string (the part after the &#8216;?&#8217;).</p>
 <p>You <em>can</em> do that with Django (and we&#8217;ll tell you how in Chapter 7), but
 one of Django&#8217;s core philosophies is that URLs should be beautiful. The URL
 <code class="docutils literal"><span class="pre">/time/plus/3/</span></code> is far cleaner, simpler, more readable, easier to recite to
@@ -644,18 +605,12 @@ is a regular expression; hence, we can use the regular expression pattern
 trimmed from this example.)</p>
 <p>This new URLpattern will match any URL such as <code class="docutils literal"><span class="pre">/time/plus/2/</span></code>,
 <code class="docutils literal"><span class="pre">/time/plus/25/</span></code>, or even <code class="docutils literal"><span class="pre">/time/plus/100000000000/</span></code>. Come to think of it,
-let&#8217;s limit it so that the maximum allowed offset is 99 hours. That means we
-want to allow either one- or two-digit numbers &#8211; and in regular expression
-syntax, that translates into <code class="docutils literal"><span class="pre">\d{1,2}</span></code>:</p>
+let&#8217;s limit it so that the maximum allowed offset is something reasonable. In
+this example, we will set a maximum 99 hours by only allowing either one- or
+two-digit numbers &#8211; and in regular expression syntax, that translates into
+<code class="docutils literal"><span class="pre">\d{1,2}</span></code>:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">url</span><span class="p">(</span><span class="s">r&#39;^time/plus/\d{1,2}/$&#39;</span><span class="p">,</span> <span class="n">hours_ahead</span><span class="p">),</span>
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">When building Web applications, it&#8217;s always important to consider the most
-outlandish data input possible, and decide whether or not the application
-should support that input. We&#8217;ve curtailed the outlandishness here by
-limiting the offset to 99 hours.</p>
 </div>
 <p>Now that we&#8217;ve designated a wildcard for the URL, we need a way of passing that
 wildcard data to the view function, so that we can use a single view function
@@ -755,8 +710,7 @@ line is that it uses Python&#8217;s format-string capability with <em>two</em> v
 not just one. Hence, there are two <code class="docutils literal"><span class="pre">%s</span></code> symbols in the string and a
 tuple of values to insert: <code class="docutils literal"><span class="pre">(offset,</span> <span class="pre">dt)</span></code>.</p>
 </li>
-<li><p class="first">Finally, we return an <code class="docutils literal"><span class="pre">HttpResponse</span></code> of the HTML. By now, this is old
-hat.</p>
+<li><p class="first">Finally, we return an <code class="docutils literal"><span class="pre">HttpResponse</span></code> of the HTML.</p>
 </li>
 </ul>
 <p>With that view function and URLconf written, start the Django development server
@@ -906,74 +860,96 @@ Django&#8217;s template engine in the next chapter.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Chapter 2: Views and URLconfs</a><ul>
-<li><a class="reference internal" href="#your-first-django-powered-page-hello-world">Your First Django-Powered Page: Hello World</a><ul>
-<li><a class="reference internal" href="#your-first-view">Your First View</a></li>
-<li><a class="reference internal" href="#your-first-urlconf">Your First URLconf</a></li>
-<li><a class="reference internal" href="#a-quick-note-about-404-errors">A Quick Note About 404 Errors</a></li>
-<li><a class="reference internal" href="#a-quick-note-about-the-site-root">A Quick Note About The Site Root</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#how-django-processes-a-request">How Django Processes a Request</a></li>
-<li><a class="reference internal" href="#your-second-view-dynamic-content">Your Second View: Dynamic Content</a></li>
-<li><a class="reference internal" href="#urlconfs-and-loose-coupling">URLconfs and Loose Coupling</a></li>
-<li><a class="reference internal" href="#your-third-view-dynamic-urls">Your Third View: Dynamic URLs</a></li>
-<li><a class="reference internal" href="#django-s-pretty-error-pages">Django&#8217;s Pretty Error Pages</a></li>
-<li><a class="reference internal" href="#what-s-next">What&#8217;s next?</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="chapter_01.html" title="previous chapter">Chapter 1: Getting Started</a></li>
-      <li>Next: <a href="chapter_03.html" title="next chapter">Chapter 3: Templates</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/chapter_02.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_01.html">Chapter 1: Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 2: Views and URLconfs</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_03.html">Chapter 3: Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_04.html">Chapter 4: Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_05.html">Chapter 5: The Django Admin Site</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_06.html">Chapter 6: Forms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_07.html">Chapter 7: Advanced Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_08.html">Chapter 8: Advanced Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_09.html">Chapter 9: Advanced Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_10.html">Chapter 10: Generic Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_11.html">Chapter 11: User authentication in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_12.html">Chapter 12 - testing in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_13.html">Chapter 13: Deploying Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_14.html">Chapter 14 - How to write reusable apps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_15.html">Chapter 15: Generating Non-HTML Content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_16.html">Chapter 16 - Django sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_D.html">Appendix D: Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html">Appendix F: The django-admin Utility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html#running-management-commands-from-your-code">Running management commands from your code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2015, Nigel George.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
-      
-      |
-      <a href="_sources/chapter_02.txt"
-          rel="nofollow">Page source</a>
     </div>
 
-    
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="chapter_01.html" title="Chapter 1: Getting Started"
+              >previous</a> |
+            <a href="chapter_03.html" title="Chapter 3: Templates"
+              >next</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/chapter_02.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
 
-    
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Nigel George.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
   </body>
 </html>

@@ -23,11 +23,11 @@ Django is well suited for making database-driven Web sites, because it comes
 with easy yet powerful tools for performing database queries using Python. This
 chapter explains that functionality: Django's database layer.
 
-(Note: While it's not strictly necessary to know basic relational database
+**Note:** While it's not strictly necessary to know basic relational database
 theory and SQL in order to use Django's database layer, it's highly
 recommended. An introduction to those concepts is beyond the scope of this
 book, but keep reading even if you're a database newbie. You'll probably be
-able to follow along and grasp concepts based on the context.)
+able to follow along and grasp concepts based on the context.
 
 The "Dumb" Way to Do Database Queries in Views
 ==============================================
@@ -37,8 +37,7 @@ view (by hard-coding the text directly within the view), there's a "dumb" way to
 retrieve data from a database in a view. It's simple: just use any existing
 Python library to execute an SQL query and do something with the results.
 
-In this example view, we use the ``MySQLdb`` library (available via
-http://www.djangoproject.com/r/python-mysql/) to connect to a MySQL database,
+In this example view, we use the ``MySQLdb`` library to connect to a MySQL database,
 retrieve some records, and feed them to a template for display as a Web page::
 
     from django.shortcuts import render
@@ -71,7 +70,7 @@ This approach works, but some problems should jump out at you immediately:
   feature is particularly relevant if you're building an open-source Django
   application that you want to be used by as many people as possible.)
 
-As you might expect, Django's database layer aims to solve these problems.
+As you might expect, Django's database layer solves these problems.
 Here's a sneak preview of how the previous view can be rewritten using Django's
 database API::
 
@@ -122,45 +121,6 @@ simple it is to configure databases in Django.
 
 For a detailed description on how to set up the various databases supported by
 Django, see Chapter 23.
-
-Just to make sure our SQLite database is good to go (or to test another database connection if you have decided to go down that path), in the shell, type these commands to test your database configuration::
-
-    >>> from django.db import connection
-    >>> cursor = connection.cursor()
-
-If nothing happens, then your database is configured properly. Otherwise, check
-the error message for clues about what's wrong. Table 5-2 shows some common errors.
-
-.. table:: Table 5-2. Database Configuration Error Messages
-
-    =========================================================  ===============================================
-    Error Message                                              Solution
-    =========================================================  ===============================================
-    You haven't set the ENGINE setting yet.                    Set the ``ENGINE`` setting to
-                                                               something other than an empty string. Valid
-                                                               values are in Table 5-1.
-    Environment variable DJANGO_SETTINGS_MODULE is undefined.  Run the command ``python manage.py shell``
-                                                               rather than ``python``.
-    Error loading _____ module: No module named _____.         You haven't installed the appropriate
-                                                               database-specific adapter (e.g., ``psycopg``
-                                                               or ``MySQLdb``). Adapters are *not* bundled
-                                                               with Django, so it's your responsibility to
-                                                               download and install them on your own.
-    _____ isn't an available database backend.                 Set your ``ENGINE`` setting to
-                                                               one of the valid engine settings described
-                                                               previously. Perhaps you made a typo?
-    database _____ does not exist                              Change the ``NAME`` setting to
-                                                               point to a database that exists, or
-                                                               execute the appropriate
-                                                               ``CREATE DATABASE`` statement in order to
-                                                               create it.
-    role _____ does not exist                                  Change the ``USER`` setting to point
-                                                               to a user that exists, or create the user
-                                                               in your database.
-    could not connect to server                                Make sure ``HOST`` and
-                                                               ``PORT`` are set correctly, and
-                                                               make sure the database server is running.
-    =========================================================  ===============================================
 
 Your First App
 ==============
@@ -400,6 +360,8 @@ project. By default, it looks something like this::
         'django.contrib.messages',
         'django.contrib.staticfiles',
         )
+
+[TODO check we need to do this with a fresh install]
 
 Temporarily comment out all six of those strings by putting a hash character
 (``#``) in front of them. (They're included by default as a common-case
@@ -969,7 +931,9 @@ You can also specify reverse ordering by prefixing the field name with a ``-``
 While this flexibility is useful, using ``order_by()`` all the time can be quite
 repetitive. Most of the time you'll have a particular field you usually want
 to order by. In these cases, Django lets you specify a default ordering in the
-model::
+model:
+
+.. parsed-literal::
 
     class Publisher(models.Model):
         name = models.CharField(max_length=30)

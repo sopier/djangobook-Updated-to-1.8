@@ -6,9 +6,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Chapter 1: Getting Started &mdash; New Django Book v0.1 0.1 documentation</title>
+    <title>Chapter 1: Getting Started &mdash; Mastering Django</title>
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -23,17 +23,32 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="top" title="Mastering Django" href="index.html" />
     <link rel="next" title="Chapter 2: Views and URLconfs" href="chapter_02.html" />
-    <link rel="prev" title="Introduction to the third edition" href="introduction_3e.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
-
+    <link rel="prev" title="Introduction to the third edition" href="introduction_3e.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Mastering Django</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="introduction_3e.html" title="Introduction to the third edition"
+             accesskey="P">previous</a> |
+          <a href="chapter_02.html" title="Chapter 2: Views and URLconfs"
+             accesskey="N">next</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
 
-    <div class="document">
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -48,7 +63,7 @@
 <p>The first, installing Django, is really simple and detailed in the first part of
 this chapter.</p>
 <p>The second is just as important, especially if you are a new programmer or
-coming from using a programming language that does not clearly separate the data
+coming from using a programming language that does not clearly separate the data and logic
 behind your website from the way it is displayed.</p>
 <p>Django&#8217;s entire philosophy is based on <em>loose coupling</em>, which is the underlying
 philosophy of MVC. We will be discussing loose coupling and MVC in much more
@@ -57,18 +72,14 @@ skip the second half of this chapter, because understanding MVC will make
 understanding Django <em>so</em> much easier.</p>
 <div class="section" id="installing-django">
 <h2>Installing Django<a class="headerlink" href="#installing-django" title="Permalink to this headline">¶</a></h2>
-<p>Installing Django is a multi-step process, due to the multiple moving parts in
-modern Web development environments. In this chapter, we&#8217;ll walk you through
-how to install the framework and its few dependencies.</p>
-<p>Because Django is &#8220;just&#8221; Python code, it runs anywhere Python does &#8211; including
-on some cell phones! But this chapter just covers the common scenarios for
-Django installations. This chapter assumes you&#8217;re installing Django on a
+<p>There are a few steps to installing Django, but they are all very straight forward. In this chapter, we&#8217;ll walk you through how to install the framework and its few dependencies.</p>
+<p>This chapter assumes you&#8217;re installing Django on a
 desktop/laptop machine and will be using the development server and SQLite to
 run all the example code in this book.</p>
 <p>This is by far the easiest, and best way to setup Django when you are first
 starting out. If you do want to go to a more advanced installation of Django,
-your options are covered in Chapter 13: Deploying Django, Chapter 22: Complete
-Installation Guide and Chapter 22: Advanced Database Management.</p>
+your options are covered in Chapter 13 - Deploying Django, Chapter 22 - Complete
+Installation Guide and Chapter 22 - Advanced Database Management.</p>
 <div class="section" id="installing-python">
 <h3>Installing Python<a class="headerlink" href="#installing-python" title="Permalink to this headline">¶</a></h3>
 <p>Django itself is written purely in Python, so the first step in installing the
@@ -114,6 +125,16 @@ front of all your commands, rather than <code class="docutils literal"><span cla
 </div>
 <div class="section" id="id1">
 <h3>Installing Django<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-using-virtualenv admonition">
+<p class="first admonition-title">Using <code class="docutils literal"><span class="pre">virtualenv</span></code></p>
+<p>Before you install Django, it is worth considering whether you want to work
+within a virtual environment while you learn Django.</p>
+<p class="last"><code class="docutils literal"><span class="pre">virtualenv</span></code> is a Python tool that is used to create isolated Python
+environments. It is easy to set up and will ensure that any other
+applications on your computer that depend on Python don&#8217;t get messed up if
+you accidentally overwrite something important. Setup and use of
+<code class="docutils literal"><span class="pre">virtualenv</span></code> is detailed in Chapter 22.</p>
+</div>
 <p>At any given time, two distinct versions of Django are available to you: the
 latest official release and the bleeding-edge development version. The version you
 decide to install depends on your priorities. Do you want a stable and tested
@@ -130,13 +151,6 @@ documentation and by members of the community.</p>
 <li>Install a version of Django provided by your operating system distribution.</li>
 <li>Install an official release from the Django Project website.</li>
 </ol>
-<div class="admonition-always-refer-to-the-documentation-that-corresponds-to-the-version-of-django-you-re-using admonition">
-<p class="first admonition-title">Always refer to the documentation that corresponds to the
-version of Django you&#8217;re using!</p>
-<p class="last">Keep an eye out for parts of the documentation marked <strong>new in development version</strong>.
-That phrase flags features that are only available in development versions of Django, and
-they likely won&#8217;t work with an official release.</p>
-</div>
 <div class="section" id="installing-os-distribution-version">
 <h4>Installing OS Distribution Version<a class="headerlink" href="#installing-os-distribution-version" title="Permalink to this headline">¶</a></h4>
 <p>Many third-party distributors are now providing versions of Django integrated
@@ -144,9 +158,7 @@ with their package-management systems. These can make installation and upgrading
 much easier for users of Django since the integration includes the ability to
 automatically install dependencies (like database adapters) that Django
 requires.</p>
-<p>Typically, these packages are based on the latest stable release of Django, so
-if you want to use the development version of Django you&#8217;ll need to follow the
-instructions for installing the development version from Django&#8217;s Git repository.</p>
+<p>Typically, these packages are based on the latest stable release of Django, but not always. If your distro version is 1.8 or later, you are ok - all the code in this book should work (check the release notes if you are using a later version though, some functions are deprecated over time.). If your distro uses a version of Django older than 1.8, you will need to install an official release from the Django Project website.</p>
 <p>If you&#8217;re using Linux or a Unix installation, such as OpenSolaris,
 check with your distributor to see if they already package Django. If
 you&#8217;re using a Linux distro and don&#8217;t know how to find out if a package
@@ -222,7 +234,7 @@ this book while following along, don&#8217;t copy those dots.</p>
 book. Django comes with SQLite installed by default. SQLite requires no
 configuration on your part.</p>
 <p>If you would like to work with a &#8220;large&#8221; database engine like PostgreSQL, MySQL, or Oracle, see
-Chapter 23: Advanced Database Management</p>
+Chapter 23.</p>
 </div>
 <div class="section" id="starting-a-project">
 <h3>Starting a Project<a class="headerlink" href="#starting-a-project" title="Permalink to this headline">¶</a></h3>
@@ -237,7 +249,7 @@ initial setup. Namely, you&#8217;ll need to auto-generate some code that establi
 Django <cite>project</cite> &#8211; a collection of settings for an instance of Django,
 including database configuration, Django-specific options and
 application-specific settings.</p>
-<p>From the command line, <code class="docutils literal"><span class="pre">cd</span></code> into a directory where you&#8217;d like to store your
+<p>From the command line, change into a directory where you&#8217;d like to store your
 code, then run the following command:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>django-admin startproject mysite
 </pre></div>
@@ -259,7 +271,7 @@ not a good idea to put any of this Python code within your Web server&#8217;s
 document root, because it risks the possibility that people may be able
 to view your code over the Web. That&#8217;s not good for security.</p>
 <p>Put your code in some directory <strong>outside</strong> of the document root, such as
-<cite>/home/mycode</cite>.</p>
+<code class="docutils literal"><span class="pre">/home/mycode</span></code>.</p>
 <blockquote class="last">
 <div>If you are following along and using the development server, this does not
 matter right now, but it is important that you remember this when you go to
@@ -277,53 +289,47 @@ deploy your Django project to a production server.</div></blockquote>
 </div>
 <p>These files are:</p>
 <ul class="simple">
-<li>The outer <cite>mysite/</cite> root directory is just a container for your
+<li>The outer <code class="docutils literal"><span class="pre">mysite/</span></code> root directory is just a container for your
 project. Its name doesn&#8217;t matter to Django; you can rename it to anything
 you like.</li>
-<li><cite>manage.py</cite>: A command-line utility that lets you interact with this
+<li><code class="docutils literal"><span class="pre">manage.py</span></code>: A command-line utility that lets you interact with this
 Django project in various ways. You can read all the details about
-<cite>manage.py</cite> in Appendix F.</li>
-<li>The inner <cite>mysite/</cite> directory is the actual Python package for your
+<code class="docutils literal"><span class="pre">manage.py</span></code> in Appendix F.</li>
+<li>The inner <code class="docutils literal"><span class="pre">mysite/</span></code> directory is the actual Python package for your
 project. Its name is the Python package name you&#8217;ll need to use to import
 anything inside it (e.g. <code class="docutils literal"><span class="pre">mysite.urls</span></code>).</li>
-<li><cite>mysite/__init__.py</cite>: An empty file that tells Python that this
+<li><code class="docutils literal"><span class="pre">mysite/__init__.py</span></code>: An empty file that tells Python that this
 directory should be considered a Python package. (Read <a class="reference external" href="https://docs.python.org/tutorial/modules.html#packages">more about
 packages</a> in the official Python docs if you&#8217;re a Python beginner.)</li>
-<li><cite>mysite/settings.py</cite>: Settings/configuration for this Django
+<li><code class="docutils literal"><span class="pre">mysite/settings.py</span></code>: Settings/configuration for this Django
 project. Appendix D will tell you all about how settings
 work.</li>
-<li><cite>mysite/urls.py</cite>: The URL declarations for this Django project; a
+<li><code class="docutils literal"><span class="pre">mysite/urls.py</span></code>: The URL declarations for this Django project; a
 &#8220;table of contents&#8221; of your Django-powered site. You can read more about
 URLs in Chapters 2 and 7.</li>
-<li><cite>mysite/wsgi.py</cite>: An entry-point for WSGI-compatible web servers to
+<li><code class="docutils literal"><span class="pre">mysite/wsgi.py</span></code>: An entry-point for WSGI-compatible web servers to
 serve your project. See Chapter 13 for more details.</li>
 </ul>
 </div>
-<div class="section" id="database-setup">
-<h3>Database setup<a class="headerlink" href="#database-setup" title="Permalink to this headline">¶</a></h3>
-<p>Now, edit <cite>mysite/settings.py</cite>. It&#8217;s a normal Python module with
+<div class="section" id="django-settings">
+<h3>Django settings<a class="headerlink" href="#django-settings" title="Permalink to this headline">¶</a></h3>
+<p>Now, edit <code class="docutils literal"><span class="pre">mysite/settings.py</span></code>. It&#8217;s a normal Python module with
 module-level variables representing Django settings.</p>
-<p>By default, the configuration uses SQLite. If you&#8217;re new to databases, or
-you&#8217;re just interested in trying Django, this is the easiest choice. SQLite is
-included in Python, so you won&#8217;t need to install anything else to support your
-database. All the examples in this books assume that you are running SQLite.</p>
-<p>If you wish to use another database, check out Chapter 23: Advanced Database
-Management.</p>
-<p>While you&#8217;re editing <cite>mysite/settings.py</cite>, set <cite>TIME_ZONE</cite> to
+<p>First step while you&#8217;re editing <code class="docutils literal"><span class="pre">mysite/settings.py</span></code>, is to set <code class="docutils literal"><span class="pre">TIME_ZONE</span></code> to
 your time zone.</p>
-<p>Also, note the <cite>INSTALLED_APPS</cite> setting at the top of the file. That
+<p>Note the <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code> setting at the top of the file. That
 holds the names of all Django applications that are activated in this Django
 instance. Apps can be used in multiple projects, and you can package and
 distribute them for use by others in their projects.</p>
-<p>By default, <cite>INSTALLED_APPS</cite> contains the following apps, all of which
+<p>By default, <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code> contains the following apps, all of which
 come with Django:</p>
 <ul class="simple">
-<li><cite>django.contrib.admin</cite> &#8211; The admin site.</li>
-<li><cite>django.contrib.auth</cite> &#8211; An authentication system.</li>
-<li><cite>django.contrib.contenttypes</cite> &#8211; A framework for content types.</li>
-<li><cite>django.contrib.sessions</cite> &#8211; A session framework.</li>
-<li><cite>django.contrib.messages</cite> &#8211; A messaging framework.</li>
-<li><cite>django.contrib.staticfiles</cite> &#8211; A framework for managing
+<li><code class="docutils literal"><span class="pre">django.contrib.admin</span></code> &#8211; The admin site.</li>
+<li><code class="docutils literal"><span class="pre">django.contrib.auth</span></code> &#8211; An authentication system.</li>
+<li><code class="docutils literal"><span class="pre">django.contrib.contenttypes</span></code> &#8211; A framework for content types.</li>
+<li><code class="docutils literal"><span class="pre">django.contrib.sessions</span></code> &#8211; A session framework.</li>
+<li><code class="docutils literal"><span class="pre">django.contrib.messages</span></code> &#8211; A messaging framework.</li>
+<li><code class="docutils literal"><span class="pre">django.contrib.staticfiles</span></code> &#8211; A framework for managing
 static files.</li>
 </ul>
 <p>These applications are included by default as a convenience for the common case.</p>
@@ -333,26 +339,15 @@ that, run the following command:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py migrate
 </pre></div>
 </div>
-<p>The <cite>migrate</cite> command looks at the <cite>INSTALLED_APPS</cite> setting
+<p>The <code class="docutils literal"><span class="pre">migrate</span></code> command looks at the <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code> setting
 and creates any necessary database tables according to the database settings
-in your <cite>mysite/settings.py</cite> file and the database migrations shipped
+in your <code class="docutils literal"><span class="pre">mysite/settings.py</span></code> file and the database migrations shipped
 with the app (we&#8217;ll cover those later). You&#8217;ll see a message for each
-migration it applies. If you&#8217;re interested, run the command-line client for your
-database and type <code class="docutils literal"><span class="pre">\dt</span></code> (PostgreSQL), <code class="docutils literal"><span class="pre">SHOW</span> <span class="pre">TABLES;</span></code> (MySQL), or
-<code class="docutils literal"><span class="pre">.schema</span></code> (SQLite) to display the tables Django created.</p>
-<div class="admonition-for-the-minimalists admonition">
-<p class="first admonition-title">For the minimalists</p>
-<p class="last">Like we said above, the default applications are included for the common
-case, but not everybody needs them. If you don&#8217;t need any or all of them,
-feel free to comment-out or delete the appropriate line(s) from
-<cite>INSTALLED_APPS</cite> before running <cite>migrate</cite>. The
-<cite>migrate</cite> command will only run migrations for apps in
-<cite>INSTALLED_APPS</cite>.</p>
-</div>
+migration it applies.</p>
 </div>
 <div class="section" id="the-development-server">
 <h3>The development server<a class="headerlink" href="#the-development-server" title="Permalink to this headline">¶</a></h3>
-<p>Let&#8217;s verify your Django project works. Change into the outer <cite>mysite</cite> directory, if
+<p>Let&#8217;s verify your Django project works. Change into the outer <code class="docutils literal"><span class="pre">mysite</span></code> directory, if
 you haven&#8217;t already, and run the following commands:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py runserver
 </pre></div>
@@ -372,33 +367,13 @@ purely in Python. We&#8217;ve included this with Django so you can develop thing
 rapidly, without having to deal with configuring a production server &#8211; such as
 Apache &#8211; until you&#8217;re ready for production.</p>
 <p>Now&#8217;s a good time to note: <strong>don&#8217;t</strong> use this server in anything resembling a
-production environment. It&#8217;s intended only for use while developing. (We&#8217;re in
-the business of making Web frameworks, not Web servers.)</p>
+production environment. <strong>It&#8217;s intended only for use while developing</strong>.</p>
 <p>Now that the server&#8217;s running, visit <a class="reference external" href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a> with your Web
 browser. You&#8217;ll see a &#8220;Welcome to Django&#8221; page, in pleasant, light-blue pastel.
 It worked!</p>
 <div class="figure" id="id2">
 <img alt="_images/welcome2django.png" src="_images/welcome2django.png" />
 <p class="caption"><span class="caption-text">Figure 1-1. Django&#8217;s welcome page</span></p>
-</div>
-<div class="admonition-changing-the-port admonition">
-<p class="first admonition-title">Changing the port</p>
-<p>By default, the <cite>runserver</cite> command starts the development server
-on the internal IP at port 8000.</p>
-<p>If you want to change the server&#8217;s port, pass
-it as a command-line argument. For instance, this command starts the server
-on port 8080:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py runserver 8080
-</pre></div>
-</div>
-<p>If you want to change the server&#8217;s IP, pass it along with the port. So to
-listen on all public IPs (useful if you want to show off your work on other
-computers), use:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py runserver 0.0.0.0:8000
-</pre></div>
-</div>
-<p class="last">Full docs for the development server can be found in the
-<cite>runserver</cite> reference.</p>
 </div>
 </div>
 <div class="section" id="automatic-reloading-of-runserver">
@@ -434,7 +409,7 @@ either by changing the view, or modifying data through the model, or both.</li>
 </ul>
 <p>Where it gets difficult is the vastly different interpretation of what actually
 happens at each layer - different frameworks implement the same functionality in
-different ways. One might say a certain function belongs in a view, while an
+different ways. One framework &#8220;guru&#8221; might say a certain function belongs in a view, while an
 other might vehemently defend the need for it to be in the controller.</p>
 <p>You, as a budding programmer who Gets Stuff Done, do not have to care about this
 because in the end, it <em>doesn&#8217;t matter</em>. As long as you understand how Django
@@ -444,7 +419,8 @@ distraction...</p>
 <p>Django follows the MVC pattern closely, however it does implement it&#8217;s own logic
 in the implementation. Because the &#8220;C&#8221; is handled by the framework itself and
 most of the excitement in Django happens in models, templates and views, Django
-is often referred to as an <em>MTV framework</em>. In the MTV development pattern,</p>
+is often referred to as an <em>MTV framework</em>.</p>
+<p>In the MTV development pattern:</p>
 <ul class="simple">
 <li><em>M</em> stands for &#8220;Model,&#8221; the data access layer. This layer contains
 anything and everything about the data: how to access it, how to validate
@@ -463,7 +439,8 @@ checking out Django&#8217;s views in the next chapter.</li>
 view is more like the controller in MVC, and MVC&#8217;s view is actually a Template in
 Django. It is a little confusing at first, but as a programmer getting a job
 done, you really won&#8217;t care for long. It is only a problem for those of us who
-have to teach it. Oh, and to the flamers of course.</p>
+have to teach it.</p>
+<p>Oh, and to the flamers of course.</p>
 </div>
 <div class="section" id="what-s-next">
 <h2>What&#8217;s Next?<a class="headerlink" href="#what-s-next" title="Permalink to this headline">¶</a></h2>
@@ -476,82 +453,96 @@ you&#8217;re ready to move on to Django views and learning the basics of serving
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Chapter 1: Getting Started</a><ul>
-<li><a class="reference internal" href="#installing-django">Installing Django</a><ul>
-<li><a class="reference internal" href="#installing-python">Installing Python</a><ul>
-<li><a class="reference internal" href="#python-versions">Python Versions</a></li>
-<li><a class="reference internal" href="#installation">Installation</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#id1">Installing Django</a><ul>
-<li><a class="reference internal" href="#installing-os-distribution-version">Installing OS Distribution Version</a></li>
-<li><a class="reference internal" href="#installing-an-official-release">Installing an Official Release</a></li>
-<li><a class="reference internal" href="#testing-the-django-installation">Testing the Django installation</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#setting-up-a-database">Setting Up a Database</a></li>
-<li><a class="reference internal" href="#starting-a-project">Starting a Project</a></li>
-<li><a class="reference internal" href="#database-setup">Database setup</a></li>
-<li><a class="reference internal" href="#the-development-server">The development server</a></li>
-<li><a class="reference internal" href="#automatic-reloading-of-runserver">Automatic reloading of <cite>runserver</cite></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#the-model-view-controller-mvc-design-pattern">The Model-View-Controller (MVC) design pattern</a></li>
-<li><a class="reference internal" href="#what-s-next">What&#8217;s Next?</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="introduction_3e.html" title="previous chapter">Introduction to the third edition</a></li>
-      <li>Next: <a href="chapter_02.html" title="next chapter">Chapter 2: Views and URLconfs</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/chapter_01.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 1: Getting Started</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_02.html">Chapter 2: Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_03.html">Chapter 3: Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_04.html">Chapter 4: Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_05.html">Chapter 5: The Django Admin Site</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_06.html">Chapter 6: Forms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_07.html">Chapter 7: Advanced Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_08.html">Chapter 8: Advanced Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_09.html">Chapter 9: Advanced Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_10.html">Chapter 10: Generic Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_11.html">Chapter 11: User authentication in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_12.html">Chapter 12 - testing in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_13.html">Chapter 13: Deploying Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_14.html">Chapter 14 - How to write reusable apps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_15.html">Chapter 15: Generating Non-HTML Content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_16.html">Chapter 16 - Django sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_D.html">Appendix D: Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html">Appendix F: The django-admin Utility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html#running-management-commands-from-your-code">Running management commands from your code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2015, Nigel George.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
-      
-      |
-      <a href="_sources/chapter_01.txt"
-          rel="nofollow">Page source</a>
     </div>
 
-    
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="introduction_3e.html" title="Introduction to the third edition"
+              >previous</a> |
+            <a href="chapter_02.html" title="Chapter 2: Views and URLconfs"
+              >next</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/chapter_01.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
 
-    
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Nigel George.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
   </body>
 </html>

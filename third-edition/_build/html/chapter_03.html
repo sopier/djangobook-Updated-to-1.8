@@ -6,9 +6,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Chapter 3: Templates &mdash; New Django Book v0.1 0.1 documentation</title>
+    <title>Chapter 3: Templates &mdash; Mastering Django</title>
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -23,17 +23,32 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="top" title="Mastering Django" href="index.html" />
     <link rel="next" title="Chapter 4: Models" href="chapter_04.html" />
-    <link rel="prev" title="Chapter 2: Views and URLconfs" href="chapter_02.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
-
+    <link rel="prev" title="Chapter 2: Views and URLconfs" href="chapter_02.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Mastering Django</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="chapter_02.html" title="Chapter 2: Views and URLconfs"
+             accesskey="P">previous</a> |
+          <a href="chapter_04.html" title="Chapter 4: Models"
+             accesskey="N">next</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
 
-    <div class="document">
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -57,6 +72,7 @@ why:</p>
 the Python code. The design of a site tends to change far more frequently
 than the underlying Python code, so it would be convenient if
 the design could change without needing to modify the Python code.</li>
+<li>This is only a very simple example. A common webpage template has hundreds of lines of HTML and scripts. Untangling and         troubleshooting program code from this mess is a nightmare (<em>cough&#8211;PHP&#8211;cough</em>).</li>
 <li>Writing Python code and designing HTML are two different disciplines, and
 most professional Web development environments split these
 responsibilities between separate people (or even separate departments).
@@ -84,13 +100,7 @@ which mix programming code directly into HTML, you&#8217;ll want to bear in
 mind that the Django template system is not simply Python embedded into
 HTML. This is by design: the template system is meant to express
 presentation, not program logic.</p>
-<p class="last">The Django template system provides tags which function similarly to some
-programming constructs &#8211; an <cite>if</cite> tag for boolean tests, a <cite>for</cite>
-tag for looping, etc. &#8211; but these are not simply executed as the
-corresponding Python code, and the template system will not execute
-arbitrary Python expressions. Only the tags, filters and syntax listed below
-are supported by default (although you can add your own extensions
-to the template language as needed).</p>
+<p class="last">See later in this chapter for a more detailed description of the</p>
 </div>
 <p>Let&#8217;s start with a simple example template. This Django template describes an
 HTML page that thanks a person for placing an order with a company. Think of it
@@ -175,13 +185,7 @@ to distribute templates. Django&#8217;s contrib apps that include templates, lik
 <code class="docutils literal"><span class="pre">django.contrib.admin</span></code>, use the DTL.</p>
 <p>All of the examples in this chapter will use the DTL. For more advanced
 template topics, including configuring third-party template engines see Chapter 8.</p>
-<p>Let&#8217;s dive into Django&#8217;s template system so you can see how it works &#8211; but
-we&#8217;re <em>not</em> yet going to integrate it with the views that we created in the
-previous chapter. The goal here is to show you how the system works
-independently of the rest of Django. (Put another way: usually you&#8217;ll be using
-the template system within a Django view, but we want to make it clear that the
-template system is just a Python library that you can use <em>anywhere</em>, not just
-in Django views.)</p>
+<p>Before we go about implementing Django templates in your view, lets first dig inside the DTL a little so you can see how it works.</p>
 <p>Here is the most basic way you can use Django&#8217;s template system in Python code:</p>
 <ol class="arabic simple">
 <li>Create a <code class="docutils literal"><span class="pre">Template</span></code> object by providing the raw template code as a
@@ -410,7 +414,7 @@ strings, plus a <code class="docutils literal"><span class="pre">datetime.date</
 elegantly handles more complex data structures, such as lists, dictionaries, and
 custom objects.</p>
 <p>The key to traversing complex data structures in Django templates is the dot
-character (<code class="docutils literal"><span class="pre">.</span></code>). Use a dot to access dictionary keys, attributes, methods,
+character (&#8216;.&#8217;). Use a dot to access dictionary keys, attributes, methods,
 or indices of an object.</p>
 <p>This is best illustrated with a few examples. For instance, suppose
 you&#8217;re passing a Python dictionary to a template. To access the values
@@ -538,16 +542,11 @@ option (an empty string, by default). For example:</p>
 <li><p class="first">A method call will only work if the method has no required arguments.
 Otherwise, the system will move to the next lookup type (list-index
 lookup).</p>
-</li>
-</ul>
-<div class="admonition-method-arguments-and-templates admonition">
-<p class="first admonition-title">Method Arguments and Templates</p>
-<p class="last">By design, Django intentionally limits the amount of logic
+<p>By design, Django intentionally limits the amount of logic
 processing available in the template, so it is not possible to pass
 arguments to method calls accessed from within templates. Data should
 be calculated in views and then pass to templates for display.</p>
-</div>
-<ul>
+</li>
 <li><p class="first">Obviously, some methods have side effects, and it would be foolish at
 best, and possibly even a security hole, to allow the template system to
 access them.</p>
@@ -988,7 +987,7 @@ format string given in the parameter, for example:</p>
 </li>
 <li><p class="first"><code class="docutils literal"><span class="pre">length</span></code>: Returns the length of the value. For a list, this returns the
 number of elements. For a string, this returns the number of characters.
-If the variable is undefined, <code class="docutils literal"><span class="pre">length</span></code> returns <strong>0</strong>.</p>
+If the variable is undefined, <code class="docutils literal"><span class="pre">length</span></code> returns &#8216;0&#8217;.</p>
 </li>
 </ul>
 </div>
@@ -998,7 +997,7 @@ If the variable is undefined, <code class="docutils literal"><span class="pre">l
 <p>Now that you&#8217;ve gotten a feel for the Django Template Language(DTL), it is
 probably time to explain the basic design philosophy behind the DTL.</p>
 <p>First and foremost, the <strong>limitations to the DTL are intentional.</strong></p>
-<p>Django was developed in a high volume, ever-changing environment of an online
+<p>Django was developed in the high volume, ever-changing environment of an online
 newsroom. The original creators of Django had a very definite set of philosophies
 in creating the DTL. These philosophies remain core to Django today. They are:</p>
 <div class="section" id="separate-logic-from-presentation">
@@ -1083,9 +1082,7 @@ supports this point. Each was likely created because its developer deemed all
 existing template languages inadequate.</p>
 <p>Because Django is intended to be a full-stack Web framework that provides all
 the pieces necessary for Web developers to be productive, most times it&#8217;s <em>more
-convenient</em> to use the DTL, but it&#8217;s not a strict requirement in any sense. [As
-you&#8217;ll see in the upcoming section &#8220;Using Templates in Views&#8221;, it&#8217;s very easy
-to use another template language with Django.</p>
+convenient</em> to use the DTL, but it&#8217;s not a strict requirement in any sense.</p>
 </div>
 </div>
 <div class="section" id="using-templates-in-views">
@@ -1209,10 +1206,11 @@ store your templates and add it to <code class="docutils literal"><span class="p
 </div>
 <p>There are a few things to note:</p>
 <ul>
-<li><p class="first">Unless there is a good reason to do so, you are better off leaving <code class="docutils literal"><span class="pre">DIRS</span></code>
-empty. The default settings file configures <code class="docutils literal"><span class="pre">APP_DIRS</span></code> to <code class="docutils literal"><span class="pre">True</span></code>, so you
-are better off having a &#8220;templates&#8221; subdirectory in your Django app. More on
-why this is a good thing in Chapter 14.</p>
+<li><p class="first">Unless you are building a very simple program with no apps, you are better
+off leaving <code class="docutils literal"><span class="pre">DIRS</span></code> empty. The default settings file configures
+<code class="docutils literal"><span class="pre">APP_DIRS</span></code> to <code class="docutils literal"><span class="pre">True</span></code>, so you are better off having a &#8220;templates&#8221;
+subdirectory in your Django app. More on why this is a good thing in Chapter
+14.</p>
 </li>
 <li><p class="first">If you want to have a set of master templates at project root, e.g.
 <code class="docutils literal"><span class="pre">mysite/templates</span></code>, you <em>do</em> need to set <code class="docutils literal"><span class="pre">DIRS</span></code>, like so:</p>
@@ -1313,9 +1311,8 @@ was to optimize it to use <code class="docutils literal"><span class="pre">get_t
 template paths. We took you through this process to ensure you understood how
 Django templates are loaded and rendered to your browser.</p>
 <p>In practice, Django provides a much easier way to do this.</p>
-<p>Django&#8217;s developers recognised that because this is such a common idiom,
-what would be really useful is a shortcut that lets you load a template,
-render it and return an <code class="docutils literal"><span class="pre">HttpResponse</span></code> &#8211; all in one line of code.</p>
+<p>Django&#8217;s developers recognized that because this is such a common idiom,
+Django needed a shortcut that could do all this in one line of code.</p>
 <p>This shortcut is a function called <code class="docutils literal"><span class="pre">render()</span></code>, which lives in the
 module <code class="docutils literal"><span class="pre">django.shortcuts</span></code>. Most of the time, you&#8217;ll be using
 <code class="docutils literal"><span class="pre">render()</span></code> rather than loading templates and creating <code class="docutils literal"><span class="pre">Context</span></code>
@@ -1354,7 +1351,7 @@ argument, <code class="docutils literal"><span class="pre">render()</span></code
 might like to store templates in subdirectories of your template directory, and
 that&#8217;s fine. In fact, we recommend doing so; some more advanced Django
 features (such as the generic views system, which we cover in
-Chapter 110) expect this template layout as a default convention.</p>
+Chapter 10) expect this template layout as a default convention.</p>
 <p>Storing templates in subdirectories of your template directory is easy.
 In your calls to <code class="docutils literal"><span class="pre">get_template()</span></code>, just include
 the subdirectory name and a slash before the template name, like so:</p>
@@ -1435,10 +1432,7 @@ silently, displaying nothing in the place of the tag.</li>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>The <code class="docutils literal"><span class="pre">include</span></code> tag should be considered as an implementation of
-&#8220;render this subtemplate and include the HTML&#8221;, not as &#8220;parse this
-subtemplate and include its contents as if it were part of the parent&#8221;.
-This means that there is no shared state between included templates &#8211;
+<p>There is no shared state between included templates &#8211;
 each include is a completely independent rendering process.</p>
 <p class="last">Blocks are evaluated <em>before</em> they are included. This means that a template
 that includes blocks from another will contain blocks that have <em>already
@@ -1659,106 +1653,96 @@ database.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Chapter 3: Templates</a><ul>
-<li><a class="reference internal" href="#template-system-basics">Template System Basics</a></li>
-<li><a class="reference internal" href="#using-the-template-system">Using the Template System</a><ul>
-<li><a class="reference internal" href="#creating-template-objects">Creating Template Objects</a></li>
-<li><a class="reference internal" href="#rendering-a-template">Rendering a Template</a></li>
-<li><a class="reference internal" href="#multiple-contexts-same-template">Multiple Contexts, Same Template</a></li>
-<li><a class="reference internal" href="#context-variable-lookup">Context Variable Lookup</a><ul>
-<li><a class="reference internal" href="#method-call-behavior">Method Call Behavior</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#how-invalid-variables-are-handled">How Invalid Variables Are Handled</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#basic-template-tags-and-filters">Basic Template Tags and Filters</a><ul>
-<li><a class="reference internal" href="#tags">Tags</a><ul>
-<li><a class="reference internal" href="#if-else">if/else</a></li>
-<li><a class="reference internal" href="#for">for</a></li>
-<li><a class="reference internal" href="#ifequal-ifnotequal">ifequal/ifnotequal</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#comments">Comments</a></li>
-<li><a class="reference internal" href="#filters">Filters</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#philosophies-and-limitations">Philosophies and Limitations</a><ul>
-<li><a class="reference internal" href="#separate-logic-from-presentation">Separate logic from presentation</a></li>
-<li><a class="reference internal" href="#discourage-redundancy">Discourage redundancy</a></li>
-<li><a class="reference internal" href="#be-decoupled-from-html">Be decoupled from HTML</a></li>
-<li><a class="reference internal" href="#xml-should-not-be-used-for-template-languages">XML should not be used for template languages</a></li>
-<li><a class="reference internal" href="#assume-designer-competence">Assume designer competence</a></li>
-<li><a class="reference internal" href="#treat-whitespace-obviously">Treat whitespace obviously</a></li>
-<li><a class="reference internal" href="#don-t-invent-a-programming-language">Don&#8217;t invent a programming language</a></li>
-<li><a class="reference internal" href="#safety-and-security">Safety and security</a></li>
-<li><a class="reference internal" href="#extensibility">Extensibility</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#using-templates-in-views">Using Templates in Views</a></li>
-<li><a class="reference internal" href="#template-loading">Template Loading</a><ul>
-<li><a class="reference internal" href="#template-directories">Template directories</a></li>
-<li><a class="reference internal" href="#render">render()</a></li>
-<li><a class="reference internal" href="#subdirectories-in-get-template">Subdirectories in get_template()</a></li>
-<li><a class="reference internal" href="#the-include-template-tag">The <code class="docutils literal"><span class="pre">include</span></code> Template Tag</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#template-inheritance">Template Inheritance</a></li>
-<li><a class="reference internal" href="#what-s-next">What&#8217;s next?</a></li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="chapter_02.html" title="previous chapter">Chapter 2: Views and URLconfs</a></li>
-      <li>Next: <a href="chapter_04.html" title="next chapter">Chapter 4: Models</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/chapter_03.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_01.html">Chapter 1: Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_02.html">Chapter 2: Views and URLconfs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 3: Templates</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_04.html">Chapter 4: Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_05.html">Chapter 5: The Django Admin Site</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_06.html">Chapter 6: Forms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_07.html">Chapter 7: Advanced Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_08.html">Chapter 8: Advanced Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_09.html">Chapter 9: Advanced Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_10.html">Chapter 10: Generic Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_11.html">Chapter 11: User authentication in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_12.html">Chapter 12 - testing in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_13.html">Chapter 13: Deploying Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_14.html">Chapter 14 - How to write reusable apps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_15.html">Chapter 15: Generating Non-HTML Content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_16.html">Chapter 16 - Django sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_D.html">Appendix D: Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html">Appendix F: The django-admin Utility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_F.html#running-management-commands-from-your-code">Running management commands from your code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2015, Nigel George.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
-      
-      |
-      <a href="_sources/chapter_03.txt"
-          rel="nofollow">Page source</a>
     </div>
 
-    
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="chapter_02.html" title="Chapter 2: Views and URLconfs"
+              >previous</a> |
+            <a href="chapter_04.html" title="Chapter 4: Models"
+              >next</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/chapter_03.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
 
-    
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Nigel George.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
   </body>
 </html>

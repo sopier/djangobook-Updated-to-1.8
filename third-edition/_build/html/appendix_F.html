@@ -6,9 +6,9 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Appendix F: The django-admin Utility &mdash; New Django Book v0.1 0.1 documentation</title>
+    <title>Appendix F: The django-admin Utility &mdash; Mastering Django</title>
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -23,17 +23,32 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="New Django Book v0.1 0.1 documentation" href="index.html" />
+    <link rel="top" title="Mastering Django" href="index.html" />
     <link rel="next" title="Appendix G: Request and Response Objects" href="appendix_G.html" />
-    <link rel="prev" title="Appendix E: Built-in Template Tags and Filters" href="appendix_E.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
-
+    <link rel="prev" title="Appendix E: Built-in Template Tags and Filters" href="appendix_E.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">Mastering Django</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="appendix_E.html" title="Appendix E: Built-in Template Tags and Filters"
+             accesskey="P">previous</a> |
+          <a href="appendix_G.html" title="Appendix G: Request and Response Objects"
+             accesskey="N">next</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
 
-    <div class="document">
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
@@ -1741,149 +1756,98 @@ to indicate that something has gone wrong in the execution of a command.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Appendix F: The django-admin Utility</a><ul>
-<li><a class="reference internal" href="#usage">Usage</a><ul>
-<li><a class="reference internal" href="#getting-runtime-help">Getting runtime help</a></li>
-<li><a class="reference internal" href="#app-names">App names</a></li>
-<li><a class="reference internal" href="#determining-the-version">Determining the version</a></li>
-<li><a class="reference internal" href="#displaying-debug-output">Displaying debug output</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#available-commands">Available commands</a><ul>
-<li><a class="reference internal" href="#check-appname-appname">check &lt;appname appname ...&gt;</a></li>
-<li><a class="reference internal" href="#compilemessages">compilemessages</a></li>
-<li><a class="reference internal" href="#createcachetable">createcachetable</a></li>
-<li><a class="reference internal" href="#dbshell">dbshell</a></li>
-<li><a class="reference internal" href="#diffsettings">diffsettings</a></li>
-<li><a class="reference internal" href="#dumpdata-app-label-app-label-app-label-model">dumpdata &lt;app_label app_label app_label.Model ...&gt;</a></li>
-<li><a class="reference internal" href="#flush">flush</a></li>
-<li><a class="reference internal" href="#inspectdb">inspectdb</a></li>
-<li><a class="reference internal" href="#loaddata-fixture-fixture">loaddata &lt;fixture fixture ...&gt;</a><ul>
-<li><a class="reference internal" href="#what-s-a-fixture">What&#8217;s a &#8220;fixture&#8221;?</a></li>
-<li><a class="reference internal" href="#compressed-fixtures">Compressed fixtures</a></li>
-<li><a class="reference internal" href="#database-specific-fixtures">Database-specific fixtures</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#makemessages">makemessages</a></li>
-<li><a class="reference internal" href="#makemigrations-app-label">makemigrations [&lt;app_label&gt;]</a></li>
-<li><a class="reference internal" href="#migrate-app-label-migrationname">migrate [&lt;app_label&gt; [&lt;migrationname&gt;]]</a></li>
-<li><a class="reference internal" href="#runserver-port-or-address-port">runserver [port or address:port]</a><ul>
-<li><a class="reference internal" href="#examples-of-using-different-ports-and-addresses">Examples of using different ports and addresses</a></li>
-<li><a class="reference internal" href="#serving-static-files-with-the-development-server">Serving static files with the development server</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#showmigrations-app-label-app-label">showmigrations [&lt;app_label&gt; [&lt;app_label&gt;]]</a></li>
-<li><a class="reference internal" href="#sqlflush">sqlflush</a></li>
-<li><a class="reference internal" href="#sqlmigrate-app-label-migrationname">sqlmigrate &lt;app_label&gt; &lt;migrationname&gt;</a></li>
-<li><a class="reference internal" href="#sqlsequencereset-app-label-app-label">sqlsequencereset &lt;app_label app_label ...&gt;</a></li>
-<li><a class="reference internal" href="#squashmigrations-app-label-migration-name">squashmigrations &lt;app_label&gt; &lt;migration_name&gt;</a></li>
-<li><a class="reference internal" href="#startapp-app-label-destination">startapp &lt;app_label&gt; [destination]</a></li>
-<li><a class="reference internal" href="#startproject-projectname-destination">startproject &lt;projectname&gt; [destination]</a></li>
-<li><a class="reference internal" href="#test-app-or-test-identifier">test &lt;app or test identifier&gt;</a></li>
-<li><a class="reference internal" href="#testserver-fixture-fixture">testserver &lt;fixture fixture ...&gt;</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#commands-provided-by-applications">Commands provided by applications</a><ul>
-<li><a class="reference internal" href="#django-contrib-auth"><code class="docutils literal"><span class="pre">django.contrib.auth</span></code></a><ul>
-<li><a class="reference internal" href="#changepassword">changepassword</a></li>
-<li><a class="reference internal" href="#createsuperuser">createsuperuser</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#django-contrib-gis"><code class="docutils literal"><span class="pre">django.contrib.gis</span></code></a><ul>
-<li><a class="reference internal" href="#ogrinspect">ogrinspect</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#django-contrib-sessions"><code class="docutils literal"><span class="pre">django.contrib.sessions</span></code></a><ul>
-<li><a class="reference internal" href="#clearsessions">clearsessions</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#django-contrib-sitemaps"><code class="docutils literal"><span class="pre">django.contrib.sitemaps</span></code></a><ul>
-<li><a class="reference internal" href="#ping-google">ping_google</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#django-contrib-staticfiles"><code class="docutils literal"><span class="pre">django.contrib.staticfiles</span></code></a><ul>
-<li><a class="reference internal" href="#collectstatic">collectstatic</a></li>
-<li><a class="reference internal" href="#findstatic">findstatic</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#default-options">Default options</a></li>
-<li><a class="reference internal" href="#common-options">Common options</a></li>
-<li><a class="reference internal" href="#extra-niceties">Extra niceties</a><ul>
-<li><a class="reference internal" href="#syntax-coloring">Syntax coloring</a></li>
-<li><a class="reference internal" href="#bash-completion">Bash completion</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#running-management-commands-from-your-code">Running management commands from your code</a><ul>
-<li><a class="reference internal" href="#output-redirection">Output redirection</a></li>
-<li><a class="reference internal" href="#module-django.core.management">Writing custom django-admin commands</a></li>
-<li><a class="reference internal" href="#accepting-optional-arguments">Accepting optional arguments</a></li>
-<li><a class="reference internal" href="#management-commands-and-locales">Management commands and locales</a></li>
-<li><a class="reference internal" href="#testing">Testing</a></li>
-<li><a class="reference internal" href="#command-objects">Command objects</a><ul>
-<li><a class="reference internal" href="#attributes">Attributes</a></li>
-<li><a class="reference internal" href="#methods">Methods</a></li>
-<li><a class="reference internal" href="#basecommand-subclasses">BaseCommand subclasses</a></li>
-<li><a class="reference internal" href="#command-exceptions">Command exceptions</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="appendix_E.html" title="previous chapter">Appendix E: Built-in Template Tags and Filters</a></li>
-      <li>Next: <a href="appendix_G.html" title="next chapter">Appendix G: Request and Response Objects</a></li>
-  </ul></li>
-</ul>
-</div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/appendix_F.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
+        <div class="sidebar">
+          <h3>Table Of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_01.html">Chapter 1: Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_02.html">Chapter 2: Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_03.html">Chapter 3: Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_04.html">Chapter 4: Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_05.html">Chapter 5: The Django Admin Site</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_06.html">Chapter 6: Forms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_07.html">Chapter 7: Advanced Views and URLconfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_08.html">Chapter 8: Advanced Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_09.html">Chapter 9: Advanced Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_10.html">Chapter 10: Generic Views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_11.html">Chapter 11: User authentication in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_12.html">Chapter 12 - testing in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_13.html">Chapter 13: Deploying Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_14.html">Chapter 14 - How to write reusable apps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_15.html">Chapter 15: Generating Non-HTML Content</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_16.html">Chapter 16 - Django sessions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_D.html">Appendix D: Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Appendix F: The django-admin Utility</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#running-management-commands-from-your-code">Running management commands from your code</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+        </div>
+        <div class="clearer"></div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2015, Nigel George.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
-      
-      |
-      <a href="_sources/appendix_F.txt"
-          rel="nofollow">Page source</a>
     </div>
 
-    
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="appendix_E.html" title="Appendix E: Built-in Template Tags and Filters"
+              >previous</a> |
+            <a href="appendix_G.html" title="Appendix G: Request and Response Objects"
+              >next</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/appendix_F.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
 
-    
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Nigel George.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
   </body>
 </html>

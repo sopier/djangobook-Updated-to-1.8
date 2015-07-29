@@ -29,10 +29,7 @@ Your First View
 
 Within the ``mysite`` directory that ``django-admin startproject`` made in
 the last chapter, create an empty file called ``views.py``. This Python module
-will contain our views for this chapter. Note that there's nothing special
-about the name ``views.py`` -- Django doesn't care what the file is called, as
-you'll see in a bit -- but it's a good idea to call it ``views.py`` as a
-convention, for the benefit of other developers reading your code.
+will contain our views for this chapter.
 
 Our "Hello world" view is simple. Here's the entire function, plus import
 statements, which you should type into the ``views.py`` file::
@@ -83,9 +80,9 @@ anywhere. That's because our ``mysite`` project doesn't yet know about the
 view at a particular URL. (Continuing our previous analogy of publishing
 static HTML files, at this point we've created the HTML file but haven't
 uploaded it to a directory on the server yet.) To hook a view function to a
-particular URL with Django, use a URLconf.
+particular URL with Django, we use a *URLconf*.
 
-A *URLconf* is like a table of contents for your Django-powered Web site.
+A URLconf is like a table of contents for your Django-powered Web site.
 Basically, it's a mapping between URLs and the view functions that
 should be called for those URLs. It's how you tell Django, "For this
 URL, call this code, and for that URL, call that code." For example, "When
@@ -173,7 +170,7 @@ We made two changes here:
 
 .. note::
 
-	One more important detail we've introduced here is that ``r`` character in
+	One more important detail we've introduced here is that 'r' character in
 	front of the regular expression string. This tells Python that the string is a
 	"raw string" -- its contents should not interpret backslashes. In normal
 	Python strings, backslashes are used for escaping special characters -- such
@@ -182,38 +179,11 @@ We made two changes here:
 	its backslash escaping -- so, ``r'\n'`` is a two-character string containing a
 	literal backslash and a lowercase "n". There's a natural collision between
 	Python's usage of backslashes and the backslashes that are found in regular
-	expressions, so it's strongly suggested that you use raw strings any time
-	you're defining a regular expression in Python. All of the URLpatterns in this
-	book will be raw strings.
+	expressions, so it's best practice to use raw strings any time
+	you're defining a regular expression in Django.
 
 In a nutshell, we just told Django that any request to the URL ``/hello/`` should
 be handled by the ``hello`` view function.
-
-.. admonition:: Your Python Path
-
-    Your *Python path* is the list of directories on your system where Python
-    looks when you use the Python ``import`` statement.
-
-    For example, let's say your Python path is set to ``['',
-    '/usr/lib/python3.4/site-packages', '/home/username/djcode']``. If you
-    execute the Python statement ``from foo import bar``, Python will look for
-    a module called ``foo.py`` in the current directory. (The first entry in the
-    Python path, an empty string, means "the current directory.") If that file
-    doesn't exist, Python will look for the file
-    ``/usr/lib/python3.4/site-packages/foo.py``. If that file doesn't exist, it
-    will try ``/home/username/djcode/foo.py``. Finally, if *that* file doesn't
-    exist, it will raise ``ImportError``.
-
-    If you're interested in seeing the value of your Python path, start the
-    Python interactive interpreter and type this::
-
-        >>> import sys
-        >>> print (sys.path)
-
-    Generally you don't have to worry about setting your Python path -- Python
-    and Django take care of things for you automatically behind the scenes.
-    (Setting the Python path is one of the things that the ``manage.py`` script
-    does.)
 
 It's worth discussing the syntax of this URLpattern, as it may not be
 immediately obvious. Although we want to match the URL ``/hello/``, the pattern
@@ -225,7 +195,7 @@ looks a bit different than that. Here's why:
   but this requirement simplifies things -- such as the inclusion of
   URLconfs within other URLconfs, which we'll cover in Chapter 7.)
 
-* The pattern includes a caret (``^``) and a dollar sign (``$``). These are
+* The pattern includes a caret (^) and a dollar sign ($). These are
   regular expression characters that have a special meaning: the caret
   means "require that the pattern matches the start of the string," and the
   dollar sign means "require that the pattern matches the end of the
@@ -253,13 +223,6 @@ looks a bit different than that. Here's why:
   a slash will be redirected to the same URL with a trailing slash. (This
   is regulated by the ``APPEND_SLASH`` Django setting, which is covered in
   Appendix D.)
-
-  If you're the type of person who likes all URLs to end with slashes
-  (which is the preference of Django's developers), all you'll need to do
-  is add a trailing slash to each URLpattern and leave ``APPEND_SLASH`` set
-  to ``True``. If you prefer your URLs *not* to have trailing slashes, or
-  if you want to decide it on a per-URL basis, set ``APPEND_SLASH`` to
-  ``False`` and put trailing slashes in your URLpatterns as you see fit.
 
 The other thing to note about this URLconf is that we've passed the
 ``hello`` view function as an object without calling the function. This is a
@@ -331,7 +294,7 @@ different URL?
 To find out, try running the Django development server and visiting a page such
 as ``http://127.0.0.1:8000/goodbye/`` or
 ``http://127.0.0.1:8000/hello/subdirectory/``, or even ``http://127.0.0.1:8000/``
-(the site "root"). You should see a "Page not found" message (see Figure 3-1).
+(the site "root"). You should see a "Page not found" message (see Figure 2-2).
 Django displays this message because you requested a URL that's not defined in
 your URLconf.
 
@@ -457,19 +420,7 @@ use Django.)
 
 To make a Django view that displays the current date and time, then, we just
 need to hook this ``datetime.datetime.now()`` statement into a view and return
-an ``HttpResponse``. Here's how that looks::
-
-    from django.http import HttpResponse
-    import datetime
-
-    def current_datetime(request):
-        now = datetime.datetime.now()
-        html = "<html><body>It is now %s.</body></html>" % now
-        return HttpResponse(html)
-
-As with our ``hello`` view function, this should live in ``views.py``. Note
-that we've hidden the ``hello`` function from this example for brevity, but for
-the sake of completeness, here's what the entire ``views.py`` looks like::
+an ``HttpResponse``. Here's what the updated ``views.py`` looks like::
 
     from django.http import HttpResponse
     import datetime
@@ -526,15 +477,7 @@ mapping the URL ``/time/`` to that new view. Getting the hang of this?
 
 With the view written and URLconf updated, fire up the ``runserver`` and visit
 ``http://127.0.0.1:8000/time/`` in your browser. You should see the current
-date and time.
-
-.. admonition:: Django's Time Zone
-
-    Depending on your computer, the date and time may be a few hours off.
-    That's because Django is time zone-aware and defaults to the ``UTC`` time
-    zone. If you live elsewhere, you'll want to change it in ``settings.py``.
-    See the comment in that file for a link to an up-to-date list of worldwide
-    time zone options.
+date and time. If you don't see your local time, it is because you did not change the default timezone in your ``settings.py`` (see Chapter 1).
 
 URLconfs and Loose Coupling
 ===========================
@@ -613,7 +556,7 @@ duplication. We need to do some abstraction here.
 	If you're experienced in another Web development platform, you may be
 	thinking, "Hey, let's use a query string parameter!" -- something like
 	``/time/plus?hours=3``, in which the hours would be designated by the ``hours``
-	parameter in the URL's query string (the part after the ``?``).
+	parameter in the URL's query string (the part after the '?').
 
 	You *can* do that with Django (and we'll tell you how in Chapter 7), but
 	one of Django's core philosophies is that URLs should be beautiful. The URL
@@ -640,18 +583,12 @@ trimmed from this example.)
 
 This new URLpattern will match any URL such as ``/time/plus/2/``,
 ``/time/plus/25/``, or even ``/time/plus/100000000000/``. Come to think of it,
-let's limit it so that the maximum allowed offset is 99 hours. That means we
-want to allow either one- or two-digit numbers -- and in regular expression
-syntax, that translates into ``\d{1,2}``::
+let's limit it so that the maximum allowed offset is something reasonable. In
+this example, we will set a maximum 99 hours by only allowing either one- or
+two-digit numbers -- and in regular expression syntax, that translates into
+``\d{1,2}``::
 
     url(r'^time/plus/\d{1,2}/$', hours_ahead),
-
-.. note::
-
-    When building Web applications, it's always important to consider the most
-    outlandish data input possible, and decide whether or not the application
-    should support that input. We've curtailed the outlandishness here by
-    limiting the offset to 99 hours.
 
 Now that we've designated a wildcard for the URL, we need a way of passing that
 wildcard data to the view function, so that we can use a single view function
@@ -756,8 +693,7 @@ Let's step through this code one line at a time:
   not just one. Hence, there are two ``%s`` symbols in the string and a
   tuple of values to insert: ``(offset, dt)``.
 
-* Finally, we return an ``HttpResponse`` of the HTML. By now, this is old
-  hat.
+* Finally, we return an ``HttpResponse`` of the HTML. 
 
 With that view function and URLconf written, start the Django development server
 (if it's not already running), and visit ``http://127.0.0.1:8000/time/plus/3/``
