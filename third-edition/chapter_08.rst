@@ -13,11 +13,6 @@ curious about how it works. It also covers the auto-escaping feature, a
 security measure you'll no doubt notice over time as you continue to use
 Django.
 
-If you're looking to use the Django template system as part of another
-application (i.e., without the rest of the framework), make sure to read the
-"Configuring the Template System in Standalone Mode" section later in the
-chapter.
-
 Template Language Review
 ========================
 
@@ -47,7 +42,7 @@ First, let's quickly review a number of terms introduced in Chapter 3:
 
       My first name is {{ first_name }}. My last name is {{ last_name }}.
 
-* A *context* is a name -> value mapping (similar to a Python
+* A *context* is a `name->value` mapping (similar to a Python
   dictionary) that is passed to a template.
 
 * A template *renders* a context by replacing the variable "holes" with
@@ -232,8 +227,10 @@ second will override the first.
 Django provides a number of simple context processors, including the ones that
 are enabled by default:
 
-django.contrib.auth.context_processors.auth
--------------------------------------------
+auth
+----
+
+``django.contrib.auth.context_processors.auth``
 
 If this processor is enabled, every ``RequestContext`` will contain these
 variables:
@@ -248,8 +245,10 @@ variables:
 
 .. currentmodule:: django.template.context_processors
 
-django.template.context_processors.debug
-----------------------------------------
+debug
+-----
+
+``django.template.context_processors.debug``
 
 If this processor is enabled, every ``RequestContext`` will contain these two
 variables -- but only if your ``DEBUG`` setting is set to ``True`` and
@@ -263,8 +262,10 @@ the request's IP address (``request.META['REMOTE_ADDR']``) is in the
   and how long it took. The list is in order by query and lazily generated
   on access.
 
-django.template.context_processors.i18n
----------------------------------------
+i18n
+----
+
+``django.template.context_processors.i18n``
 
 If this processor is enabled, every ``RequestContext`` will contain these two
 variables:
@@ -273,35 +274,42 @@ variables:
 * ``LANGUAGE_CODE`` -- ``request.LANGUAGE_CODE``, if it exists. Otherwise,
   the value of the ``LANGUAGE_CODE`` setting.
 
-django.template.context_processors.media
-----------------------------------------
+media
+-----
+
+``django.template.context_processors.media``
 
 If this processor is enabled, every ``RequestContext`` will contain a variable
 ``MEDIA_URL``, providing the value of the ``MEDIA_URL`` setting.
 
-django.template.context_processors.static
------------------------------------------
+static
+------
 
-.. function:: static
+``django.template.context_processors.static``
 
 If this processor is enabled, every ``RequestContext`` will contain a variable
 ``STATIC_URL``, providing the value of the ``STATIC_URL`` setting.
 
-django.template.context_processors.csrf
----------------------------------------
+csrf
+----
+
+``django.template.context_processors.csrf``
 
 This processor adds a token that is needed by the ``csrf_token`` template
 tag for protection against Cross Site Request Forgeries (see chapter 21).
 
+request
+-------
 
-django.template.context_processors.request
-------------------------------------------
+``django.template.context_processors.request``
 
 If this processor is enabled, every ``RequestContext`` will contain a variable
 ``request``, which is the current :class:`~django.http.HttpRequest`.
 
-django.contrib.messages.context_processors.messages
----------------------------------------------------
+messages
+--------
+
+``django.contrib.messages.context_processors.messages``
 
 If this processor is enabled, every ``RequestContext`` will contain these two
 variables:
