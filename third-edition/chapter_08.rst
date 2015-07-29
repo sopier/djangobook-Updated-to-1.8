@@ -569,7 +569,7 @@ Loader types
 
 By default, Django uses a filesystem-based template loader, but Django comes
 with a few other template loaders, which know how to load templates from other
-sources.
+sources; the most commonly used of them, the apps loader, is described below.
 
 Filesystem loader
 ~~~~~~~~~~~~~~~~~
@@ -601,12 +601,12 @@ App directories loader
 
     For example, for this setting::
 
-        INSTALLED_APPS = ['myproject.polls', 'myproject.music']
+        INSTALLED_APPS = ['myproject.reviews', 'myproject.music']
 
     ...then ``get_template('foo.html')`` will look for ``foo.html`` in these
     directories, in this order:
 
-    * ``/path/to/myproject/polls/templates/``
+    * ``/path/to/myproject/reviews/templates/``
     * ``/path/to/myproject/music/templates/``
 
     ... and will use the one it finds first.
@@ -614,8 +614,8 @@ App directories loader
     The order of ``INSTALLED_APPS`` is significant! For example, if you
     want to customize the Django admin, you might choose to override the
     standard ``admin/base_site.html`` template, from ``django.contrib.admin``,
-    with your own ``admin/base_site.html`` in ``myproject.polls``. You must
-    then make sure that your ``myproject.polls`` comes *before*
+    with your own ``admin/base_site.html`` in ``myproject.reviewss``. You must
+    then make sure that your ``myproject.reviews`` comes *before*
     ``django.contrib.admin`` in ``INSTALLED_APPS``, otherwise
     ``django.contrib.admin``’s will be loaded first and yours will be ignored.
 
@@ -676,21 +676,21 @@ later, so be careful to pick a name that won't clash with custom tags and
 filters in another app.
 
 For example, if your custom tags/filters are in a file called
-``poll_extras.py``, your app layout might look like this::
+``review_extras.py``, your app layout might look like this::
 
-    polls/
+    reviews/
         __init__.py
         models.py
         templatetags/
             __init__.py
-            poll_extras.py
+            review_extras.py
         views.py
 
 And in your template you would use the following:
 
 .. code-block:: html+django
 
-    {% load poll_extras %}
+    {% load review_extras %}
 
 The app that contains the custom tags must be in ``INSTALLED_APPS`` in
 order for the ``{% load %}<load>`` tag to work. This is a security feature:
@@ -751,10 +751,10 @@ Creating a template library is a two-step process:
   file (to indicate to Python that this is a package containing Python code)
   and a file that will contain your custom tag/filter definitions. The name
   of the latter file is what you'll use to load the tags later. For example,
-  if your custom tags/filters are in a file called ``poll_extras.py``, you'd
+  if your custom tags/filters are in a file called ``review_extras.py``, you'd
   write the following in a template::
 
-      {% load poll_extras %}
+      {% load review_extras %}
 
   The ``{% load %}`` tag looks at your ``INSTALLED_APPS`` setting and only
   allows the loading of template libraries within installed Django
@@ -793,8 +793,6 @@ filters and tags.
 
 Custom template tags and filters
 ================================
-
-[TODO - check this section against new code above for relevance]
 
 Django's template language comes with a wide variety of built-in
 tags and filters designed to address the
@@ -1056,6 +1054,7 @@ Template filter code falls into one of two situations:
 
 .. warning:: Avoiding XSS vulnerabilities when reusing built-in filters
 
+    [TODO needs C&P from /howto/custom-template-tags]
     Be careful when reusing Django's built-in filters. You'll need to pass
     ``autoescape=True`` to the filter in order to get the proper autoescaping
     behavior and avoid a cross-site script vulnerability.
@@ -1241,7 +1240,7 @@ Finally, we create and register the inclusion tag by calling the
 ``inclusion_tag()`` method on a ``Library`` object.
 
 Following our example, if the preceding template is in a file called
-``book_snippet.html``, we register the tag like this::
+``book_snippet.html``, [TODO new docs different from here] we register the tag like this::
 
     register.inclusion_tag('book_snippet.html')(books_for_author)
 
@@ -1296,6 +1295,8 @@ followed by the variable name, and output it yourself where you see fit:
 
     {% get_current_time "%Y-%m-%d %I:%M %p" as the_time %}
     <p>The time is {{ the_time }}.</p>
+    
+    [TODO more info here from howto/custom-template-tags]
 
 Advanced custom template tags
 -----------------------------
@@ -1455,7 +1456,7 @@ This is not a very common situation, but it's useful if you're rendering a
 template yourself. For example::
 
     def render(self, context):
-        t = context.engine.get_template('small_fragment.html')
+        t = context.template.engine.get_template('small_fragment.html')
         return t.render(Context({'var': obj}, autoescape=context.autoescape))
 
 If we had neglected to pass in the current ``context.autoescape`` value to our
@@ -1806,80 +1807,6 @@ The only new concept here is the ``self.nodelist.render(context)`` in
 For more examples of complex rendering, see the source code of
 ``{% for %}<for>`` in ``django/template/defaulttags.py`` and
 ``{% if %}<if>`` in ``django/template/smartif.py``.
-
-Writing Custom Template Loaders
-===============================
-
-Django's built-in template loaders (described in the "Inside Template Loading"
-section above) will usually cover all your template-loading needs, but it's
-pretty easy to write your own if you need special loading logic. For example,
-you could load templates from a database, or directly from a Subversion
-repository using Subversion's Python bindings, or (as shown shortly) from a ZIP
-archive.
-
-A template loader -- that is, each entry in the ``TEMPLATE_LOADERS`` setting
--- is expected to be a callable object with this interface::
-
-    load_template_source(template_name, template_dirs=None)
-
-The ``template_name`` argument is the name of the template to load (as passed
-to ``loader.get_template()`` or ``loader.select_template()``), and
-``template_dirs`` is an optional list of directories to search instead of
-``TEMPLATE_DIRS``.
-
-If a loader is able to successfully load a template, it should return a tuple:
-``(template_source, template_path)``. Here, ``template_source`` is the
-template string that will be compiled by the template engine, and
-``template_path`` is the path the template was loaded from. That path might be
-shown to the user for debugging purposes, so it should quickly identify where
-the template was loaded from.
-
-If the loader is unable to load a template, it should raise
-``django.template.TemplateDoesNotExist``.
-
-Each loader function should also have an ``is_usable`` function attribute.
-This is a Boolean that informs the template engine whether this loader
-is available in the current Python installation. For example, the eggs loader
-(which is capable of loading templates from Python eggs) sets ``is_usable``
-to ``False`` if the ``pkg_resources`` module isn't installed, because
-``pkg_resources`` is necessary to read data from eggs.
-
-An example should help clarify all of this. Here's a template loader function
-that can load templates from a ZIP file. It uses a custom setting,
-``TEMPLATE_ZIP_FILES``, as a search path instead of ``TEMPLATE_DIRS``, and it
-expects each item on that path to be a ZIP file containing templates::
-
-    from django.conf import settings
-    from django.template import TemplateDoesNotExist
-    import zipfile
-
-    def load_template_source(template_name, template_dirs=None):
-        "Template loader that loads templates from a ZIP file."
-
-        template_zipfiles = getattr(settings, "TEMPLATE_ZIP_FILES", [])
-
-        # Try each ZIP file in TEMPLATE_ZIP_FILES.
-        for fname in template_zipfiles:
-            try:
-                z = zipfile.ZipFile(fname)
-                source = z.read(template_name)
-            except (IOError, KeyError):
-                continue
-            z.close()
-            # We found a template, so return the source.
-            template_path = "%s:%s" % (fname, template_name)
-            return (source, template_path)
-
-        # If we reach here, the template couldn't be loaded
-        raise TemplateDoesNotExist(template_name)
-
-    # This loader is always usable (since zipfile is included with Python)
-    load_template_source.is_usable = True
-
-The only step left if we want to use this loader is to add it to the
-``TEMPLATE_LOADERS`` setting. If we put this code in a package called
-``mysite.zip_loader``, then we add
-``mysite.zip_loader.load_template_source`` to ``TEMPLATE_LOADERS``.
 
 What's Next
 ===========
