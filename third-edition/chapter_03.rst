@@ -19,6 +19,8 @@ why:
   the Python code. The design of a site tends to change far more frequently
   than the underlying Python code, so it would be convenient if
   the design could change without needing to modify the Python code.
+  
+* This is only a very simple example. A common webpage template has hundreds of lines of HTML and scripts. Untangling and 	  troubleshooting program code from this mess is a nightmare (*cough--PHP--cough*).  
 
 * Writing Python code and designing HTML are two different disciplines, and
   most professional Web development environments split these
@@ -150,13 +152,7 @@ to distribute templates. Django's contrib apps that include templates, like
 All of the examples in this chapter will use the DTL. For more advanced
 template topics, including configuring third-party template engines see Chapter 8.
 
-Let's dive into Django's template system so you can see how it works -- but
-we're *not* yet going to integrate it with the views that we created in the
-previous chapter. The goal here is to show you how the system works
-independently of the rest of Django. (Put another way: usually you'll be using
-the template system within a Django view, but we want to make it clear that the
-template system is just a Python library that you can use *anywhere*, not just
-in Django views.)
+Before we go about implementing Django templates in your view, lets first dig inside the DTL a little so you can see how it works.
 
 Here is the most basic way you can use Django's template system in Python code:
 
@@ -401,7 +397,7 @@ elegantly handles more complex data structures, such as lists, dictionaries, and
 custom objects.
 
 The key to traversing complex data structures in Django templates is the dot
-character (``.``). Use a dot to access dictionary keys, attributes, methods,
+character (.). Use a dot to access dictionary keys, attributes, methods,
 or indices of an object.
 
 This is best illustrated with a few examples. For instance, suppose
@@ -534,12 +530,10 @@ some things to keep in mind:
   Otherwise, the system will move to the next lookup type (list-index
   lookup). 
 
-.. admonition:: Method Arguments and Templates
-
-        By design, Django intentionally limits the amount of logic
-        processing available in the template, so it is not possible to pass
-        arguments to method calls accessed from within templates. Data should
-        be calculated in views and then pass to templates for display.
+  By design, Django intentionally limits the amount of logic
+  processing available in the template, so it is not possible to pass
+  arguments to method calls accessed from within templates. Data should
+  be calculated in views and then pass to templates for display.
 
 * Obviously, some methods have side effects, and it would be foolish at
   best, and possibly even a security hole, to allow the template system to
@@ -1006,7 +1000,7 @@ probably time to explain the basic design philosophy behind the DTL.
 
 First and foremost, the **limitations to the DTL are intentional.**
 
-Django was developed in a high volume, ever-changing environment of an online
+Django was developed in the high volume, ever-changing environment of an online
 newsroom. The original creators of Django had a very definite set of philosophies
 in creating the DTL. These philosophies remain core to Django today. They are:
 
@@ -1109,7 +1103,7 @@ existing template languages inadequate.
 
 Because Django is intended to be a full-stack Web framework that provides all
 the pieces necessary for Web developers to be productive, most times it's *more
-convenient* to use the DTL, but it's not a strict requirement in any sense. [As
+convenient* to use the DTL, but it's not a strict requirement in any sense. As
 you'll see in the upcoming section "Using Templates in Views", it's very easy
 to use another template language with Django. 
 
@@ -1357,9 +1351,8 @@ Django templates are loaded and rendered to your browser.
 
 In practice, Django provides a much easier way to do this.
 
-Django's developers recognised that because this is such a common idiom,
-what would be really useful is a shortcut that lets you load a template,
-render it and return an ``HttpResponse`` -- all in one line of code.
+Django's developers recognized that because this is such a common idiom,
+what would be really useful was a shortcut that could do all this in one line of code.
 
 This shortcut is a function called ``render()``, which lives in the
 module ``django.shortcuts``. Most of the time, you'll be using
@@ -1402,7 +1395,7 @@ It can get unwieldy to store all of your templates in a single directory. You
 might like to store templates in subdirectories of your template directory, and
 that's fine. In fact, we recommend doing so; some more advanced Django
 features (such as the generic views system, which we cover in
-Chapter 110) expect this template layout as a default convention.
+Chapter 10) expect this template layout as a default convention.
 
 Storing templates in subdirectories of your template directory is easy.
 In your calls to ``get_template()``, just include
