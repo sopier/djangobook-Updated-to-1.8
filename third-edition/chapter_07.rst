@@ -124,17 +124,17 @@ In Python regular expressions, the syntax for named regular-expression groups
 is ``(?P<name>pattern)``, where ``name`` is the name of the group and
 ``pattern`` is some pattern to match.
 
-Here's a sample URLconf::
+For example, say we have a list of book reviews on our books site, and we want to retrieve reviews for certain dates, or date ranges. Here's a sample URLconf::
 
     from django.conf.urls import url
 
     from . import views
 
     urlpatterns = [
-        url(r'^articles/2003/$', views.special_case_2003),
-        url(r'^articles/([0-9]{4})/$', views.year_archive),
-        url(r'^articles/([0-9]{4})/([0-9]{2})/$', views.month_archive),
-        url(r'^articles/([0-9]{4})/([0-9]{2})/([0-9]+)/$', views.article_detail),
+        url(r'^reviews/2003/$', views.special_case_2003),
+        url(r'^reviews/([0-9]{4})/$', views.year_archive),
+        url(r'^reviews/([0-9]{4})/([0-9]{2})/$', views.month_archive),
+        url(r'^reviews/([0-9]{4})/([0-9]{2})/([0-9]+)/$', views.review_detail),
     ]
 
 Notes:
@@ -142,7 +142,7 @@ Notes:
 * To capture a value from the URL, just put parenthesis around it.
 
 * There's no need to add a leading slash, because every URL has that. For
-  example, it's ``^articles``, not ``^/articles``.
+  example, it's ``^reviews``, not ``^/reviews``.
 
 * The ``'r'`` in front of each regular expression string is optional but
   recommended. It tells Python that a string is "raw" -- that nothing in
@@ -150,23 +150,23 @@ Notes:
 
 Example requests:
 
-* A request to ``/articles/2005/03/`` would match the third entry in the
+* A request to ``/reviews/2005/03/`` would match the third entry in the
   list. Django would call the function
   ``views.month_archive(request, '2005', '03')``.
 
-* ``/articles/2005/3/`` would not match any URL patterns, because the
+* ``/reviews/2005/3/`` would not match any URL patterns, because the
   third entry in the list requires two digits for the month.
 
-* ``/articles/2003/`` would match the first pattern in the list, not the
+* ``/reviews/2003/`` would match the first pattern in the list, not the
   second one, because the patterns are tested in order, and the first one
   is the first test to pass. Feel free to exploit the ordering to insert
   special cases like this.
 
-* ``/articles/2003`` would not match any of these patterns, because each
+* ``/reviews/2003`` would not match any of these patterns, because each
   pattern requires that the URL end with a slash.
 
-* ``/articles/2003/03/03/`` would match the final pattern. Django would call
-  the function ``views.article_detail(request, '2003', '03', '03')``.
+* ``/reviews/2003/03/03/`` would match the final pattern. Django would call
+  the function ``views.review_detail(request, '2003', '03', '03')``.
 
 Here's the above example URLconf, rewritten to use named groups::
 
@@ -175,22 +175,22 @@ Here's the above example URLconf, rewritten to use named groups::
     from . import views
 
     urlpatterns = [
-        url(r'^articles/2003/$', views.special_case_2003),
-        url(r'^articles/(?P<year>[0-9]{4})/$', views.year_archive),
-        url(r'^articles/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/$', views.month_archive),
-        url(r'^articles/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/$', views.article_detail),
+        url(r'^reviews/2003/$', views.special_case_2003),
+        url(r'^reviews/(?P<year>[0-9]{4})/$', views.year_archive),
+        url(r'^reviews/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/$', views.month_archive),
+        url(r'^reviews/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/$', views.review_detail),
     ]
 
 This accomplishes exactly the same thing as the previous example, with one
 subtle difference: The captured values are passed to view functions as keyword
 arguments rather than positional arguments. For example:
 
-* A request to ``/articles/2005/03/`` would call the function
+* A request to ``/reviews/2005/03/`` would call the function
   ``views.month_archive(request, year='2005', month='03')``, instead
   of ``views.month_archive(request, '2005', '03')``.
 
-* A request to ``/articles/2003/03/03/`` would call the function
-  ``views.article_detail(request, year='2003', month='03', day='03')``.
+* A request to ``/reviews/2003/03/03/`` would call the function
+  ``views.review_detail(request, year='2003', month='03', day='03')``.
 
 In practice, this means your URLconfs are slightly more explicit and less prone
 to argument-order bugs -- and you can reorder the arguments in your views'
@@ -233,7 +233,7 @@ Each captured argument is sent to the view as a plain Python string, regardless
 of what sort of match the regular expression makes. For example, in this
 URLconf line::
 
-    url(r'^articles/(?P<year>[0-9]{4})/$', views.year_archive),
+    url(r'^reviews/(?P<year>[0-9]{4})/$', views.year_archive),
 
 ...the ``year`` argument to ``views.year_archive()`` will be a string, not
 an integer, even though the ``[0-9]{4}`` will only match integer strings.
@@ -242,7 +242,7 @@ Specifying defaults for view arguments
 ======================================
 
 A convenient trick is to specify default parameters for your views' arguments.
-Here's an example URLconf and view::
+Here's an example URLconf::
 
     # URLconf
     from django.conf.urls import url
@@ -250,13 +250,13 @@ Here's an example URLconf and view::
     from . import views
 
     urlpatterns = [
-        url(r'^blog/$', views.page),
-        url(r'^blog/page(?P<num>[0-9]+)/$', views.page),
+        url(r'^reviews/$', views.page),
+        url(r'^reviews/page(?P<num>[0-9]+)/$', views.page),
     ]
 
-    # View (in blog/views.py)
+    # View (in reviews/views.py)
     def page(request, num="1"):
-        # Output the appropriate page of blog entries, according to num.
+        # Output the appropriate page of review entries, according to num.
         ...
 
 In the above example, both URL patterns point to the same view --
@@ -277,8 +277,16 @@ Error handling
 When Django can't find a regex matching the requested URL, or when an
 exception is raised, Django will invoke an error-handling view.
 
-The views to use for these cases are specified by four variables. Their
-default values should suffice for most projects, but further customization is
+The views to use for these cases are specified by four variables. 
+
+The variables are:
+
+* ``handler404``
+* ``handler500``
+* ``handler403``
+* ``handler400``
+
+Their default values should suffice for most projects, but further customization is
 possible by assigning values to them.
 
 Such values can be set in your root URLconf. Setting these variables in any
@@ -286,13 +294,6 @@ other URLconf will have no effect.
 
 Values must be callables, or strings representing the full Python import path
 to the view that should be called to handle the error condition at hand.
-
-The variables are:
-
-* ``handler404`` -- See :data:`django.conf.urls.handler404`.
-* ``handler500`` -- See :data:`django.conf.urls.handler500`.
-* ``handler403`` -- See :data:`django.conf.urls.handler403`.
-* ``handler400`` -- See :data:`django.conf.urls.handler400`.
 
 .. _including-other-urlconfs:
 
@@ -380,16 +381,16 @@ the following example is valid::
     from django.conf.urls import include, url
 
     urlpatterns = [
-        url(r'^(?P<username>\w+)/blog/', include('foo.urls.blog')),
+        url(r'^(?P<username>\w+)/reviews/', include('foo.urls.reviews')),
     ]
 
-    # In foo/urls/blog.py
+    # In foo/urls/reviews.py
     from django.conf.urls import url
     from . import views
 
     urlpatterns = [
-        url(r'^$', views.blog.index),
-        url(r'^archive/$', views.blog.archive),
+        url(r'^$', views.reviews.index),
+        url(r'^archive/$', views.reviews.archive),
     ]
 
 In the above example, the captured ``"username"`` variable is passed to the
@@ -413,10 +414,10 @@ For example::
     from . import views
 
     urlpatterns = [
-        url(r'^blog/(?P<year>[0-9]{4})/$', views.year_archive, {'foo': 'bar'}),
+        url(r'^reviews/(?P<year>[0-9]{4})/$', views.year_archive, {'foo': 'bar'}),
     ]
 
-In this example, for a request to ``/blog/2005/``, Django will call
+In this example, for a request to ``/reviews/2005/``, Django will call
 ``views.year_archive(request, year='2005', foo='bar')``.
 
 This technique is used in the syndication framework to pass metadata and
@@ -444,7 +445,7 @@ Set one::
     from django.conf.urls import include, url
 
     urlpatterns = [
-        url(r'^blog/', include('inner'), {'blogid': 3}),
+        url(r'^reviews/', include('inner'), {'reviewid': 3}),
     ]
 
     # inner.py
@@ -463,15 +464,15 @@ Set two::
     from mysite import views
 
     urlpatterns = [
-        url(r'^blog/', include('inner')),
+        url(r'^reviews/', include('inner')),
     ]
 
     # inner.py
     from django.conf.urls import url
 
     urlpatterns = [
-        url(r'^archive/$', views.archive, {'blogid': 3}),
-        url(r'^about/$', views.about, {'blogid': 3}),
+        url(r'^archive/$', views.archive, {'reviewid': 3}),
+        url(r'^about/$', views.about, {'reviewid': 3}),
     ]
 
 Note that extra options will *always* be passed to *every* line in the included
@@ -538,22 +539,22 @@ Consider again this URLconf entry::
 
     urlpatterns = [
         #...
-        url(r'^articles/([0-9]{4})/$', views.year_archive, name='news-year-archive'),
+        url(r'^reviews/([0-9]{4})/$', views.year_archive, name='reviews-year-archive'),
         #...
     ]
 
 According to this design, the URL for the archive corresponding to year *nnnn*
-is ``/articles/nnnn/``.
+is ``/reviews/nnnn/``.
 
 You can obtain these in template code by using:
 
 .. code-block:: html+django
 
-    <a href="{% url 'news-year-archive' 2012 %}">2012 Archive</a>
+    <a href="{% url 'reviews-year-archive' 2012 %}">2012 Archive</a>
     {# Or with the year in a template context variable: #}
     <ul>
     {% for yearvar in year_list %}
-    <li><a href="{% url 'news-year-archive' yearvar %}">{{ yearvar }} Archive</a></li>
+    <li><a href="{% url 'reviews-year-archive' yearvar %}">{{ yearvar }} Archive</a></li>
     {% endfor %}
     </ul>
 
@@ -566,10 +567,10 @@ Or in Python code::
         # ...
         year = 2006
         # ...
-        return HttpResponseRedirect(reverse('news-year-archive', args=(year,)))
+        return HttpResponseRedirect(reverse('reviews-year-archive', args=(year,)))
 
 If, for some reason, it was decided that the URLs where content for yearly
-article archives are published at should be changed then you would only need to
+review archives are published at should be changed then you would only need to
 change the entry in the URLconf.
 
 In some scenarios where views are of a generic nature, a many-to-one
@@ -605,8 +606,8 @@ Introduction
 ------------
 
 URL namespaces allow you to uniquely reverse named URL patterns even if different applications use the same URL names.
-It's a good practice for third-party apps to always use namespaced URLs (as we
-did in the tutorial). Similarly, it also allows you to reverse URLs if multiple
+It's a good practice for third-party apps to always use namespaced URLs. 
+Similarly, it also allows you to reverse URLs if multiple
 instances of an application are deployed. In other words, since multiple
 instances of a single application will share named URLs, namespaces provide a
 way to tell these named URLs apart.
@@ -637,20 +638,20 @@ Namespaced URLs are specified using the ``':'`` operator. For example, the main
 index page of the admin application is referenced using ``'admin:index'``. This
 indicates a namespace of ``'admin'``, and a named URL of ``'index'``.
 
-Namespaces can also be nested. The named URL ``'sports:polls:index'`` would
-look for a pattern named ``'index'`` in the namespace ``'polls'`` that is itself
-defined within the top-level namespace ``'sports'``.
+Namespaces can also be nested. The named URL ``'members:reviews:index'`` would
+look for a pattern named ``'index'`` in the namespace ``'reviews'`` that is itself
+defined within the top-level namespace ``'members'``.
 
 .. _topics-http-reversing-url-namespaces:
 
 Reversing namespaced URLs
 -------------------------
 
-When given a namespaced URL (e.g. ``'polls:index'``) to resolve, Django splits
+When given a namespaced URL (e.g. ``'reviews:index'``) to resolve, Django splits
 the fully qualified name into parts and then tries the following lookup:
 
-1. First, Django looks for a matching :term:`application namespace` (in this
-   example, ``'polls'``). This will yield a list of instances of that
+1. First, Django looks for a matching application namespace (in this
+   example, ``'reviews'``). This will yield a list of instances of that
    application.
 
 2. If there is a *current* application defined, Django finds and returns
@@ -665,7 +666,7 @@ the fully qualified name into parts and then tries the following lookup:
 3. If there is no current application. Django looks for a default
    application instance. The default application instance is the instance
    that has an :term:`instance namespace` matching the :term:`application
-   namespace` (in this example, an instance of ``polls`` called ``'polls'``).
+   namespace` (in this example, an instance of ``reviews`` called ``'reviews'``).
 
 4. If there is no default application instance, Django will pick the last
    deployed instance of the application, whatever its instance name may be.
@@ -690,11 +691,11 @@ Firstly, you can provide the :term:`application <application namespace>` and
 :func:`~django.conf.urls.include()` when you construct your URL patterns. For
 example,::
 
-    url(r'^polls/', include('polls.urls', namespace='author-polls', app_name='polls')),
+    url(r'^reviews/', include('reviews.urls', namespace='author-reviews', app_name='reviews')),
 
-This will include the URLs defined in ``polls.urls`` into the
-:term:`application namespace` ``'polls'``, with the :term:`instance namespace`
-``'author-polls'``.
+This will include the URLs defined in ``reviews.urls`` into the
+:term:`application namespace` ``'reviews'``, with the :term:`instance namespace`
+``'author-reviews'``.
 
 Secondly, you can include an object that contains embedded namespace data. If
 you ``include()`` a list of :func:`~django.conf.urls.url` instances,
@@ -709,12 +710,12 @@ For example::
 
     from . import views
 
-    polls_patterns = [
+    reviews_patterns = [
         url(r'^$', views.IndexView.as_view(), name='index'),
         url(r'^(?P<pk>\d+)/$', views.DetailView.as_view(), name='detail'),
     ]
 
-    url(r'^polls/', include((polls_patterns, 'polls', 'author-polls'))),
+    url(r'^reviews/', include((reviews_patterns, 'reviews', 'author-reviews'))),
 
 This will include the nominated URL patterns into the given application and
 instance namespace.
@@ -727,9 +728,9 @@ instance. It is this ``urls`` attribute that you ``include()`` into your
 projects ``urlpatterns`` when you deploy an admin instance.
 
 Be sure to pass a tuple to ``include()``. If you simply pass three arguments:
-``include(polls_patterns, 'polls', 'author-polls')``, Django won't throw an
-error but due to the signature of ``include()``, ``'polls'`` will be the
-instance namespace and ``'author-polls'`` will be the application namespace
+``include(reviews_patterns, 'reviews', 'author-reviews')``, Django won't throw an
+error but due to the signature of ``include()``, ``'reviews'`` will be the
+instance namespace and ``'author-reviews'`` will be the application namespace
 instead of vice versa.
 
 
