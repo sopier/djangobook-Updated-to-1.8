@@ -382,7 +382,7 @@ That would result in a rendered template like this::
 Clearly, user-submitted data shouldn't be trusted blindly and inserted directly
 into your Web pages, because a malicious user could use this kind of hole to
 do potentially bad things. This type of security exploit is called a
-Cross Site Scripting (XSS) attack. (For more on security, see Chapter 20.)
+Cross Site Scripting (XSS) attack. (For more on security, see Chapter 21.)
 
 To avoid this problem, you have two options:
 
@@ -491,9 +491,6 @@ HTML when the ``greeting`` variable contains the string ``<b>Hello!</b>``::
     <h1>This & that</h1>
     <b>Hello!</b>
 
-Notes
------
-
 Generally, template authors don't need to worry about auto-escaping very much.
 Developers on the Python side (people writing views and custom filters) need to
 think about the cases in which data shouldn't be escaped, and mark data
@@ -574,16 +571,8 @@ By default, Django uses a filesystem-based template loader, but Django comes
 with a few other template loaders, which know how to load templates from other
 sources.
 
-Some of these other loaders are disabled by default, but you can activate them
-by adding a ``'loaders'`` option to your ``DjangoTemplates`` backend in the
-``TEMPLATES`` setting or passing a ``loaders`` argument to
-:class:`~django.template.Engine`. ``loaders`` should be a list of strings or
-tuples, where each represents a template loader class. Here are the template
-loaders that come with Django:
-
-.. currentmodule:: django.template.loaders
-
-``django.template.loaders.filesystem.Loader``
+Filesystem loader
+~~~~~~~~~~~~~~~~~
 
 .. class:: filesystem.Loader
 
@@ -597,8 +586,9 @@ loaders that come with Django:
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'DIRS': [os.path.join(BASE_DIR, 'templates')],
         }]
-
-``django.template.loaders.app_directories.Loader``
+        
+App directories loader
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. class:: app_directories.Loader
 
@@ -640,129 +630,20 @@ loaders that come with Django:
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'APP_DIRS': True,
         }]
+        
+Other loaders
+~~~~~~~~~~~~~
+The remaining template loaders are:
 
-``django.template.loaders.eggs.Loader``
+* ``django.template.loaders.eggs.Loader``
+* ``django.template.loaders.cached.Loader``
+* ``django.template.loaders.locmem.Loader``
 
-.. class:: eggs.Loader
-
-    Just like ``app_directories`` above, but it loads templates from Python
-    eggs rather than from the filesystem.
-
-    This loader is disabled by default.
-
-``django.template.loaders.cached.Loader``
-
-.. class:: cached.Loader
-
-    By default, the templating system will read and compile your templates every
-    time they need to be rendered. While the Django templating system is quite
-    fast, the overhead from reading and compiling templates can add up.
-
-    The cached template loader is a class-based loader that you configure with
-    a list of other loaders that it should wrap. The wrapped loaders are used to
-    locate unknown templates when they are first encountered. The cached loader
-    then stores the compiled ``Template`` in memory. The cached ``Template``
-    instance is returned for subsequent requests to load the same template.
-
-    For example, to enable template caching with the ``filesystem`` and
-    ``app_directories`` template loaders you might use the following settings::
-
-        TEMPLATES = [{
-            'BACKEND': 'django.template.backends.django.DjangoTemplates',
-            'DIRS': [os.path.join(BASE_DIR, 'templates')],
-            'OPTIONS': {
-                'loaders': [
-                    ('django.template.loaders.cached.Loader', [
-                        'django.template.loaders.filesystem.Loader',
-                        'django.template.loaders.app_directories.Loader',
-                    ]),
-                ],
-            },
-        }]
-
-    .. note::
-
-        All of the built-in Django template tags are safe to use with the
-        cached loader, but if you're using custom template tags that come from
-        third party packages, or that you wrote yourself, you should ensure
-        that the ``Node`` implementation for each tag is thread-safe. For more
-        information. 
-
-    This loader is disabled by default.
-
-``django.template.loaders.locmem.Loader``
-
-.. class:: locmem.Loader
-
-    Loads templates from a Python dictionary. This is useful for testing.
-
-    This loader takes a dictionary of templates as its first argument::
-
-        TEMPLATES = [{
-            'BACKEND': 'django.template.backends.django.DjangoTemplates',
-            'OPTIONS': {
-                'loaders': [
-                    ('django.template.loaders.locmem.Loader', {
-                        'index.html': 'content here',
-                    }),
-                ],
-            },
-        }]
-
-    This loader is disabled by default.
-
-Django uses the template loaders in order according to the ``'loaders'``
-option. It uses each loader until a loader finds a match.
-
-.. _custom-template-loaders:
-
-Custom loaders
---------------
-
-Custom ``Loader`` classes should inherit from
-``django.template.loaders.base.Loader`` and override the
-``load_template_source()`` method, which takes a ``template_name`` argument,
-loads the template from disk (or elsewhere), and returns a tuple:
-``(template_string, template_origin)``.
-
-The ``load_template()`` method of the ``Loader`` class retrieves the template
-string by calling ``load_template_source()``, instantiates a ``Template`` from
-the template source, and returns a tuple: ``(template, template_origin)``.
-
-.. currentmodule:: django.template
-
-Template origin
-===============
-
-When an :class:`~django.template.Engine` is initialized with ``debug=True``,
-its templates have an ``origin`` attribute depending on the source they are
-loaded from. For engines initialized by Django, ``debug`` defaults to the
-value of ``TEMPLATE_DEBUG``.
-
-.. class:: loader.LoaderOrigin
-
-    Templates created from a template loader will use the
-    ``django.template.loader.LoaderOrigin`` class.
-
-    .. attribute:: name
-
-        The path to the template as returned by the template loader.
-        For loaders that read from the file system, this is the full
-        path to the template.
-
-    .. attribute:: loadname
-
-        The relative path to the template as passed into the
-        template loader.
-
-.. class:: StringOrigin
-
-    Templates created from a ``Template`` class will use the
-    ``django.template.StringOrigin`` class.
-
-    .. attribute:: source
-
-        The string used to create the template.
+These loaders are disabled by default, but you can activate them
+by adding a ``'loaders'`` option to your ``DjangoTemplates`` backend in the
+``TEMPLATES`` setting or passing a ``loaders`` argument to
+:class:`~django.template.Engine`. Details on these advanced loaders, as well as building your own
+custom loader, can be found on the Django Project website.
 
 Extending the Template System
 =============================
