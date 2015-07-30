@@ -2,14 +2,21 @@ sphinx-build -b html -d _build/doctrees   . _build/html
 Running Sphinx v1.3.1
 loading pickled environment... done
 building [mo]: targets for 0 po files that are out of date
-building [html]: targets for 1 source files that are out of date
-updating environment: 0 added, 1 changed, 0 removed
-reading sources... [100%] index
+building [html]: targets for 4 source files that are out of date
+updating environment: 0 added, 4 changed, 0 removed
+reading sources... [ 25%] appendix_C
+reading sources... [ 50%] appendix_D
+reading sources... [ 75%] appendix_E
+reading sources... [100%] appendix_F
 
 looking for now-outdated files... none found
 pickling environment... done
 checking consistency... done
 preparing documents... done
+writing output... [ 20%] appendix_C
+writing output... [ 40%] appendix_D
+writing output... [ 60%] appendix_E
+writing output... [ 80%] appendix_F
 writing output... [100%] index
 
 generating indices... genindex py-modindex

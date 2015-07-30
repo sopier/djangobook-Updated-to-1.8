@@ -42,7 +42,7 @@ First, let's quickly review a number of terms introduced in Chapter 3:
 
       My first name is {{ first_name }}. My last name is {{ last_name }}.
 
-* A *context* is a `name->value` mapping (similar to a Python
+* A *context* is a ``name->value`` mapping (similar to a Python
   dictionary) that is passed to a template.
 
 * A template *renders* a context by replacing the variable "holes" with
@@ -242,8 +242,6 @@ variables:
 * ``perms`` -- An instance of
   ``django.contrib.auth.context_processors.PermWrapper``, representing the
   permissions that the currently logged-in user has.
-
-.. currentmodule:: django.template.context_processors
 
 debug
 -----
@@ -464,9 +462,7 @@ disabled. Here is an example template::
 
 The auto-escaping tag passes its effect on to templates that extend the
 current one as well as templates included via the ``include`` tag, just like
-all block tags. For example:
-
-.. code-block:: python
+all block tags. For example::
 
     # base.html
 
@@ -476,8 +472,6 @@ all block tags. For example:
     {% endblock %}
     {% endautoescape %}
 
-.. code-block:: python
-   
     # child.html
 
     {% extends "base.html" %}
@@ -1054,7 +1048,6 @@ Template filter code falls into one of two situations:
 
 .. warning:: Avoiding XSS vulnerabilities when reusing built-in filters
 
-    [TODO needs C&P from /howto/custom-template-tags]
     Be careful when reusing Django's built-in filters. You'll need to pass
     ``autoescape=True`` to the filter in order to get the proper autoescaping
     behavior and avoid a cross-site script vulnerability.
@@ -1240,12 +1233,26 @@ Finally, we create and register the inclusion tag by calling the
 ``inclusion_tag()`` method on a ``Library`` object.
 
 Following our example, if the preceding template is in a file called
-``book_snippet.html``, [TODO new docs different from here] we register the tag like this::
+``book_snippet.html`` in a directory that's searched by the template loader,
+we register the tag like this::
 
-    register.inclusion_tag('book_snippet.html')(books_for_author)
+    # Here, register is a django.template.Library instance, as before
+    @register.inclusion_tag('book_snippet.html')
+    def show_reviews(review):
+        ...
 
-Sometimes, your inclusion tags need access to values from the parent template's
-context. To solve this, Django provides a ``takes_context`` option for
+Alternatively it is possible to register the inclusion tag using a
+:class:`django.template.Template` instance::
+
+    from django.template.loader import get_template
+    t = get_template('book_snippet.html')
+    register.inclusion_tag(t)(show_reviews)
+
+...when first creating the function.
+
+Sometimes, your inclusion tags might require a large number of arguments,
+making it a pain for template authors to pass in all the arguments and remember
+their order. To solve this, Django provides a ``takes_context`` option for
 inclusion tags. If you specify ``takes_context`` in creating an inclusion tag,
 the tag will have no required arguments, and the underlying Python function
 will have one argument: the template context as of when the tag was called.
@@ -1272,6 +1279,32 @@ without any arguments, like so::
 
     {% jump_link %}
 
+Note that when you're using ``takes_context=True``, there's no need to pass
+arguments to the template tag. It automatically gets access to the context.
+
+The ``takes_context`` parameter defaults to ``False``. When it's set to
+``True``, the tag is passed the context object, as in this example. That's the
+only difference between this case and the previous ``inclusion_tag`` example.
+
+``inclusion_tag`` functions may accept any number of positional or keyword
+arguments. For example::
+
+    @register.inclusion_tag('my_template.html')
+    def my_tag(a, b, *args, **kwargs):
+        warning = kwargs['warning']
+        profile = kwargs['profile']
+        ...
+        return ...
+
+Then in the template any number of arguments, separated by spaces, may be
+passed to the template tag. Like in Python, the values for keyword arguments
+are set using the equal sign ("``=``") and must be provided after the
+positional arguments. For example:
+
+.. code-block:: html+django
+
+    {% my_tag 123 "abcd" book.title warning=message|lower profile=user.profile %}
+
 Assignment tags
 ---------------
 
@@ -1296,8 +1329,6 @@ followed by the variable name, and output it yourself where you see fit:
     {% get_current_time "%Y-%m-%d %I:%M %p" as the_time %}
     <p>The time is {{ the_time }}.</p>
     
-    [TODO more info here from howto/custom-template-tags]
-
 Advanced custom template tags
 -----------------------------
 

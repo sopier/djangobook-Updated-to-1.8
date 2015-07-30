@@ -50,6 +50,8 @@ for the given command.
 Getting runtime help
 --------------------
 
+:attr:`~ help`
+
 Run ``django-admin help`` to display usage information and a list of the
 commands provided by each application.
 
@@ -68,6 +70,8 @@ contains the string ``'mysite.blog'``, the app name is ``blog``.
 
 Determining the version
 -----------------------
+
+:attr:`~ version`
 
 Run ``django-admin version`` to display the current Django version.
 
@@ -89,6 +93,8 @@ Available commands
 
 check <appname appname ...>
 ---------------------------
+
+:attr:`~ check`
 
 Uses the system check framework  to inspect
 the entire Django project for common problems.
@@ -138,6 +144,8 @@ make it part of your integration test suite.
 compilemessages
 ---------------
 
+:attr:`~ compilemessages`
+
 Compiles .po files created by ``makemessages`` to .mo files for use with
 the builtin gettext support.
 
@@ -165,6 +173,8 @@ Example usage::
 createcachetable
 ----------------
 
+:attr:`~ createcachetable`
+
 Creates the cache tables for use with the database cache backend using the
 information from your settings file.
 
@@ -174,6 +184,8 @@ pulled from your settings by default, it's typically not needed.
 
 dbshell
 -------
+
+:attr:`~ dbshell`
 
 Runs the command-line client for the database engine specified in your
 ``ENGINE`` setting, with the connection parameters specified in your
@@ -194,6 +206,8 @@ onto which to open a shell.
 diffsettings
 ------------
 
+:attr:`~ diffsettings`
+
 Displays differences between the current settings file and Django's default
 settings.
 
@@ -207,6 +221,8 @@ if they have Django's default value. Such settings are prefixed by ``"###"``.
 
 dumpdata <app_label app_label app_label.Model ...>
 --------------------------------------------------
+
+:attr:`~ dumpdata`
 
 Outputs to standard output all data in the database associated with the named
 application(s).
@@ -274,6 +290,8 @@ This options allows to specify the file to which the data is to be written.
 flush
 -----
 
+:attr:`~ flush`
+
 Removes all data from the database, re-executes any post-synchronization
 handlers, and reinstalls any initial data fixtures.
 
@@ -285,6 +303,8 @@ to flush.
 
 inspectdb
 ---------
+
+:attr:`~ inspectdb`
 
 Introspects the database tables and views in the database pointed-to by the
 ``NAME`` setting and outputs a Django model module (a ``models.py``
@@ -342,6 +362,8 @@ database to introspect.
 
 loaddata <fixture fixture ...>
 ------------------------------
+
+:attr:`~ loaddata`
 
 Searches for and loads the contents of the named fixture into the database.
 
@@ -490,6 +512,8 @@ specify you want to load data into the ``master`` database.
 makemessages
 ------------
 
+:attr:`~ makemessages`
+
 Runs over the entire source tree of the current directory and pulls out all
 strings marked for translation. It creates (or updates) a message file in the
 conf/locale (in the Django tree) or locale (for project and application)
@@ -595,6 +619,8 @@ debugging errors which may prevent the final language files from being created.
 makemigrations [<app_label>]
 ----------------------------
 
+:attr:`~ makemigrations`
+
 Creates new migrations based on the changes detected to your models.
 Migrations, their relationship with apps and more are covered in depth in
 the migrations documentation.
@@ -637,6 +663,8 @@ when no migration are created (or would have been created, if combined with
 
 migrate [<app_label> [<migrationname>]]
 ---------------------------------------
+
+:attr:`~ migrate`
 
 Synchronizes the database state with the current set of models and migrations.
 Migrations, their relationship with apps and more are covered in depth in
@@ -687,6 +715,8 @@ schema matches what is recorded in your initial migration.
 
 runserver [port or address:port]
 --------------------------------
+
+:attr:`~ runserver`
 
 Starts a lightweight development Web server on the local machine. By default,
 the server runs on port 8000 on the IP address ``127.0.0.1``. You can pass in an
@@ -818,6 +848,8 @@ Chapter 13.
 shell
 -----
 
+:attr:`~ shell`
+
 Starts the Python interactive interpreter.
 
 Django will use IPython_ or bpython_ if either is installed. If you have a
@@ -856,6 +888,8 @@ behavior you can use the ``--no-startup`` option. e.g.::
 showmigrations [<app_label> [<app_label>]]
 ------------------------------------------
 
+:attr:`~ showmigrations`
+
 Shows all migrations in a project.
 
 ``--list, -l``
@@ -878,6 +912,8 @@ also be shown.
 sqlflush
 --------
 
+:attr:`~ sqlflush`
+
 Prints the SQL statements that would be executed for the ``flush``
 command.
 
@@ -886,6 +922,8 @@ which to print the SQL.
 
 sqlmigrate <app_label> <migrationname>
 --------------------------------------
+
+:attr:`~ sqlmigrate`
 
 Prints the SQL for the named migration. This requires an active database
 connection, which it will use to resolve constraint names; this means you must
@@ -905,6 +943,8 @@ unapplying the migration instead.
 sqlsequencereset <app_label app_label ...>
 ------------------------------------------
 
+:attr:`~ sqlsequencereset`
+
 Prints the SQL statements for resetting sequences for the given app name(s).
 
 Sequences are indexes used by some database engines to track the next available
@@ -918,6 +958,8 @@ which to print the SQL.
 
 squashmigrations <app_label> <migration_name>
 ---------------------------------------------
+
+:attr:`~ squashmigrations`
 
 Squashes the migrations for ``app_label`` up to and including ``migration_name``
 down into fewer migrations, if possible. The resulting squashed migrations
@@ -935,6 +977,8 @@ to be safe.
 
 startapp <app_label> [destination]
 ----------------------------------
+
+:attr:`~ startapp`
 
 Creates a Django app directory structure for the given app name in the current
 directory or the given destination.
@@ -1005,6 +1049,8 @@ with the ``--name`` option. The :class:`template context
 startproject <projectname> [destination]
 ----------------------------------------
 
+:attr:`~ startproject`
+
 Creates a Django project directory structure for the given project name in
 the current directory or the given destination.
 
@@ -1064,6 +1110,8 @@ for ``startapp``.
 test <app or test identifier>
 -----------------------------
 
+:attr:`~ test`
+
 Runs tests for all installed models.
 
 ``--failfast``
@@ -1107,6 +1155,8 @@ then queries in passing tests are also output.
 
 testserver <fixture fixture ...>
 --------------------------------
+
+:attr:`~ testserver`
 
 Runs a Django development server (as in ``runserver``) using data from
 the given fixture(s).
@@ -1180,6 +1230,8 @@ their application.
 changepassword
 ~~~~~~~~~~~~~~
 
+:attr:`~ changepassword`
+
 This command is only available if Django's authentication system
 (``django.contrib.auth``) is installed.
 
@@ -1197,6 +1249,8 @@ Example usage::
 
 createsuperuser
 ~~~~~~~~~~~~~~~
+
+:attr:`~ createsuperuser`
 
 This command is only available if Django's authentication system
 (``django.contrib.auth``) is installed.
@@ -1246,6 +1300,8 @@ documentation.
 
 clearsessions
 ~~~~~~~~~~~~~~~
+
+:attr:`~ clearsessions`
 
 Can be run as a cron job or directly to clean out expired sessions.
 

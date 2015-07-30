@@ -106,27 +106,13 @@ connection, creating a cursor, executing a statement, and closing the
 connection. Ideally, all we&#8217;d have to do is specify which results we
 wanted.</li>
 <li>It ties us to MySQL. If, down the road, we switch from MySQL to
-PostgreSQL, we&#8217;ll have to use a different database adapter (e.g.,
-<code class="docutils literal"><span class="pre">psycopg</span></code> rather than <code class="docutils literal"><span class="pre">MySQLdb</span></code>), alter the connection parameters,
-and &#8211; depending on the nature of the SQL statement &#8211; possibly rewrite
-the SQL. Ideally, the database server we&#8217;re using would be abstracted, so
+PostgreSQL, we&#8217;ll most likely have to rewrite a large amount of our code.
+Ideally, the database server we&#8217;re using would be abstracted, so
 that a database server change could be made in a single place. (This
 feature is particularly relevant if you&#8217;re building an open-source Django
 application that you want to be used by as many people as possible.)</li>
 </ul>
-<p>As you might expect, Django&#8217;s database layer solves these problems.
-Here&#8217;s a sneak preview of how the previous view can be rewritten using Django&#8217;s
-database API:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">render</span>
-<span class="kn">from</span> <span class="nn">books.models</span> <span class="kn">import</span> <span class="n">Book</span>
-
-<span class="k">def</span> <span class="nf">book_list</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
-    <span class="n">books</span> <span class="o">=</span> <span class="n">Book</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">&#39;book_list.html&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;books&#39;</span><span class="p">:</span> <span class="n">books</span><span class="p">})</span>
-</pre></div>
-</div>
-<p>We&#8217;ll explain this code a little later in the chapter. For now, just get a
-feel for how it looks.</p>
+<p>As you might expect, Django&#8217;s database layer solves these problems.</p>
 </div>
 <div class="section" id="configuring-the-database">
 <h2>Configuring the Database<a class="headerlink" href="#configuring-the-database" title="Permalink to this headline">¶</a></h2>
@@ -171,7 +157,7 @@ Django, see Chapter 23.</p>
 lives together in a single Python package and represents a full Django
 application.</p>
 <p>It&#8217;s worth explaining the terminology here, because this tends to trip up
-beginners. We&#8217;d already created a <em>project</em>, in Chapter 1, so what&#8217;s the
+beginners. We&#8217;ve already created a <em>project</em>, in Chapter 1, so what&#8217;s the
 difference between a <em>project</em> and an <em>app</em>? The difference is that of
 configuration vs. code:</p>
 <ul>
@@ -383,43 +369,25 @@ project. By default, it looks something like this:</p>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>[TODO check we need to do this with a fresh install]</p>
-<p>Temporarily comment out all six of those strings by putting a hash character
-(<code class="docutils literal"><span class="pre">#</span></code>) in front of them. (They&#8217;re included by default as a common-case
-convenience, but we&#8217;ll activate and discuss them in subsequent chapters.)
-While you&#8217;re at it, comment out the default <code class="docutils literal"><span class="pre">MIDDLEWARE_CLASSES</span></code> setting, too;
-the default values in <code class="docutils literal"><span class="pre">MIDDLEWARE_CLASSES</span></code> depend on some of the apps we
-just commented out. Then, add  <code class="docutils literal"><span class="pre">'books'</span></code> to the <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>
+<p>To register our &#8220;books&#8221; app, add  <code class="docutils literal"><span class="pre">'books'</span></code> to the <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>
 list, so the setting ends up looking like this:</p>
-<div class="highlight-python"><div class="highlight"><pre>INSTALLED_APPS = (
-  # &#39;django.contrib.admin&#39;,
-  # &#39;django.contrib.auth&#39;,
-  # &#39;django.contrib.contenttypes&#39;,
-  # &#39;django.contrib.sessions&#39;,
-  # &#39;django.contrib.messages&#39;,
-  # &#39;django.contrib.staticfiles&#39;,
-  &#39;books&#39;,
-  )
-
-  MIDDLEWARE_CLASSES = (
-    #  &#39;django.contrib.sessions.middleware.SessionMiddleware&#39;,
-    #  &#39;django.middleware.common.CommonMiddleware&#39;,
-    #  &#39;django.middleware.csrf.CsrfViewMiddleware&#39;,
-    #  &#39;django.contrib.auth.middleware.AuthenticationMiddleware&#39;,
-    #  &#39;django.contrib.auth.middleware.SessionAuthenticationMiddleware&#39;,
-    #  &#39;django.contrib.messages.middleware.MessageMiddleware&#39;,
-    #  &#39;django.middleware.clickjacking.XFrameOptionsMiddleware&#39;,
-    #  &#39;django.middleware.security.SecurityMiddleware&#39;,
-  )
-</pre></div>
-</div>
-<p>(As we mentioned last chapter when setting <code class="docutils literal"><span class="pre">DIRS</span></code>, you&#8217;ll need to be
-sure to include the trailing comma in <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>, because it&#8217;s a
-single-element tuple. By the way, it is best practice to put a comma
-after <em>every</em> element of a tuple, regardless of whether the tuple has only a
-single element. This avoids the issue of forgetting commas, and there&#8217;s no
-penalty for using that extra comma.)</p>
-<p><code class="docutils literal"><span class="pre">'books'</span></code> refers to the <code class="docutils literal"><span class="pre">books</span></code> app we&#8217;re working on. Each app in
+<pre class="literal-block">
+INSTALLED_APPS = (
+'django.contrib.admin',
+'django.contrib.auth',
+'django.contrib.contenttypes',
+'django.contrib.sessions',
+'django.contrib.messages',
+'django.contrib.staticfiles',
+<strong>'books',</strong>
+)
+</pre>
+<p>You&#8217;ll need to be sure to include the trailing comma in <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>,
+because it&#8217;s a single-element tuple. By the way, it is best practice to put a
+comma after <em>every</em> element of a tuple, regardless of whether the tuple has
+only a single element. This avoids the issue of forgetting commas, and
+there&#8217;s no penalty for using that extra comma.)</p>
+<p><code class="docutils literal"><span class="pre">'books'</span></code> refers to the &#8220;books&#8221; app we&#8217;re working on. Each app in
 <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code> is represented by its full Python path &#8211; that is, the path
 of packages, separated by dots, leading to the app package.</p>
 <p>Now that the Django app has been activated in the settings file, we can create
@@ -545,9 +513,17 @@ command:</p>
   Apply all migrations: books
 Running migrations:
   Rendering model states... DONE
+
+  # ...
+
   Applying books.0001_initial... OK
+
+  # ...
 </pre></div>
 </div>
+<p>In case you were wondering what all the extras are (commented out above), the
+first time you run migrate, Django will also create all the system tables that
+Django needs for the inbuilt apps.</p>
 <p>Migrations are Django&#8217;s way of propagating changes you make to your models
 (adding a field, deleting a model, etc.) into your database schema. They&#8217;re
 designed to be mostly automatic, however there are some caveats. For more
@@ -664,8 +640,10 @@ it pieces together the <code class="docutils literal"><span class="pre">first_na
 space.</p>
 <p>The only requirement for <code class="docutils literal"><span class="pre">__str__()</span></code> is that it return a string object.
 If <code class="docutils literal"><span class="pre">__str__()</span></code> doesn&#8217;t return a string object &#8211; if it returns, say, an
-integer &#8211; then Python will raise a <code class="docutils literal"><span class="pre">TypeError</span></code> with a message like</p>
-<p><code class="docutils literal"><span class="pre">TypeError:</span> <span class="pre">__str__</span> <span class="pre">returned</span> <span class="pre">non-string</span> <span class="pre">(type</span> <span class="pre">int)</span></code>.</p>
+integer &#8211; then Python will raise a <code class="docutils literal"><span class="pre">TypeError</span></code> with a message like:</p>
+<div class="highlight-python"><div class="highlight"><pre>TypeError: __str__ returned non-string (type int).
+</pre></div>
+</div>
 <p>For the <code class="docutils literal"><span class="pre">__str__()</span></code> changes to take effect, exit out of the Python shell
 and enter it again with <code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">shell</span></code>. (This is the simplest way
 to make code changes take effect.) Now the list of <code class="docutils literal"><span class="pre">Publisher</span></code> objects is

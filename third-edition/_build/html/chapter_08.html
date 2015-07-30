@@ -92,7 +92,7 @@ tags.</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first">A <em>context</em> is a <cite>name-&gt;value</cite> mapping (similar to a Python
+<li><p class="first">A <em>context</em> is a <code class="docutils literal"><span class="pre">name-&gt;value</span></code> mapping (similar to a Python
 dictionary) that is passed to a template.</p>
 </li>
 <li><p class="first">A template <em>renders</em> a context by replacing the variable &#8220;holes&#8221; with
@@ -472,20 +472,19 @@ disabled. Here is an example template:</p>
 <p>The auto-escaping tag passes its effect on to templates that extend the
 current one as well as templates included via the <code class="docutils literal"><span class="pre">include</span></code> tag, just like
 all block tags. For example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># base.html</span>
+<div class="highlight-python"><div class="highlight"><pre># base.html
 
-<span class="p">{</span><span class="o">%</span> <span class="n">autoescape</span> <span class="n">off</span> <span class="o">%</span><span class="p">}</span>
-<span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="p">{</span><span class="o">%</span> <span class="n">block</span> <span class="n">title</span> <span class="o">%</span><span class="p">}{</span><span class="o">%</span> <span class="n">endblock</span> <span class="o">%</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
-<span class="p">{</span><span class="o">%</span> <span class="n">block</span> <span class="n">content</span> <span class="o">%</span><span class="p">}</span>
-<span class="p">{</span><span class="o">%</span> <span class="n">endblock</span> <span class="o">%</span><span class="p">}</span>
-<span class="p">{</span><span class="o">%</span> <span class="n">endautoescape</span> <span class="o">%</span><span class="p">}</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># child.html</span>
+{% autoescape off %}
+&lt;h1&gt;{% block title %}{% endblock %}&lt;/h1&gt;
+{% block content %}
+{% endblock %}
+{% endautoescape %}
 
-<span class="p">{</span><span class="o">%</span> <span class="n">extends</span> <span class="s">&quot;base.html&quot;</span> <span class="o">%</span><span class="p">}</span>
-<span class="p">{</span><span class="o">%</span> <span class="n">block</span> <span class="n">title</span> <span class="o">%</span><span class="p">}</span><span class="n">This</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span> <span class="n">that</span><span class="p">{</span><span class="o">%</span> <span class="n">endblock</span> <span class="o">%</span><span class="p">}</span>
-<span class="p">{</span><span class="o">%</span> <span class="n">block</span> <span class="n">content</span> <span class="o">%</span><span class="p">}{{</span> <span class="n">greeting</span> <span class="p">}}{</span><span class="o">%</span> <span class="n">endblock</span> <span class="o">%</span><span class="p">}</span>
+# child.html
+
+{% extends &quot;base.html&quot; %}
+{% block title %}This &amp;amp; that{% endblock %}
+{% block content %}{{ greeting }}{% endblock %}
 </pre></div>
 </div>
 <p>Because auto-escaping is turned off in the base template, it will also be
@@ -567,8 +566,8 @@ sources; the most commonly used of them, the apps loader, is described below.</p
 <div class="section" id="filesystem-loader">
 <h4>Filesystem loader<a class="headerlink" href="#filesystem-loader" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
-<dt id="django.template.context_processors.filesystem.Loader">
-<em class="property">class </em><code class="descclassname">filesystem.</code><code class="descname">Loader</code><a class="headerlink" href="#django.template.context_processors.filesystem.Loader" title="Permalink to this definition">¶</a></dt>
+<dt id="filesystem.Loader">
+<em class="property">class </em><code class="descclassname">filesystem.</code><code class="descname">Loader</code><a class="headerlink" href="#filesystem.Loader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads templates from the filesystem, according to
 <code class="docutils literal"><span class="pre">DIRS</span> <span class="pre">&lt;TEMPLATES-DIRS&gt;</span></code>.</p>
 <p>This loader is enabled by default. However it won&#8217;t find any templates
@@ -585,8 +584,8 @@ until you set <code class="docutils literal"><span class="pre">DIRS</span> <span
 <div class="section" id="app-directories-loader">
 <h4>App directories loader<a class="headerlink" href="#app-directories-loader" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
-<dt id="django.template.context_processors.app_directories.Loader">
-<em class="property">class </em><code class="descclassname">app_directories.</code><code class="descname">Loader</code><a class="headerlink" href="#django.template.context_processors.app_directories.Loader" title="Permalink to this definition">¶</a></dt>
+<dt id="app_directories.Loader">
+<em class="property">class </em><code class="descclassname">app_directories.</code><code class="descname">Loader</code><a class="headerlink" href="#app_directories.Loader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads templates from Django apps on the filesystem. For each app in
 <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>, the loader looks for a <code class="docutils literal"><span class="pre">templates</span></code>
 subdirectory. If the directory exists, Django looks for templates in there.</p>
@@ -817,8 +816,8 @@ your function. Example:</p>
 <div class="section" id="registering-custom-filters">
 <h3>Registering custom filters<a class="headerlink" href="#registering-custom-filters" title="Permalink to this headline">¶</a></h3>
 <dl class="method">
-<dt id="django.template.context_processors.django.template.Library.filter">
-<code class="descclassname">django.template.Library.</code><code class="descname">filter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.context_processors.django.template.Library.filter" title="Permalink to this definition">¶</a></dt>
+<dt id="django.template.Library.filter">
+<code class="descclassname">django.template.Library.</code><code class="descname">filter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.Library.filter" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Once you&#8217;ve written your filter definition, you need to register it with
@@ -853,8 +852,8 @@ filters and time zones below.</p>
 <div class="section" id="template-filters-that-expect-strings">
 <h3>Template filters that expect strings<a class="headerlink" href="#template-filters-that-expect-strings" title="Permalink to this headline">¶</a></h3>
 <dl class="method">
-<dt id="django.template.context_processors.django.template.defaultfilters.stringfilter">
-<code class="descclassname">django.template.defaultfilters.</code><code class="descname">stringfilter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.context_processors.django.template.defaultfilters.stringfilter" title="Permalink to this definition">¶</a></dt>
+<dt id="django.template.defaultfilters.stringfilter">
+<code class="descclassname">django.template.defaultfilters.</code><code class="descname">stringfilter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.defaultfilters.stringfilter" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>If you&#8217;re writing a template filter that only expects a string as the first
@@ -1016,8 +1015,7 @@ handle the auto-escaping issues and return a safe string, the
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p>Avoiding XSS vulnerabilities when reusing built-in filters</p>
-<p>[TODO needs C&amp;P from /howto/custom-template-tags]
-Be careful when reusing Django&#8217;s built-in filters. You&#8217;ll need to pass
+<p>Be careful when reusing Django&#8217;s built-in filters. You&#8217;ll need to pass
 <code class="docutils literal"><span class="pre">autoescape=True</span></code> to the filter in order to get the proper autoescaping
 behavior and avoid a cross-site script vulnerability.</p>
 <p>For example, if you wanted to write a custom filter called
@@ -1068,8 +1066,8 @@ scratch for those cases when the shortcuts aren&#8217;t powerful enough.</p>
 <div class="section" id="simple-tags">
 <span id="howto-custom-template-tags-simple-tags"></span><h3>Simple tags<a class="headerlink" href="#simple-tags" title="Permalink to this headline">¶</a></h3>
 <dl class="method">
-<dt id="django.template.context_processors.django.template.Library.simple_tag">
-<code class="descclassname">django.template.Library.</code><code class="descname">simple_tag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.context_processors.django.template.Library.simple_tag" title="Permalink to this definition">¶</a></dt>
+<dt id="django.template.Library.simple_tag">
+<code class="descclassname">django.template.Library.</code><code class="descname">simple_tag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.Library.simple_tag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Many template tags take a number of arguments &#8211; strings or template variables
@@ -1142,8 +1140,8 @@ positional arguments. For example:</p>
 <div class="section" id="inclusion-tags">
 <span id="howto-custom-template-tags-inclusion-tags"></span><h3>Inclusion tags<a class="headerlink" href="#inclusion-tags" title="Permalink to this headline">¶</a></h3>
 <dl class="method">
-<dt id="django.template.context_processors.django.template.Library.inclusion_tag">
-<code class="descclassname">django.template.Library.</code><code class="descname">inclusion_tag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.context_processors.django.template.Library.inclusion_tag" title="Permalink to this definition">¶</a></dt>
+<dt id="django.template.Library.inclusion_tag">
+<code class="descclassname">django.template.Library.</code><code class="descname">inclusion_tag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.Library.inclusion_tag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Another common type of template tag is the type that displays some data by
@@ -1188,12 +1186,25 @@ example, the template is very simple:</p>
 <p>Finally, we create and register the inclusion tag by calling the
 <code class="docutils literal"><span class="pre">inclusion_tag()</span></code> method on a <code class="docutils literal"><span class="pre">Library</span></code> object.</p>
 <p>Following our example, if the preceding template is in a file called
-<code class="docutils literal"><span class="pre">book_snippet.html</span></code>, [TODO new docs different from here] we register the tag like this:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">register</span><span class="o">.</span><span class="n">inclusion_tag</span><span class="p">(</span><span class="s">&#39;book_snippet.html&#39;</span><span class="p">)(</span><span class="n">books_for_author</span><span class="p">)</span>
+<code class="docutils literal"><span class="pre">book_snippet.html</span></code> in a directory that&#8217;s searched by the template loader,
+we register the tag like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Here, register is a django.template.Library instance, as before</span>
+<span class="nd">@register.inclusion_tag</span><span class="p">(</span><span class="s">&#39;book_snippet.html&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">show_reviews</span><span class="p">(</span><span class="n">review</span><span class="p">):</span>
+    <span class="o">...</span>
 </pre></div>
 </div>
-<p>Sometimes, your inclusion tags need access to values from the parent template&#8217;s
-context. To solve this, Django provides a <code class="docutils literal"><span class="pre">takes_context</span></code> option for
+<p>Alternatively it is possible to register the inclusion tag using a
+<code class="xref py py-class docutils literal"><span class="pre">django.template.Template</span></code> instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.template.loader</span> <span class="kn">import</span> <span class="n">get_template</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">get_template</span><span class="p">(</span><span class="s">&#39;book_snippet.html&#39;</span><span class="p">)</span>
+<span class="n">register</span><span class="o">.</span><span class="n">inclusion_tag</span><span class="p">(</span><span class="n">t</span><span class="p">)(</span><span class="n">show_reviews</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>...when first creating the function.</p>
+<p>Sometimes, your inclusion tags might require a large number of arguments,
+making it a pain for template authors to pass in all the arguments and remember
+their order. To solve this, Django provides a <code class="docutils literal"><span class="pre">takes_context</span></code> option for
 inclusion tags. If you specify <code class="docutils literal"><span class="pre">takes_context</span></code> in creating an inclusion tag,
 the tag will have no required arguments, and the underlying Python function
 will have one argument: the template context as of when the tag was called.</p>
@@ -1218,17 +1229,39 @@ without any arguments, like so:</p>
 <div class="highlight-python"><div class="highlight"><pre>{% jump_link %}
 </pre></div>
 </div>
+<p>Note that when you&#8217;re using <code class="docutils literal"><span class="pre">takes_context=True</span></code>, there&#8217;s no need to pass
+arguments to the template tag. It automatically gets access to the context.</p>
+<p>The <code class="docutils literal"><span class="pre">takes_context</span></code> parameter defaults to <code class="docutils literal"><span class="pre">False</span></code>. When it&#8217;s set to
+<code class="docutils literal"><span class="pre">True</span></code>, the tag is passed the context object, as in this example. That&#8217;s the
+only difference between this case and the previous <code class="docutils literal"><span class="pre">inclusion_tag</span></code> example.</p>
+<p><code class="docutils literal"><span class="pre">inclusion_tag</span></code> functions may accept any number of positional or keyword
+arguments. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nd">@register.inclusion_tag</span><span class="p">(</span><span class="s">&#39;my_template.html&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_tag</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">warning</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;warning&#39;</span><span class="p">]</span>
+    <span class="n">profile</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;profile&#39;</span><span class="p">]</span>
+    <span class="o">...</span>
+    <span class="k">return</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Then in the template any number of arguments, separated by spaces, may be
+passed to the template tag. Like in Python, the values for keyword arguments
+are set using the equal sign (&#8220;<code class="docutils literal"><span class="pre">=</span></code>&#8221;) and must be provided after the
+positional arguments. For example:</p>
+<div class="highlight-html+django"><div class="highlight"><pre><span class="cp">{%</span> <span class="k">my_tag</span> <span class="m">123</span> <span class="s2">&quot;abcd&quot;</span> <span class="nv">book.title</span> <span class="nv">warning</span><span class="o">=</span><span class="nv">message</span><span class="o">|</span><span class="nf">lower</span> <span class="nv">profile</span><span class="o">=</span><span class="nv">user.profile</span> <span class="cp">%}</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="assignment-tags">
 <h3>Assignment tags<a class="headerlink" href="#assignment-tags" title="Permalink to this headline">¶</a></h3>
 <dl class="method">
-<dt id="django.template.context_processors.django.template.Library.assignment_tag">
-<code class="descclassname">django.template.Library.</code><code class="descname">assignment_tag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.context_processors.django.template.Library.assignment_tag" title="Permalink to this definition">¶</a></dt>
+<dt id="django.template.Library.assignment_tag">
+<code class="descclassname">django.template.Library.</code><code class="descname">assignment_tag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.template.Library.assignment_tag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>To ease the creation of tags setting a variable in the context, Django provides
 a helper function, <code class="docutils literal"><span class="pre">assignment_tag</span></code>. This function works the same way as
-<a class="reference internal" href="#django.template.context_processors.django.template.Library.simple_tag" title="django.template.context_processors.django.template.Library.simple_tag"><code class="xref py py-meth docutils literal"><span class="pre">simple_tag()</span></code></a> except that it stores the tag&#8217;s
+<a class="reference internal" href="#django.template.Library.simple_tag" title="django.template.Library.simple_tag"><code class="xref py py-meth docutils literal"><span class="pre">simple_tag()</span></code></a> except that it stores the tag&#8217;s
 result in a specified context variable instead of directly outputting it.</p>
 <p>Our earlier <code class="docutils literal"><span class="pre">current_time</span></code> function could thus be written like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="nd">@register.assignment_tag</span>
@@ -1240,8 +1273,6 @@ result in a specified context variable instead of directly outputting it.</p>
 followed by the variable name, and output it yourself where you see fit:</p>
 <div class="highlight-html+django"><div class="highlight"><pre><span class="cp">{%</span> <span class="k">get_current_time</span> <span class="s2">&quot;%Y-%m-%d %I:%M %p&quot;</span> <span class="k">as</span> <span class="nv">the_time</span> <span class="cp">%}</span>
 <span class="nt">&lt;p&gt;</span>The time is <span class="cp">{{</span> <span class="nv">the_time</span> <span class="cp">}}</span>.<span class="nt">&lt;/p&gt;</span>
-
-[TODO more info here from howto/custom-template-tags]
 </pre></div>
 </div>
 </div>

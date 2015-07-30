@@ -55,8 +55,9 @@
             
   <div class="section" id="chapter-5-the-django-admin-site">
 <h1>Chapter 5: The Django Admin Site<a class="headerlink" href="#chapter-5-the-django-admin-site" title="Permalink to this headline">¶</a></h1>
-<p>For a certain class of Web sites, an <em>admin interface</em> is an essential part of
-the infrastructure. This is a Web-based interface, limited to trusted site
+<p>For most modern Web sites, an <em>admin interface</em> is an essential part of
+the infrastructure.</p>
+<p>This is a Web-based interface, limited to trusted site
 administrators, that enables the adding, editing and deletion of site content.
 Some common examples: the interface you use to post to your blog, the backend
 site managers use to moderate user-generated comments, the tool your clients
@@ -67,15 +68,10 @@ building admin interfaces is always the same. You have to authenticate users,
 display and handle forms, validate input, and so on. It&#8217;s boring, and it&#8217;s
 repetitive.</p>
 <p>So what&#8217;s Django&#8217;s approach to these boring, repetitive tasks? It does it all
-for you &#8211; in just a couple of lines of code, no less. With Django, building an
-admin interface is a solved problem.</p>
-<p>This chapter is about Django&#8217;s automatic admin interface. The feature works by
-reading metadata in your model to provide a powerful and production-ready
-interface that site administrators can start using immediately. Here, we discuss
-how to activate, use, and customize this feature.</p>
-<p>Note that we recommend reading this chapter even if you don&#8217;t intend to use the
-Django admin site, because we introduce a few concepts that apply to all of
-Django, regardless of admin-site usage.</p>
+for you. With Django, building an admin interface is a solved problem.</p>
+<p>In this chapter we will be exploring Django&#8217;s automatic admin interface:
+checking out how it provides a convenient interface to our models, and some of
+the other useful things we can do with it.</p>
 <div class="section" id="using-the-admin-site">
 <h2>Using the Admin Site<a class="headerlink" href="#using-the-admin-site" title="Permalink to this headline">¶</a></h2>
 <p>When you ran <code class="docutils literal"><span class="pre">django-admin</span> <span class="pre">startproject</span> <span class="pre">mysite</span></code> in Chapter 1, Django created
@@ -325,8 +321,7 @@ each column definition. For example, here&#8217;s the generated statement for ou
     &quot;first_name&quot; varchar(30) NOT NULL,
     &quot;last_name&quot; varchar(40) NOT NULL,
     &quot;email&quot; varchar(75) NOT NULL
-)
-;
+);
 </pre></div>
 </div>
 <p>In most cases, this default behavior is optimal for your application and will
@@ -715,8 +710,8 @@ but is covered in the Django documentation.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Access to edit users and permissions is also controlled by this permission
-system. If you give someone permission to edit users, she will be able to
-edit her own permissions, which might not be what you want! Giving a user
+system. If you give someone permission to edit users, they will be able to
+edit their own permissions, which might not be what you want! Giving a user
 permission to edit users is essentially turning a user into a superuser.</p>
 </div>
 <p>You can also assign users to groups. A <em>group</em> is simply a set of permissions to
@@ -766,9 +761,8 @@ not for public consumption, the admin site can take you a long way. In
 this sense, you can think of it as a beefed up, relational version of a
 spreadsheet.</li>
 </ul>
-<p>One final point we want to make clear is: the admin site is not a
-be-all and end-all. It&#8217;s not intended to be a
-<em>public</em> interface to data, nor is it intended to allow for sophisticated
+<p>The admin site is <em>not</em>, however, a be-all and end-all. It&#8217;s not intended to
+be a <em>public</em> interface to data, nor is it intended to allow for sophisticated
 sorting and searching of your data. As we said early in this chapter, it&#8217;s for
 trusted site administrators. Keeping this sweet spot in mind is the key to
 effective admin-site usage.</p>

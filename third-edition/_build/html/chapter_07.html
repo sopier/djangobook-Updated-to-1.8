@@ -327,10 +327,10 @@ itself. It includes a number of other URLconfs:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.conf.urls</span> <span class="kn">import</span> <span class="n">include</span><span class="p">,</span> <span class="n">url</span>
 
 <span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="c"># ... snip ...</span>
+    <span class="c"># ...</span>
     <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^community/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">&#39;django_website.aggregator.urls&#39;</span><span class="p">)),</span>
     <span class="n">url</span><span class="p">(</span><span class="s">r&#39;^contact/&#39;</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">&#39;django_website.contact.urls&#39;</span><span class="p">)),</span>
-    <span class="c"># ... snip ...</span>
+    <span class="c"># ...</span>
 <span class="p">]</span>
 </pre></div>
 </div>
@@ -559,7 +559,7 @@ is <code class="docutils literal"><span class="pre">/reviews/nnnn/</span></code>
 
 <span class="k">def</span> <span class="nf">redirect_to_year</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
     <span class="c"># ...</span>
-    <span class="n">year</span> <span class="o">=</span> <span class="mi">2006</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="mi">2012</span>
     <span class="c"># ...</span>
     <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;reviews-year-archive&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">year</span><span class="p">,)))</span>
 </pre></div>

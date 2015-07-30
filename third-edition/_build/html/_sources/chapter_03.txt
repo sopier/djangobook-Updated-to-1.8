@@ -20,7 +20,9 @@ why:
   than the underlying Python code, so it would be convenient if
   the design could change without needing to modify the Python code.
   
-* This is only a very simple example. A common webpage template has hundreds of lines of HTML and scripts. Untangling and 	  troubleshooting program code from this mess is a nightmare (*cough--PHP--cough*).  
+* This is only a very simple example. A common webpage template has hundreds
+  of lines of HTML and scripts. Untangling and 	  troubleshooting program code
+  from this mess is a nightmare (*cough--PHP--cough*).  
 
 * Writing Python code and designing HTML are two different disciplines, and
   most professional Web development environments split these

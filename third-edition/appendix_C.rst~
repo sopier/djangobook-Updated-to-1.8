@@ -71,7 +71,7 @@ the table.
 "Simple" Generic Views
 ======================
 
-The module``django.views.generic.base`` contains simple views that handle a
+The module``django.views.generic.simple`` contains simple views that handle a
 couple of common cases: rendering a template when no view logic is needed and
 issuing a redirect.
 

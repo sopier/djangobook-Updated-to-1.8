@@ -122,7 +122,7 @@ The value of ``DJANGO_SETTINGS_MODULE`` should be in Python path syntax, e.g.
 The django-admin utility
 ---------------------------
 
-When using django-admin, you can either set the
+When using django-admin , you can either set the
 environment variable once, or explicitly pass in the settings module each time
 you run the utility.
 

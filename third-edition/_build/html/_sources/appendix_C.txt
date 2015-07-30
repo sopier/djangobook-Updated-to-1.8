@@ -4,7 +4,7 @@ Appendix C: Generic View Reference
 
 Chapter 10 introduced generic views but leaves out some of the gory details.
 This appendix describes each generic view along with all the options each view can
-take. Be sure to read Chapter 11 before trying to understand the reference
+take. Be sure to read Chapter 10 before trying to understand the reference
 material that follows. You might want to refer back to the ``Book``,
 ``Publisher``, and ``Author`` objects defined in that chapter; the examples that
 follow use these models.
@@ -71,7 +71,7 @@ the table.
 "Simple" Generic Views
 ======================
 
-The module``django.views.generic.simple`` contains simple views that handle a
+The module``django.views.generic.base`` contains simple views that handle a
 couple of common cases: rendering a template when no view logic is needed and
 issuing a redirect.
 
