@@ -118,9 +118,10 @@ view might look like::
             html.append('<tr><td>%s</td><td>%s</td></tr>' % (k, v))
         return HttpResponse('<table>%s</table>' % '\n'.join(html))
 
-As an exercise, see whether you can convert this view to use Django's template
-system instead of hard-coding the HTML. Also try adding ``request.path`` and
-the other ``HttpRequest`` methods from the previous section.
+Another good way to see what sort of information that the request object
+contains is to look closely at the Django error pages when you crash the
+system -- there is a wealth of useful information in there - including all the
+HTTP headers and other request objects (``request.path`` for example).
 
 Information About Submitted Data
 --------------------------------
@@ -182,9 +183,13 @@ The accompanying template, ``search_form.html``, could look like this::
     </body>
     </html>
 
+Save this file to your ``mysite/templates`` directory you created in Chapter
+3, or you can create a new folder ``books/templates``. Just make sure you have
+``'APP_DIRS'`` in your settings file set to ``True``.
+
 The URLpattern in ``urls.py`` could look like this::
 
-    from mysite.books import views
+    from books import views
 
     urlpatterns = [
         # ...
@@ -208,12 +213,16 @@ that with a second view function::
 
     urlpatterns = [ 
         # ...
-        (r'^search-form/$', views.search_form),
-        (r'^search/$', views.search),
+        url(r'^search-form/$', views.search_form),
+        url(r'^search/$', views.search),
         # ...
     ]
 
-    # views.py
+    # books/views.py
+
+    from django.http import HttpResponse
+
+    # ...
 
     def search(request):
         if 'q' in request.GET:
@@ -271,7 +280,7 @@ the user's search query into our book database (again, in ``views.py``)::
 
     from django.http import HttpResponse
     from django.shortcuts import render
-    from mysite.books.models import Book
+    from books.models import Book
 
     def search(request):
         if 'q' in request.GET and request.GET['q']:
@@ -290,7 +299,7 @@ A couple of notes on what we did here:
 
 * We're using ``Book.objects.filter(title__icontains=q)`` to query our
   book table for all books whose title includes the given submission. The
-  ``icontains`` is a lookup type (as explained in Chapter 5 and Appendix
+  ``icontains`` is a lookup type (as explained in Chapter 4 and Appendix
   B), and the statement can be roughly translated as "Get the books whose
   title contains ``q``, without being case-sensitive."
 
@@ -301,21 +310,29 @@ A couple of notes on what we did here:
   to get an idea of the possibilities.)
 
 * We pass ``books``, a list of ``Book`` objects, to the template. The
-  template code for ``search_results.html`` might include something like
+  ``search_results.html`` file might include something like
   this::
 
-      <p>You searched for: <strong>{{ query }}</strong></p>
+      <html>
+        <head>
+            <title>Book Search</title>
+        </head>
+        <body>
+          <p>You searched for: <strong>{{ query }}</strong></p>
 
-      {% if books %}
-          <p>Found {{ books|length }} book{{ books|pluralize }}.</p>
-          <ul>
-              {% for book in books %}
-              <li>{{ book.title }}</li>
-              {% endfor %}
-          </ul>
-      {% else %}
-          <p>No books matched your search criteria.</p>
-      {% endif %}
+          {% if books %}
+              <p>Found {{ books|length }} book{{ books|pluralize }}.</p>
+              <ul>
+                  {% for book in books %}
+                  <li>{{ book.title }}</li>
+                  {% endfor %}
+              </ul>
+          {% else %}
+              <p>No books matched your search criteria.</p>
+          {% endif %}
+
+        </body>
+      </html>
 
   Note usage of the ``pluralize`` template filter, which outputs an "s"
   if appropriate, based on the number of books found.
@@ -340,7 +357,7 @@ render the template again, like this:
 
     from django.http import HttpResponse
     from django.shortcuts import render
-    from mysite.books.models import Book
+    from books.models import Book
 
     def search_form(request):
         return render(request, 'search_form.html')
@@ -556,154 +573,14 @@ Making a Contact Form
 
 Although we iterated over the book search form example several times and
 improved it nicely, it's still fundamentally simple: just a single field,
-``'q'``. Because it's so simple, we didn't even use Django's form library to
-deal with it. But more complex forms call for more complex treatment -- and now
-we'll develop something more complex: a site contact form.
-
-This will be a form that lets site users submit a bit of feedback, along with
-an optional e-mail return address. After the form is submitted and the
-data is validated, we'll automatically send the message via e-mail to the site
-staff.
-
-We'll start with our template, ``contact_form.html``.
-
-.. parsed-literal::
-
-    <html>
-    <head>
-        <title>Contact us</title>
-    </head>
-    <body>
-        <h1>Contact us</h1>
-
-        {% if errors %}
-            <ul>
-                {% for error in errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
-        <form action="/contact/" method="post">
-            <p>Subject: <input type="text" name="subject"></p>
-            <p>Your e-mail (optional): <input type="text" name="email"></p>
-            <p>Message: <textarea name="message" rows="10" cols="50"></textarea></p>
-            <input type="submit" value="Submit">
-        </form>
-    </body>
-    </html>
-
-We've defined three fields: the subject, e-mail address and message. The second
-is optional, but the other two fields are required. Note we're using
-``method="post"`` here instead of ``method="get"`` because this form submission
-has a side effect -- it sends an e-mail. Also, we copied the error-displaying
-code from our previous template ``search_form.html``.
-
-If we continue down the road established by our ``search()`` view from the
-previous section, a naive version of our ``contact()`` view might look like
-this::
-
-    from django.core.mail import send_mail
-    from django.http import HttpResponseRedirect
-    from django.shortcuts import render
-
-    def contact(request):
-        errors = []
-        if request.method == 'POST':
-            if not request.POST.get('subject', ''):
-                errors.append('Enter a subject.')
-            if not request.POST.get('message', ''):
-                errors.append('Enter a message.')
-            if request.POST.get('email') and '@' not in request.POST['email']:
-                errors.append('Enter a valid e-mail address.')
-            if not errors:
-                send_mail(
-                    request.POST['subject'],
-                    request.POST['message'],
-                    request.POST.get('email', 'noreply@example.com'),
-                    ['siteowner@example.com'],
-                )
-                return HttpResponseRedirect('/contact/thanks/')
-        return render(request, 'contact_form.html',
-            {'errors': errors})
-
-(If you're following along, you may be wondering whether to put this view in
-the ``books/views.py`` file. It doesn't have anything to do with the books
-application, so should it live elsewhere? It's totally up to you; Django
-doesn't care, as long as you're able to point to the view from your URLconf.
-Our personal preference would be to create a separate directory, ``contact``,
-at the same level in the directory tree as ``books``. This would contain an
-empty ``__init__.py`` and ``views.py``.)
-
-A couple of new things are happening here:
-
-* We're checking that ``request.method`` is ``'POST'``. This will only be
-  true in the case of a form submission; it won't be true if somebody is
-  merely viewing the contact form. (In the latter case,
-  ``request.method`` will be set to ``'GET'``, because in normal Web browsing,
-  browsers use ``GET``, not ``POST``.) This makes it a nice way to isolate
-  the "form display" case from the "form processing" case.
-
-* Instead of ``request.GET``, we're using ``request.POST`` to access the
-  submitted form data. This is necessary because the HTML ``<form>`` in
-  ``contact_form.html`` uses ``method="post"``. If this view is accessed
-  via ``POST``, then ``request.GET`` will be empty.
-
-* This time, we have *two* required fields, ``subject`` and ``message``, so
-  we have to validate both. Note that we're using ``request.POST.get()``
-  and providing a blank string as the default value; this is a nice, short
-  way of handling both the cases of missing keys and missing data.
-
-* Although the ``email`` field is not required, we still validate it if it
-  is indeed submitted. Our validation algorithm here is fragile -- we're
-  just checking that the string contains an ``@`` character. In the real
-  world, you'd want more robust validation (and Django provides it, which
-  we'll show you very shortly).
-
-* We're using the function ``django.core.mail.send_mail`` to send an
-  e-mail. This function has four required arguments: the e-mail subject,
-  the e-mail body, the "from" address, and a list of recipient addresses.
-  ``send_mail`` is a convenient wrapper around Django's ``EmailMessage``
-  class, which provides advanced features such as attachments, multipart
-  e-mails, and full control over e-mail headers.
-
-  **NOTE:** To send e-mail using ``send_mail()``, your server must
-  be configured to send mail, and Django must be told about your outbound
-  e-mail server. See Appendix H for the specifics.
-
-* After the e-mail is sent, we redirect to a "success" page by returning an
-  ``HttpResponseRedirect`` object. We'll leave the implementation of that
-  "success" page up to you (it's a simple view/URLconf/template), but we
-  should explain why we initiate a redirect instead of, for example, simply
-  calling ``render()`` with a template right there.
-
-  The reason: if a user hits "Refresh" on a page that was loaded via
-  ``POST``, that request will be repeated. This can often lead to undesired
-  behavior, such as a duplicate record being added to the database -- or,
-  in our example, the e-mail being sent twice. If the user is redirected to
-  another page after the ``POST``, then there's no chance of repeating the
-  request.
-
-  You should *always* issue a redirect for successful ``POST`` requests.
-  It's a Web development best practice.
-
-This view works, but those validation functions are kind of crufty. Imagine
-processing a form with a dozen fields; would you really want to have to write
-all of those ``if`` statements?
-
-Another problem is *form redisplay*. In the case of validation errors, it's
-best practice to redisplay the form *with* the previously submitted data
-already filled in, so the user can see what he did wrong (and also so the user
-doesn't have to reenter data in fields that were submitted correctly). We
-*could* manually pass the ``POST`` data back to the template, but we'd have to
-edit each HTML field to insert the proper value in the proper place.
-
-This introduces a lot of cruft and a lot of opportunities for human
-error. Lucky for us, the Django developers thought of this and built into Django a higher-level
-library that handles form- and validation-related tasks.
+``'q'``. As forms get more complex, we have to repeat the above steps over and
+over again for each form field we use. This introduces a lot of cruft and a
+lot of opportunities for human error. Lucky for us, the Django developers
+thought of this and built into Django a higher-level library that handles
+form- and validation-related tasks.
 
 Your First Form Class
-=====================
+---------------------
 
 Django comes with a form library, called ``django.forms``, that handles many of
 the issues we've been exploring this chapter -- from HTML form display to
@@ -715,7 +592,7 @@ each HTML ``<form>`` you're dealing with. In our case, we only have one
 ``<form>``, so we'll have one ``Form`` class. This class can live anywhere you
 want -- including directly in your ``views.py`` file -- but community
 convention is to keep ``Form`` classes in a separate file called ``forms.py``.
-Create this file in the same directory as your ``views.py``, and enter the
+Create this file in the same directory as your ``mysite/views.py``, and enter the
 following::
 
     from django import forms
@@ -734,9 +611,9 @@ optional, we specify ``required=False``.
 Let's hop into the Python interactive interpreter and see what this class can
 do. The first thing it can do is display itself as HTML::
 
-    >>> from contact.forms import ContactForm
+    >>> from mysite.forms import ContactForm
     >>> f = ContactForm()
-    >>> print (f)
+    >>> print(f)
     <tr><th><label for="id_subject">Subject:</label></th><td><input type="text" name="subject" id="id_subject" /></td></tr>
     <tr><th><label for="id_email">Email:</label></th><td><input type="text" name="email" id="id_email" /></td></tr>
     <tr><th><label for="id_message">Message:</label></th><td><input type="text" name="message" id="id_message" /></td></tr>
@@ -747,11 +624,11 @@ accessibility. The idea is to make the default behavior as optimal as possible.
 This default output is in the format of an HTML ``<table>``, but there are a
 few other built-in outputs::
 
-    >>> print (f.as_ul())
+    >>> print(f.as_ul())
     <li><label for="id_subject">Subject:</label> <input type="text" name="subject" id="id_subject" /></li>
     <li><label for="id_email">Email:</label> <input type="text" name="email" id="id_email" /></li>
     <li><label for="id_message">Message:</label> <input type="text" name="message" id="id_message" /></li>
-    >>> print (f.as_p())
+    >>> print(f.as_p())
     <p><label for="id_subject">Subject:</label> <input type="text" name="subject" id="id_subject" /></p>
     <p><label for="id_email">Email:</label> <input type="text" name="email" id="id_email" /></p>
     <p><label for="id_message">Message:</label> <input type="text" name="message" id="id_message" /></p>
@@ -763,10 +640,10 @@ customization if necessary.
 These methods are just shortcuts for the common case of "display the entire
 form." You can also display the HTML for a particular field::
 
-    >>> print f['subject']
-    <input type="text" name="subject" id="id_subject" />
+    >>> print(f['subject'])
+    <input id="id_subject" name="subject" type="text" />
     >>> print f['message']
-    <input type="text" name="message" id="id_message" />
+    <input id="id_message" name="message" type="text" />
 
 The second thing ``Form`` objects can do is validate data. To validate data,
 create a new ``Form`` object and pass it a dictionary of data that maps field
@@ -824,15 +701,16 @@ dictionary mapping field names to error-message lists::
 Finally, for ``Form`` instances whose data has been found to be valid, a
 ``cleaned_data`` attribute is available. This is a dictionary of the
 submitted data, "cleaned up." Django's forms framework not only validates
-data, it cleans it up by converting values to the appropriate Python types.
+data, it cleans it up by converting values to the appropriate Python types::
 
-    >>> f = ContactForm({'subject': 'Hello', 'email': 'adrian@example.com', 'message': 'Nice site!'})
-    >>> f.is_valid()
-    True
+    >>> f = ContactForm({'subject': 'Hello', 'email': 'adrian@example.com',
+    'message': 'Nice site!'}) 
+    >>> f.is_valid() True 
     >>> f.cleaned_data
-    {'message': u'Nice site!', 'email': u'adrian@example.com', 'subject': u'Hello'}
+    {'message': 'Nice site!', 'email': 'adrian@example.com', 'subject':
+    'Hello'}
 
-Our contact form only deals with strings, which are "cleaned" into Unicode
+Our contact form only deals with strings, which are "cleaned" into string
 objects -- but if we were to use an ``IntegerField`` or ``DateField``, the
 forms framework would ensure that ``cleaned_data`` used proper Python
 integers or ``datetime.date`` objects for the given fields.
@@ -840,16 +718,17 @@ integers or ``datetime.date`` objects for the given fields.
 Tying Form Objects Into Views
 =============================
 
-With some basic knowledge about ``Form`` classes, you might see how we can use
-this infrastructure to replace some of the cruft in our ``contact()`` view.
-Here's how we can rewrite ``contact()`` to use the forms framework::
+Our contact form is not much good to us unless we have some way of displaying
+it to the user. To do this, we need to first update our ``mysite/views``::
 
     # views.py
 
     from django.shortcuts import render
-    from mysite.contact.forms import ContactForm
+    from mysite.forms import ContactForm
     from django.http import HttpResponseRedirect
     from django.core.mail import send_mail
+
+    # ...
 
     def contact(request):
         if request.method == 'POST':
@@ -866,6 +745,8 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
         else:
             form = ContactForm()
         return render(request, 'contact_form.html', {'form': form})
+
+Next, we have to create our contact form (save this to ``mysite/templates``)::
 
     # contact_form.html
 
@@ -892,22 +773,38 @@ Here's how we can rewrite ``contact()`` to use the forms framework::
     </body>
     </html>
 
-Look at how much cruft we've been able to remove! Django's forms framework
-handles the HTML display, the validation, data cleanup and form
-redisplay-with-errors.
+And finally, we need to change our ``urls.py`` to display our contact form at
+``/contact/``.
+
+.. parsed-literal::
+    # ...
+    from mysite.views import hello, current_datetime, hours_ahead, **contact**
+    
+    urlpatterns = [
+        
+        # ...
+        
+        **url(r'^contact/$', contact),**
+   ] 
+
 
 Since we're creating a POST form (which can have the effect of modifying data),
 we need to worry about Cross Site Request Forgeries. Thankfully, you don't have
 to worry too hard, because Django comes with a very easy-to-use system for 
 protecting against it. In short, all POST forms that are targeted at internal 
 URLs should use the ``{% csrf_token %}`` template tag. More details about 
-``{% csrf_token %}`` can be found in Chapter 20.
+``{% csrf_token %}`` can be found in Chapter 21.
 
 
 Try running this locally. Load the form, submit it with none of the fields
 filled out, submit it with an invalid e-mail address, then finally submit it
-with valid data. (Of course, depending on your mail-server configuration, you
-might get an error when ``send_mail()`` is called, but that's another issue.)
+with valid data. (Of course, unless you have configured a mail-server, you
+will get a ``ConnectionRefusedError`` when ``send_mail()`` is called, but
+that's another issue.)
+
+Finally, if you are feeling clever enough to configure a mail-server (Appendix
+H shows you how to do this), you will need to write the view at
+``contact/thanks``.
 
 Changing How Fields Are Rendered
 ================================

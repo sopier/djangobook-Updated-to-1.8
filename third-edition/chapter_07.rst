@@ -309,10 +309,10 @@ itself. It includes a number of other URLconfs::
     from django.conf.urls import include, url
 
     urlpatterns = [
-        # ... snip ...
+        # ... 
         url(r'^community/', include('django_website.aggregator.urls')),
         url(r'^contact/', include('django_website.contact.urls')),
-        # ... snip ...
+        # ...
     ]
 
 Note that the regular expressions in this example don't have a ``$``
@@ -565,7 +565,7 @@ Or in Python code::
 
     def redirect_to_year(request):
         # ...
-        year = 2006
+        year = 2012
         # ...
         return HttpResponseRedirect(reverse('reviews-year-archive', args=(year,)))
 

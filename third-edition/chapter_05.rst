@@ -2,8 +2,10 @@
 Chapter 5: The Django Admin Site
 ================================
 
-For a certain class of Web sites, an *admin interface* is an essential part of
-the infrastructure. This is a Web-based interface, limited to trusted site
+For most modern Web sites, an *admin interface* is an essential part of
+the infrastructure. 
+
+This is a Web-based interface, limited to trusted site
 administrators, that enables the adding, editing and deletion of site content.
 Some common examples: the interface you use to post to your blog, the backend
 site managers use to moderate user-generated comments, the tool your clients
@@ -16,17 +18,11 @@ display and handle forms, validate input, and so on. It's boring, and it's
 repetitive.
 
 So what's Django's approach to these boring, repetitive tasks? It does it all
-for you -- in just a couple of lines of code, no less. With Django, building an
-admin interface is a solved problem.
+for you. With Django, building an admin interface is a solved problem.
 
-This chapter is about Django's automatic admin interface. The feature works by
-reading metadata in your model to provide a powerful and production-ready
-interface that site administrators can start using immediately. Here, we discuss
-how to activate, use, and customize this feature.
-
-Note that we recommend reading this chapter even if you don't intend to use the
-Django admin site, because we introduce a few concepts that apply to all of
-Django, regardless of admin-site usage.
+In this chapter we will be exploring Django's automatic admin interface:
+checking out how it provides a convenient interface to our models, and some of
+the other useful things we can do with it.
 
 Using the Admin Site
 ====================
@@ -331,8 +327,7 @@ each column definition. For example, here's the generated statement for our
         "first_name" varchar(30) NOT NULL,
         "last_name" varchar(40) NOT NULL,
         "email" varchar(75) NOT NULL
-    )
-    ;
+    );
 
 In most cases, this default behavior is optimal for your application and will
 save you from data-inconsistency headaches. And it works nicely with the rest
@@ -791,8 +786,8 @@ but is covered in the Django documentation.
 .. note::
 
     Access to edit users and permissions is also controlled by this permission
-    system. If you give someone permission to edit users, she will be able to
-    edit her own permissions, which might not be what you want! Giving a user
+    system. If you give someone permission to edit users, they will be able to
+    edit their own permissions, which might not be what you want! Giving a user
     permission to edit users is essentially turning a user into a superuser.
 
 You can also assign users to groups. A *group* is simply a set of permissions to
@@ -850,9 +845,8 @@ few other cases:
   this sense, you can think of it as a beefed up, relational version of a
   spreadsheet.
 
-One final point we want to make clear is: the admin site is not a
-be-all and end-all. It's not intended to be a
-*public* interface to data, nor is it intended to allow for sophisticated
+The admin site is *not*, however, a be-all and end-all. It's not intended to
+be a *public* interface to data, nor is it intended to allow for sophisticated
 sorting and searching of your data. As we said early in this chapter, it's for
 trusted site administrators. Keeping this sweet spot in mind is the key to
 effective admin-site usage.

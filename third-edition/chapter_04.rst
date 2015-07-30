@@ -62,28 +62,13 @@ This approach works, but some problems should jump out at you immediately:
   wanted.
 
 * It ties us to MySQL. If, down the road, we switch from MySQL to
-  PostgreSQL, we'll have to use a different database adapter (e.g.,
-  ``psycopg`` rather than ``MySQLdb``), alter the connection parameters,
-  and -- depending on the nature of the SQL statement -- possibly rewrite
-  the SQL. Ideally, the database server we're using would be abstracted, so
+  PostgreSQL, we'll most likely have to rewrite a large amount of our code.
+  Ideally, the database server we're using would be abstracted, so
   that a database server change could be made in a single place. (This
   feature is particularly relevant if you're building an open-source Django
   application that you want to be used by as many people as possible.)
 
 As you might expect, Django's database layer solves these problems.
-Here's a sneak preview of how the previous view can be rewritten using Django's
-database API::
-
-    from django.shortcuts import render
-    from books.models import Book
-
-    def book_list(request):
-        books = Book.objects.order_by('name')
-        return render(request, 'book_list.html', {'books': books})
-
-We'll explain this code a little later in the chapter. For now, just get a
-feel for how it looks.
-
 
 Configuring the Database
 ========================
@@ -131,7 +116,7 @@ lives together in a single Python package and represents a full Django
 application.
 
 It's worth explaining the terminology here, because this tends to trip up
-beginners. We'd already created a *project*, in Chapter 1, so what's the
+beginners. We've already created a *project*, in Chapter 1, so what's the
 difference between a *project* and an *app*? The difference is that of
 configuration vs. code:
 
@@ -361,45 +346,28 @@ project. By default, it looks something like this::
         'django.contrib.staticfiles',
         )
 
-[TODO check we need to do this with a fresh install]
+To register our "books" app, add  ``'books'`` to the ``INSTALLED_APPS``
+list, so the setting ends up looking like this:
 
-Temporarily comment out all six of those strings by putting a hash character
-(``#``) in front of them. (They're included by default as a common-case
-convenience, but we'll activate and discuss them in subsequent chapters.)
-While you're at it, comment out the default ``MIDDLEWARE_CLASSES`` setting, too;
-the default values in ``MIDDLEWARE_CLASSES`` depend on some of the apps we
-just commented out. Then, add  ``'books'`` to the ``INSTALLED_APPS``
-list, so the setting ends up looking like this::
+.. parsed-literal::
 
-  INSTALLED_APPS = (
-    # 'django.contrib.admin',
-    # 'django.contrib.auth',
-    # 'django.contrib.contenttypes',
-    # 'django.contrib.sessions',
-    # 'django.contrib.messages',
-    # 'django.contrib.staticfiles',
-    'books',
-    )
+   INSTALLED_APPS = (
+   'django.contrib.admin',
+   'django.contrib.auth',
+   'django.contrib.contenttypes',
+   'django.contrib.sessions',
+   'django.contrib.messages',
+   'django.contrib.staticfiles',
+   **'books',**
+   )
 
-    MIDDLEWARE_CLASSES = (
-      #  'django.contrib.sessions.middleware.SessionMiddleware',
-      #  'django.middleware.common.CommonMiddleware',
-      #  'django.middleware.csrf.CsrfViewMiddleware',
-      #  'django.contrib.auth.middleware.AuthenticationMiddleware',
-      #  'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-      #  'django.contrib.messages.middleware.MessageMiddleware',
-      #  'django.middleware.clickjacking.XFrameOptionsMiddleware',
-      #  'django.middleware.security.SecurityMiddleware',
-    )
+You'll need to be sure to include the trailing comma in ``INSTALLED_APPS``,
+because it's a single-element tuple. By the way, it is best practice to put a
+comma after *every* element of a tuple, regardless of whether the tuple has
+only a single element. This avoids the issue of forgetting commas, and
+there's no penalty for using that extra comma.)
 
-(As we mentioned last chapter when setting ``DIRS``, you'll need to be
-sure to include the trailing comma in ``INSTALLED_APPS``, because it's a
-single-element tuple. By the way, it is best practice to put a comma
-after *every* element of a tuple, regardless of whether the tuple has only a
-single element. This avoids the issue of forgetting commas, and there's no
-penalty for using that extra comma.)
-
-``'books'`` refers to the ``books`` app we're working on. Each app in
+``'books'`` refers to the "books" app we're working on. Each app in
 ``INSTALLED_APPS`` is represented by its full Python path -- that is, the path
 of packages, separated by dots, leading to the app package.
 
@@ -535,8 +503,17 @@ Run that command, and you'll see something like this::
       Apply all migrations: books
     Running migrations:
       Rendering model states... DONE
+
+      # ...
+
       Applying books.0001_initial... OK
+
+      # ...
    
+In case you were wondering what all the extras are (commented out above), the
+first time you run migrate, Django will also create all the system tables that
+Django needs for the inbuilt apps.
+
 Migrations are Django's way of propagating changes you make to your models
 (adding a field, deleting a model, etc.) into your database schema. They're
 designed to be mostly automatic, however there are some caveats. For more
@@ -662,10 +639,9 @@ space.
 
 The only requirement for ``__str__()`` is that it return a string object.
 If ``__str__()`` doesn't return a string object -- if it returns, say, an
-integer -- then Python will raise a ``TypeError`` with a message like
+integer -- then Python will raise a ``TypeError`` with a message like::
 
-``TypeError: __str__ returned non-string (type int)``.
-
+   TypeError: __str__ returned non-string (type int).
 
 For the ``__str__()`` changes to take effect, exit out of the Python shell
 and enter it again with ``python manage.py shell``. (This is the simplest way
