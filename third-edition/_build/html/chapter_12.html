@@ -55,8 +55,6 @@
             
   <div class="section" id="chapter-12-testing-in-django">
 <h1>Chapter 12 - testing in Django<a class="headerlink" href="#chapter-12-testing-in-django" title="Permalink to this headline">¶</a></h1>
-<p>[TODO this is pretty much the Django docs. Needs simplification in reference
-material and more code and screenshots to tie into the books example]</p>
 <div class="section" id="introducing-automated-testing">
 <h2>Introducing automated testing<a class="headerlink" href="#introducing-automated-testing" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="what-are-automated-tests">
@@ -66,7 +64,7 @@ material and more code and screenshots to tie into the books example]</p>
 (<em>does a particular model method return values as expected?</em>) while others
 examine the overall operation of the software (<em>does a sequence of user inputs
 on the site produce the desired result?</em>). That&#8217;s no different from the kind of
-testing you did earlier in Tutorial 1 , using the
+testing we did earlier in the book, using the
 shell to examine the behavior of a method, or running the
 application and entering data to check how it behaves.</p>
 <p>What&#8217;s different in <em>automated</em> tests is that the testing work is done for
@@ -149,527 +147,12 @@ tests earlier, but it&#8217;s never too late to get started.</p>
 If you have written several thousand lines of Python, choosing something to
 test might not be easy. In such a case, it&#8217;s fruitful to write your first test
 the next time you make a change, either when you add a new feature or fix a bug.</p>
-<p>So let&#8217;s do that right away.</p>
 </div>
-<div class="section" id="writing-our-first-test">
-<h2>Writing our first test<a class="headerlink" href="#writing-our-first-test" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="we-identify-a-bug">
-<h3>We identify a bug<a class="headerlink" href="#we-identify-a-bug" title="Permalink to this headline">¶</a></h3>
-<p>Fortunately, there&#8217;s a little bug in the <code class="docutils literal"><span class="pre">polls</span></code> application for us to fix
-right away: the <code class="docutils literal"><span class="pre">Question.was_published_recently()</span></code> method returns <code class="docutils literal"><span class="pre">True</span></code> if
-the <code class="docutils literal"><span class="pre">Question</span></code> was published within the last day (which is correct) but also if
-the <code class="docutils literal"><span class="pre">Question</span></code>’s <code class="docutils literal"><span class="pre">pub_date</span></code> field is in the future (which certainly isn&#8217;t).</p>
-<p>You can see this in the Admin; create a question whose date lies in the future;
-you&#8217;ll see that the <code class="docutils literal"><span class="pre">Question</span></code> change list claims it was published recently.</p>
-<p>You can also see this using the shell:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">timezone</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">polls.models</span> <span class="kn">import</span> <span class="n">Question</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># create a Question instance with pub_date 30 days in the future</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">future_question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">pub_date</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">30</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># was it published recently?</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">future_question</span><span class="o">.</span><span class="n">was_published_recently</span><span class="p">()</span>
-<span class="go">True</span>
-</pre></div>
-</div>
-<p>Since things in the future are not &#8216;recent&#8217;, this is clearly wrong.</p>
-</div>
-<div class="section" id="create-a-test-to-expose-the-bug">
-<h3>Create a test to expose the bug<a class="headerlink" href="#create-a-test-to-expose-the-bug" title="Permalink to this headline">¶</a></h3>
-<p>What we&#8217;ve just done in the shell to test for the problem is exactly
-what we can do in an automated test, so let&#8217;s turn that into an automated test.</p>
-<p>A conventional place for an application&#8217;s tests is in the application&#8217;s
-<code class="docutils literal"><span class="pre">tests.py</span></code> file; the testing system will automatically find tests in any file
-whose name begins with <code class="docutils literal"><span class="pre">test</span></code>.</p>
-<p>Put the following in the <code class="docutils literal"><span class="pre">tests.py</span></code> file in the <code class="docutils literal"><span class="pre">polls</span></code> application:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/tests.py</span>
-
-<span class="kn">import</span> <span class="nn">datetime</span>
-
-<span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">timezone</span>
-<span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
-
-<span class="kn">from</span> <span class="nn">polls.models</span> <span class="kn">import</span> <span class="n">Question</span>
-
-<span class="k">class</span> <span class="nc">QuestionMethodTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">test_was_published_recently_with_future_question</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        was_published_recently() should return False for questions whose</span>
-<span class="sd">        pub_date is in the future</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">time</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-        <span class="n">future_question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">pub_date</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">future_question</span><span class="o">.</span><span class="n">was_published_recently</span><span class="p">(),</span> <span class="bp">False</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>What we have done here is created a <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code></a> subclass
-with a method that creates a <code class="docutils literal"><span class="pre">Question</span></code> instance with a <code class="docutils literal"><span class="pre">pub_date</span></code> in the
-future. We then check the output of <code class="docutils literal"><span class="pre">was_published_recently()</span></code> - which
-<em>ought</em> to be False.</p>
-</div>
-<div class="section" id="running-tests">
-<h3>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h3>
-<p>In the terminal, we can run our test:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ python manage.py test polls
-</pre></div>
-</div>
-<p>and you&#8217;ll see something like:</p>
-<div class="highlight-python"><div class="highlight"><pre>Creating test database for alias &#39;default&#39;...
-F
-======================================================================
-FAIL: test_was_published_recently_with_future_question (polls.tests.QuestionMethodTests)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File &quot;/path/to/mysite/polls/tests.py&quot;, line 16, in test_was_published_recently_with_future_question
-    self.assertEqual(future_question.was_published_recently(), False)
-AssertionError: True != False
-
-----------------------------------------------------------------------
-Ran 1 test in 0.001s
-
-FAILED (failures=1)
-Destroying test database for alias &#39;default&#39;...
-</pre></div>
-</div>
-<p>What happened is this:</p>
-<ul class="simple">
-<li><code class="docutils literal"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">test</span> <span class="pre">polls</span></code> looked for tests in the <code class="docutils literal"><span class="pre">polls</span></code> application</li>
-<li>it found a subclass of the <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code></a> class</li>
-<li>it created a special database for the purpose of testing</li>
-<li>it looked for test methods - ones whose names begin with <code class="docutils literal"><span class="pre">test</span></code></li>
-<li>in <code class="docutils literal"><span class="pre">test_was_published_recently_with_future_question</span></code> it created a <code class="docutils literal"><span class="pre">Question</span></code>
-instance whose <code class="docutils literal"><span class="pre">pub_date</span></code> field is 30 days in the future</li>
-<li>... and using the <code class="docutils literal"><span class="pre">assertEqual()</span></code> method, it discovered that its
-<code class="docutils literal"><span class="pre">was_published_recently()</span></code> returns <code class="docutils literal"><span class="pre">True</span></code>, though we wanted it to return
-<code class="docutils literal"><span class="pre">False</span></code></li>
-</ul>
-<p>The test informs us which test failed and even the line on which the failure
-occurred.</p>
-</div>
-<div class="section" id="fixing-the-bug">
-<h3>Fixing the bug<a class="headerlink" href="#fixing-the-bug" title="Permalink to this headline">¶</a></h3>
-<p>We already know what the problem is: <code class="docutils literal"><span class="pre">Question.was_published_recently()</span></code> should
-return <code class="docutils literal"><span class="pre">False</span></code> if its <code class="docutils literal"><span class="pre">pub_date</span></code> is in the future. Amend the method in
-<code class="docutils literal"><span class="pre">models.py</span></code>, so that it will only return <code class="docutils literal"><span class="pre">True</span></code> if the date is also in the
-past:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/models.py</span>
-
-<span class="k">def</span> <span class="nf">was_published_recently</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">now</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">now</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pub_date</span> <span class="o">&lt;=</span> <span class="n">now</span>
-</pre></div>
-</div>
-<p>and run the test again:</p>
-<div class="highlight-python"><div class="highlight"><pre>Creating test database for alias &#39;default&#39;...
-.
-----------------------------------------------------------------------
-Ran 1 test in 0.001s
-
-OK
-Destroying test database for alias &#39;default&#39;...
-</pre></div>
-</div>
-<p>After identifying a bug, we wrote a test that exposes it and corrected the bug
-in the code so our test passes.</p>
-<p>Many other things might go wrong with our application in the future, but we can
-be sure that we won&#8217;t inadvertently reintroduce this bug, because simply
-running the test will warn us immediately. We can consider this little portion
-of the application pinned down safely forever.</p>
-</div>
-<div class="section" id="more-comprehensive-tests">
-<h3>More comprehensive tests<a class="headerlink" href="#more-comprehensive-tests" title="Permalink to this headline">¶</a></h3>
-<p>While we&#8217;re here, we can further pin down the <code class="docutils literal"><span class="pre">was_published_recently()</span></code>
-method; in fact, it would be positively embarrassing if in fixing one bug we had
-introduced another.</p>
-<p>Add two more test methods to the same class, to test the behavior of the method
-more comprehensively:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/tests.py</span>
-
-<span class="k">def</span> <span class="nf">test_was_published_recently_with_old_question</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    was_published_recently() should return False for questions whose</span>
-<span class="sd">    pub_date is older than 1 day</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">time</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-    <span class="n">old_question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">pub_date</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">old_question</span><span class="o">.</span><span class="n">was_published_recently</span><span class="p">(),</span> <span class="bp">False</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">test_was_published_recently_with_recent_question</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    was_published_recently() should return True for questions whose</span>
-<span class="sd">    pub_date is within the last day</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">time</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">recent_question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">pub_date</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">recent_question</span><span class="o">.</span><span class="n">was_published_recently</span><span class="p">(),</span> <span class="bp">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>And now we have three tests that confirm that <code class="docutils literal"><span class="pre">Question.was_published_recently()</span></code>
-returns sensible values for past, recent, and future questions.</p>
-<p>Again, <code class="docutils literal"><span class="pre">polls</span></code> is a simple application, but however complex it grows in the
-future and whatever other code it interacts with, we now have some guarantee
-that the method we have written tests for will behave in expected ways.</p>
-</div>
-</div>
-<div class="section" id="test-a-view">
-<h2>Test a view<a class="headerlink" href="#test-a-view" title="Permalink to this headline">¶</a></h2>
-<p>The polls application is fairly undiscriminating: it will publish any question,
-including ones whose <code class="docutils literal"><span class="pre">pub_date</span></code> field lies in the future. We should improve
-this. Setting a <code class="docutils literal"><span class="pre">pub_date</span></code> in the future should mean that the Question is
-published at that moment, but invisible until then.</p>
-<div class="section" id="a-test-for-a-view">
-<h3>A test for a view<a class="headerlink" href="#a-test-for-a-view" title="Permalink to this headline">¶</a></h3>
-<p>When we fixed the bug above, we wrote the test first and then the code to fix
-it. In fact that was a simple example of test-driven development, but it
-doesn&#8217;t really matter in which order we do the work.</p>
-<p>In our first test, we focused closely on the internal behavior of the code. For
-this test, we want to check its behavior as it would be experienced by a user
-through a web browser.</p>
-<p>Before we try to fix anything, let&#8217;s have a look at the tools at our disposal.</p>
-</div>
-<div class="section" id="the-django-test-client">
-<h3>The Django test client<a class="headerlink" href="#the-django-test-client" title="Permalink to this headline">¶</a></h3>
-<p>Django provides a test <a class="reference internal" href="#django.test.Client" title="django.test.Client"><code class="xref py py-class docutils literal"><span class="pre">Client</span></code></a> to simulate a user
-interacting with the code at the view level.  We can use it in <code class="docutils literal"><span class="pre">tests.py</span></code>
-or even in the shell.</p>
-<p>We will start again with the shell, where we need to do a couple of
-things that won&#8217;t be necessary in <code class="docutils literal"><span class="pre">tests.py</span></code>. The first is to set up the test
-environment in the shell:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.test.utils</span> <span class="kn">import</span> <span class="n">setup_test_environment</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">setup_test_environment</span><span class="p">()</span>
-</pre></div>
-</div>
-<p><a class="reference internal" href="#django.test.utils.setup_test_environment" title="django.test.utils.setup_test_environment"><code class="xref py py-meth docutils literal"><span class="pre">setup_test_environment()</span></code></a> installs a template renderer
-which will allow us to examine some additional attributes on responses such as
-<code class="docutils literal"><span class="pre">response.context</span></code> that otherwise wouldn&#8217;t be available. Note that this
-method <em>does not</em> setup a test database, so the following will be run against
-the existing database and the output may differ slightly depending on what
-questions you already created.</p>
-<p>Next we need to import the test client class (later in <code class="docutils literal"><span class="pre">tests.py</span></code> we will use
-the <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code></a> class, which comes with its own client, so
-this won&#8217;t be required):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">Client</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># create an instance of the client for our use</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>With that ready, we can ask the client to do some work for us:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># get a response from &#39;/&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># we should expect a 404 from that address</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span>
-<span class="go">404</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># on the other hand we should expect to find something at &#39;/polls/&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># we&#39;ll use &#39;reverse()&#39; rather than a hardcoded URL</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;polls:index&#39;</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span>
-<span class="go">200</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">content</span>
-<span class="go">&#39;\n\n\n    &lt;p&gt;No polls are available.&lt;/p&gt;\n\n&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># note - you might get unexpected results if your ``TIME_ZONE``</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># in ``settings.py`` is not correct. If you need to change it,</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># you will also need to restart your shell session</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">polls.models</span> <span class="kn">import</span> <span class="n">Question</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">timezone</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># create a Question and save it</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&quot;Who is your favorite Beatle?&quot;</span><span class="p">,</span> <span class="n">pub_date</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># check the response once again</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/polls/&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">content</span>
-<span class="go">&#39;\n\n\n    &lt;ul&gt;\n    \n        &lt;li&gt;&lt;a href=&quot;/polls/1/&quot;&gt;Who is your favorite Beatle?&lt;/a&gt;&lt;/li&gt;\n    \n    &lt;/ul&gt;\n\n&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># If the following doesn&#39;t work, you probably omitted the call to</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># setup_test_environment() described above</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">response</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;latest_question_list&#39;</span><span class="p">]</span>
-<span class="go">[&lt;Question: Who is your favorite Beatle?&gt;]</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="improving-our-view">
-<h3>Improving our view<a class="headerlink" href="#improving-our-view" title="Permalink to this headline">¶</a></h3>
-<p>The list of polls shows polls that aren&#8217;t published yet (i.e. those that have a
-<code class="docutils literal"><span class="pre">pub_date</span></code> in the future). Let&#8217;s fix that.</p>
-<p>In Tutorial 4 we introduced a class-based view,
-based on <code class="xref py py-class docutils literal"><span class="pre">ListView</span></code>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/views.py</span>
-
- <span class="k">class</span> <span class="nc">IndexView</span><span class="p">(</span><span class="n">generic</span><span class="o">.</span><span class="n">ListView</span><span class="p">):</span>
-     <span class="n">template_name</span> <span class="o">=</span> <span class="s">&#39;polls/index.html&#39;</span>
-     <span class="n">context_object_name</span> <span class="o">=</span> <span class="s">&#39;latest_question_list&#39;</span>
-
-     <span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-         <span class="sd">&quot;&quot;&quot;Return the last five published questions.&quot;&quot;&quot;</span>
-         <span class="k">return</span> <span class="n">Question</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-pub_date&#39;</span><span class="p">)[:</span><span class="mi">5</span><span class="p">]</span>
-</pre></div>
-</div>
-<p><code class="docutils literal"><span class="pre">response.context_data['latest_question_list']</span></code> extracts the data this view
-places into the context.</p>
-<p>We need to amend the <code class="docutils literal"><span class="pre">get_queryset</span></code> method and change it so that it also
-checks the date by comparing it with <code class="docutils literal"><span class="pre">timezone.now()</span></code>. First we need to add
-an import:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/views.py</span>
-
-<span class="kn">from</span> <span class="nn">django.utils</span> <span class="kn">import</span> <span class="n">timezone</span>
-</pre></div>
-</div>
-<p>and then we must amend the <code class="docutils literal"><span class="pre">get_queryset</span></code> method like so:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/views.py</span>
-
-<span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return the last five published questions (not including those set to be</span>
-<span class="sd">    published in the future).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">Question</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-        <span class="n">pub_date__lte</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s">&#39;-pub_date&#39;</span><span class="p">)[:</span><span class="mi">5</span><span class="p">]</span>
-</pre></div>
-</div>
-<p><code class="docutils literal"><span class="pre">Question.objects.filter(pub_date__lte=timezone.now())</span></code> returns a queryset
-containing <code class="docutils literal"><span class="pre">Question</span></code>s whose <code class="docutils literal"><span class="pre">pub_date</span></code> is less than or equal to - that
-is, earlier than or equal to - <code class="docutils literal"><span class="pre">timezone.now</span></code>.</p>
-</div>
-<div class="section" id="testing-our-new-view">
-<h3>Testing our new view<a class="headerlink" href="#testing-our-new-view" title="Permalink to this headline">¶</a></h3>
-<p>Now you can satisfy yourself that this behaves as expected by firing up the
-runserver, loading the site in your browser, creating <code class="docutils literal"><span class="pre">Questions</span></code> with dates
-in the past and future, and checking that only those that have been published
-are listed.  You don&#8217;t want to have to do that <em>every single time you make any
-change that might affect this</em> - so let&#8217;s also create a test, based on our
-shell session above.</p>
-<p>Add the following to <code class="docutils literal"><span class="pre">polls/tests.py</span></code>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/tests.py</span>
-
-<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
-</pre></div>
-</div>
-<p>and we&#8217;ll create a shortcut function to create questions as well as a new test
-class:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/tests.py</span>
-
-<span class="k">def</span> <span class="nf">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="p">,</span> <span class="n">days</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates a question with the given `question_text` published the given</span>
-<span class="sd">    number of `days` offset to now (negative for questions published</span>
-<span class="sd">    in the past, positive for questions that have yet to be published).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">time</span> <span class="o">=</span> <span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">days</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">Question</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="n">question_text</span><span class="p">,</span>
-                                   <span class="n">pub_date</span><span class="o">=</span><span class="n">time</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">QuestionViewTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">test_index_view_with_no_questions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        If no questions exist, an appropriate message should be displayed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;polls:index&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s">&quot;No polls are available.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;latest_question_list&#39;</span><span class="p">],</span> <span class="p">[])</span>
-
-    <span class="k">def</span> <span class="nf">test_index_view_with_a_past_question</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Questions with a pub_date in the past should be displayed on the</span>
-<span class="sd">        index page</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&quot;Past question.&quot;</span><span class="p">,</span> <span class="n">days</span><span class="o">=-</span><span class="mi">30</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;polls:index&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span>
-            <span class="n">response</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;latest_question_list&#39;</span><span class="p">],</span>
-            <span class="p">[</span><span class="s">&#39;&lt;Question: Past question.&gt;&#39;</span><span class="p">]</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">test_index_view_with_a_future_question</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Questions with a pub_date in the future should not be displayed on</span>
-<span class="sd">        the index page.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&quot;Future question.&quot;</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;polls:index&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s">&quot;No polls are available.&quot;</span><span class="p">,</span>
-                            <span class="n">status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;latest_question_list&#39;</span><span class="p">],</span> <span class="p">[])</span>
-
-    <span class="k">def</span> <span class="nf">test_index_view_with_future_question_and_past_question</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Even if both past and future questions exist, only past questions</span>
-<span class="sd">        should be displayed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&quot;Past question.&quot;</span><span class="p">,</span> <span class="n">days</span><span class="o">=-</span><span class="mi">30</span><span class="p">)</span>
-        <span class="n">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&quot;Future question.&quot;</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;polls:index&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span>
-            <span class="n">response</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;latest_question_list&#39;</span><span class="p">],</span>
-            <span class="p">[</span><span class="s">&#39;&lt;Question: Past question.&gt;&#39;</span><span class="p">]</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">test_index_view_with_two_past_questions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The questions index page may display multiple questions.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&quot;Past question 1.&quot;</span><span class="p">,</span> <span class="n">days</span><span class="o">=-</span><span class="mi">30</span><span class="p">)</span>
-        <span class="n">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&quot;Past question 2.&quot;</span><span class="p">,</span> <span class="n">days</span><span class="o">=-</span><span class="mi">5</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;polls:index&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertQuerysetEqual</span><span class="p">(</span>
-            <span class="n">response</span><span class="o">.</span><span class="n">context</span><span class="p">[</span><span class="s">&#39;latest_question_list&#39;</span><span class="p">],</span>
-            <span class="p">[</span><span class="s">&#39;&lt;Question: Past question 2.&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;Question: Past question 1.&gt;&#39;</span><span class="p">]</span>
-        <span class="p">)</span>
-</pre></div>
-</div>
-<p>Let&#8217;s look at some of these more closely.</p>
-<p>First is a question shortcut function, <code class="docutils literal"><span class="pre">create_question</span></code>, to take some
-repetition out of the process of creating questions.</p>
-<p><code class="docutils literal"><span class="pre">test_index_view_with_no_questions</span></code> doesn&#8217;t create any questions, but checks
-the message: &#8220;No polls are available.&#8221; and verifies the <code class="docutils literal"><span class="pre">latest_question_list</span></code>
-is empty. Note that the <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code></a> class provides some
-additional assertion methods. In these examples, we use
-<a class="reference internal" href="#django.test.SimpleTestCase.assertContains" title="django.test.SimpleTestCase.assertContains"><code class="xref py py-meth docutils literal"><span class="pre">assertContains()</span></code></a> and
-<a class="reference internal" href="#django.test.TransactionTestCase.assertQuerysetEqual" title="django.test.TransactionTestCase.assertQuerysetEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertQuerysetEqual()</span></code></a>.</p>
-<p>In <code class="docutils literal"><span class="pre">test_index_view_with_a_past_question</span></code>, we create a question and verify that it
-appears in the list.</p>
-<p>In <code class="docutils literal"><span class="pre">test_index_view_with_a_future_question</span></code>, we create a question with a
-<code class="docutils literal"><span class="pre">pub_date</span></code> in the future. The database is reset for each test method, so the
-first question is no longer there, and so again the index shouldn&#8217;t have any
-questions in it.</p>
-<p>And so on. In effect, we are using the tests to tell a story of admin input
-and user experience on the site, and checking that at every state and for every
-new change in the state of the system, the expected results are published.</p>
-</div>
-<div class="section" id="testing-the-detailview">
-<h3>Testing the <code class="docutils literal"><span class="pre">DetailView</span></code><a class="headerlink" href="#testing-the-detailview" title="Permalink to this headline">¶</a></h3>
-<p>What we have works well; however, even though future questions don&#8217;t appear in
-the <em>index</em>, users can still reach them if they know or guess the right URL. So
-we need to add a similar  constraint to <code class="docutils literal"><span class="pre">DetailView</span></code>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/views.py</span>
-
-<span class="k">class</span> <span class="nc">DetailView</span><span class="p">(</span><span class="n">generic</span><span class="o">.</span><span class="n">DetailView</span><span class="p">):</span>
-    <span class="o">...</span>
-    <span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Excludes any questions that aren&#39;t published yet.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">Question</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pub_date__lte</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-</pre></div>
-</div>
-<p>And of course, we will add some tests, to check that a <code class="docutils literal"><span class="pre">Question</span></code> whose
-<code class="docutils literal"><span class="pre">pub_date</span></code> is in the past can be displayed, and that one with a <code class="docutils literal"><span class="pre">pub_date</span></code>
-in the future is not:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="c"># polls/tests.py</span>
-
-<span class="k">class</span> <span class="nc">QuestionIndexDetailTests</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">test_detail_view_with_a_future_question</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The detail view of a question with a pub_date in the future should</span>
-<span class="sd">        return a 404 not found.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">future_question</span> <span class="o">=</span> <span class="n">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&#39;Future question.&#39;</span><span class="p">,</span>
-                                          <span class="n">days</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;polls:detail&#39;</span><span class="p">,</span>
-                                   <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">future_question</span><span class="o">.</span><span class="n">id</span><span class="p">,)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">404</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">test_detail_view_with_a_past_question</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The detail view of a question with a pub_date in the past should</span>
-<span class="sd">        display the question&#39;s text.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">past_question</span> <span class="o">=</span> <span class="n">create_question</span><span class="p">(</span><span class="n">question_text</span><span class="o">=</span><span class="s">&#39;Past Question.&#39;</span><span class="p">,</span>
-                                        <span class="n">days</span><span class="o">=-</span><span class="mi">5</span><span class="p">)</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s">&#39;polls:detail&#39;</span><span class="p">,</span>
-                                   <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">past_question</span><span class="o">.</span><span class="n">id</span><span class="p">,)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertContains</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">past_question</span><span class="o">.</span><span class="n">question_text</span><span class="p">,</span>
-                            <span class="n">status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="ideas-for-more-tests">
-<h3>Ideas for more tests<a class="headerlink" href="#ideas-for-more-tests" title="Permalink to this headline">¶</a></h3>
-<p>We ought to add a similar <code class="docutils literal"><span class="pre">get_queryset</span></code> method to <code class="docutils literal"><span class="pre">ResultsView</span></code> and
-create a new test class for that view. It&#8217;ll be very similar to what we have
-just created; in fact there will be a lot of repetition.</p>
-<p>We could also improve our application in other ways, adding tests along the
-way. For example, it&#8217;s silly that <code class="docutils literal"><span class="pre">Questions</span></code> can be published on the site
-that have no <code class="docutils literal"><span class="pre">Choices</span></code>. So, our views could check for this, and exclude such
-<code class="docutils literal"><span class="pre">Questions</span></code>. Our tests would create a <code class="docutils literal"><span class="pre">Question</span></code> without <code class="docutils literal"><span class="pre">Choices</span></code> and
-then test that it&#8217;s not published, as well as create a similar <code class="docutils literal"><span class="pre">Question</span></code>
-<em>with</em> <code class="docutils literal"><span class="pre">Choices</span></code>, and test that it <em>is</em> published.</p>
-<p>Perhaps logged-in admin users should be allowed to see unpublished
-<code class="docutils literal"><span class="pre">Questions</span></code>, but not ordinary visitors. Again: whatever needs to be added to
-the software to accomplish this should be accompanied by a test, whether you
-write the test first and then make the code pass the test, or work out the
-logic in your code first and then write a test to prove it.</p>
-<p>At a certain point you are bound to look at your tests and wonder whether your
-code is suffering from test bloat, which brings us to:</p>
-</div>
-</div>
-<div class="section" id="when-testing-more-is-better">
-<h2>When testing, more is better<a class="headerlink" href="#when-testing-more-is-better" title="Permalink to this headline">¶</a></h2>
-<p>It might seem that our tests are growing out of control. At this rate there will
-soon be more code in our tests than in our application, and the repetition
-is unaesthetic, compared to the elegant conciseness of the rest of our code.</p>
-<p><strong>It doesn&#8217;t matter</strong>. Let them grow. For the most part, you can write a test
-once and then forget about it. It will continue performing its useful function
-as you continue to develop your program.</p>
-<p>Sometimes tests will need to be updated. Suppose that we amend our views so that
-only <code class="docutils literal"><span class="pre">Questions</span></code> with <code class="docutils literal"><span class="pre">Choices</span></code> are published. In that case, many of our
-existing tests will fail - <em>telling us exactly which tests need to be amended to
-bring them up to date</em>, so to that extent tests help look after themselves.</p>
-<p>At worst, as you continue developing, you might find that you have some tests
-that are now redundant. Even that&#8217;s not a problem; in testing redundancy is
-a <em>good</em> thing.</p>
-<p>As long as your tests are sensibly arranged, they won&#8217;t become unmanageable.
-Good rules-of-thumb include having:</p>
-<ul class="simple">
-<li>a separate <code class="docutils literal"><span class="pre">TestClass</span></code> for each model or view</li>
-<li>a separate test method for each set of conditions you want to test</li>
-<li>test method names that describe their function</li>
-</ul>
-</div>
-<div class="section" id="further-testing">
-<h2>Further testing<a class="headerlink" href="#further-testing" title="Permalink to this headline">¶</a></h2>
-<p>This tutorial only introduces some of the basics of testing. There&#8217;s a great
-deal more you can do, and a number of very useful tools at your disposal to
-achieve some very clever things.</p>
-<p>For example, while our tests here have covered some of the internal logic of a
-model and the way our views publish information, you can use an &#8220;in-browser&#8221;
-framework such as <a class="reference external" href="http://seleniumhq.org/">Selenium</a> to test the way your HTML actually renders in a
-browser. These tools allow you to check not just the behavior of your Django
-code, but also, for example, of your JavaScript. It&#8217;s quite something to see
-the tests launch a browser, and start interacting with your site, as if a human
-being were driving it! Django includes <a class="reference internal" href="#django.test.LiveServerTestCase" title="django.test.LiveServerTestCase"><code class="xref py py-class docutils literal"><span class="pre">LiveServerTestCase</span></code></a>
-to facilitate integration with tools like Selenium.</p>
-<p>If you have a complex application, you may want to run tests automatically
-with every commit for the purposes of <a class="reference external" href="http://en.wikipedia.org/wiki/Continuous_integration">continuous integration</a>, so that
-quality control is itself - at least partially - automated.</p>
-<p>A good way to spot untested parts of your application is to check code
-coverage. This also helps identify fragile or even dead code. If you can&#8217;t test
-a piece of code, it usually means that code should be refactored or removed.
-Coverage will help to identify dead code.</p>
-<p>Testing a Web application is a complex task, because a Web application is made
-of several layers of logic &#8211; from HTTP-level request handling, to form
-validation and processing, to template rendering. With Django&#8217;s test-execution
-framework and assorted utilities, you can simulate requests, insert test data,
-inspect your application&#8217;s output and generally verify your code is doing what
-it should be doing.</p>
-<p>The best part is, it&#8217;s really easy.</p>
-<p>The preferred way to write tests in Django is using the <code class="xref py py-mod docutils literal"><span class="pre">unittest</span></code> module
-built in to the Python standard library.</p>
-<p>You can also use any <em>other</em> Python test framework; Django provides an API and
-tools for that kind of integration. They are described in the
-other-testing-frameworks section of advanced.</p>
-</div>
-<div class="section" id="module-django.test">
-<span id="writing-and-running-tests"></span><h2>Writing and running tests<a class="headerlink" href="#module-django.test" title="Permalink to this headline">¶</a></h2>
-<p>This document is split into two primary sections. First, we explain how to write
-tests with Django. Then, we explain how to run them.</p>
 <div class="section" id="writing-tests">
-<h3>Writing tests<a class="headerlink" href="#writing-tests" title="Permalink to this headline">¶</a></h3>
+<h2>Writing tests<a class="headerlink" href="#writing-tests" title="Permalink to this headline">¶</a></h2>
 <p>Django&#8217;s unit tests use a Python standard library module: <code class="xref py py-mod docutils literal"><span class="pre">unittest</span></code>. This
 module defines tests using a class-based approach.</p>
-<p>Here is an example which subclasses from <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code></a>,
+<p>Here is an example which subclasses from <code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code>,
 which is a subclass of <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code> that runs each test inside a
 transaction to provide isolation:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
@@ -697,7 +180,7 @@ automatically build a test suite out of those test cases, and run that suite.</p
 <p class="first admonition-title">Warning</p>
 <p>If your tests rely on database access such as creating or querying models,
 be sure to create your test classes as subclasses of
-<a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code></a> rather than <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code>.</p>
+<code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code> rather than <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code>.</p>
 <p class="last">Using <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code> avoids the cost of running each test in a
 transaction and flushing the database, but if your tests interact with
 the database their behavior will vary based on the order that the test
@@ -705,8 +188,8 @@ runner executes them. This can lead to unit tests that pass when run in
 isolation but fail when run in a suite.</p>
 </div>
 </div>
-<div class="section" id="id1">
-<span id="id2"></span><h3>Running tests<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="running-tests">
+<span id="id1"></span><h2>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h2>
 <p>Once you&#8217;ve written tests, run them using the test command of
 your project&#8217;s <code class="docutils literal"><span class="pre">manage.py</span></code> utility:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ ./manage.py test
@@ -763,9 +246,8 @@ uses these warnings to flag when features are going away. It also might
 flag areas in your code that aren&#8217;t strictly wrong but could benefit
 from a better implementation.</p>
 </div>
-</div>
 <div class="section" id="the-test-database">
-<span id="id3"></span><h3>The test database<a class="headerlink" href="#the-test-database" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>The test database<a class="headerlink" href="#the-test-database" title="Permalink to this headline">¶</a></h3>
 <p>Tests that require a database (namely, model tests) will not use your &#8220;real&#8221;
 (production) database. Separate, blank databases are created for the tests.</p>
 <p>Regardless of whether the tests pass or fail, the test databases are destroyed
@@ -817,10 +299,10 @@ your code</em> anyway - rewrite your code so that it doesn&#8217;t do this.</p>
 <p>In order to guarantee that all <code class="docutils literal"><span class="pre">TestCase</span></code> code starts with a clean database,
 the Django test runner reorders tests in the following way:</p>
 <ul class="simple">
-<li>All <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code></a> subclasses are run first.</li>
+<li>All <code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code> subclasses are run first.</li>
 <li>Then, all other Django-based tests (test cases based on
-<a class="reference internal" href="#django.test.SimpleTestCase" title="django.test.SimpleTestCase"><code class="xref py py-class docutils literal"><span class="pre">SimpleTestCase</span></code></a>, including
-<a class="reference internal" href="#django.test.TransactionTestCase" title="django.test.TransactionTestCase"><code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code></a>) are run with no particular
+<code class="xref py py-class docutils literal"><span class="pre">SimpleTestCase</span></code>, including
+<code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code>) are run with no particular
 ordering guaranteed nor enforced among them.</li>
 <li>Then any other <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code> tests (including doctests) that may
 alter the database without restoring it to its original state are run.</li>
@@ -829,7 +311,7 @@ alter the database without restoring it to its original state are run.</li>
 <p class="first admonition-title">Note</p>
 <p>The new ordering of tests may reveal unexpected dependencies on test case
 ordering. This is the case with doctests that relied on state left in the
-database by a given <a class="reference internal" href="#django.test.TransactionTestCase" title="django.test.TransactionTestCase"><code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code></a> test, they
+database by a given <code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code> test, they
 must be updated to be able to run independently.</p>
 <p class="last">You may reverse the execution order inside groups by passing
 <code class="docutils literal"><span class="pre">--reverse</span></code> to the test command. This can help with ensuring
@@ -842,7 +324,7 @@ your tests are independent from each other.</p>
 tests and not in <code class="docutils literal"><span class="pre">TransactionTestCase</span></code> tests, and additionally only on
 backends where transactions are supported (the most important exception being
 MyISAM). This is also true for tests which rely on <code class="docutils literal"><span class="pre">TransactionTestCase</span></code>
-such as <a class="reference internal" href="#django.test.LiveServerTestCase" title="django.test.LiveServerTestCase"><code class="xref py py-class docutils literal"><span class="pre">LiveServerTestCase</span></code></a> and
+such as <a class="reference internal" href="#LiveServerTestCase" title="LiveServerTestCase"><code class="xref py py-class docutils literal"><span class="pre">LiveServerTestCase</span></code></a> and
 <code class="xref py py-class docutils literal"><span class="pre">StaticLiveServerTestCase</span></code>.</p>
 <p>Django can reload that data for you on a per-testcase basis by
 setting the <code class="docutils literal"><span class="pre">serialized_rollback</span></code> option to <code class="docutils literal"><span class="pre">True</span></code> in the body of the
@@ -953,7 +435,7 @@ rendered and that the template is passed the correct context data.</li>
 <li>Use in-browser frameworks like <a class="reference external" href="http://seleniumhq.org/">Selenium</a> to test <em>rendered</em> HTML and the
 <em>behavior</em> of Web pages, namely JavaScript functionality. Django also
 provides special support for those frameworks; see the section on
-<a class="reference internal" href="#django.test.LiveServerTestCase" title="django.test.LiveServerTestCase"><code class="xref py py-class docutils literal"><span class="pre">LiveServerTestCase</span></code></a> for more details.</li>
+<code class="xref py py-class docutils literal"><span class="pre">LiveServerTestCase</span></code> for more details.</li>
 </ul>
 <p>A comprehensive test suite should use a combination of both test types.</p>
 <div class="section" id="overview-and-a-quick-example">
@@ -1022,8 +504,8 @@ client:</p>
 <h4>Making requests<a class="headerlink" href="#making-requests" title="Permalink to this headline">¶</a></h4>
 <p>Use the <code class="docutils literal"><span class="pre">django.test.Client</span></code> class to make requests.</p>
 <dl class="class">
-<dt id="django.test.Client">
-<em class="property">class </em><code class="descclassname">django.test.</code><code class="descname">Client</code><span class="sig-paren">(</span><em>enforce_csrf_checks=False</em>, <em>**defaults</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client" title="Permalink to this definition">¶</a></dt>
+<dt id="Client">
+<em class="property">class </em><code class="descname">Client</code><span class="sig-paren">(</span><em>enforce_csrf_checks=False</em>, <em>**defaults</em><span class="sig-paren">)</span><a class="headerlink" href="#Client" title="Permalink to this definition">¶</a></dt>
 <dd><p>It requires no arguments at time of construction. However, you can use
 keywords arguments to specify some default headers. For example, this will
 send a <code class="docutils literal"><span class="pre">User-Agent</span></code> HTTP header in each request:</p>
@@ -1031,16 +513,16 @@ send a <code class="docutils literal"><span class="pre">User-Agent</span></code>
 </pre></div>
 </div>
 <p>The values from the <code class="docutils literal"><span class="pre">extra</span></code> keywords arguments passed to
-<a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">get()</span></code></a>,
-<a class="reference internal" href="#django.test.Client.post" title="django.test.Client.post"><code class="xref py py-meth docutils literal"><span class="pre">post()</span></code></a>, etc. have precedence over
+<code class="xref py py-meth docutils literal"><span class="pre">get()</span></code>,
+<code class="xref py py-meth docutils literal"><span class="pre">post()</span></code>, etc. have precedence over
 the defaults passed to the class constructor.</p>
 <p>The <code class="docutils literal"><span class="pre">enforce_csrf_checks</span></code> argument can be used to test CSRF
 protection (see above).</p>
 <p>Once you have a <code class="docutils literal"><span class="pre">Client</span></code> instance, you can call any of the following
 methods:</p>
 <dl class="method">
-<dt id="django.test.Client.get">
-<code class="descname">get</code><span class="sig-paren">(</span><em>path</em>, <em>data=None</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.get" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>path</em>, <em>data=None</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes a GET request on the provided <code class="docutils literal"><span class="pre">path</span></code> and returns a <code class="docutils literal"><span class="pre">Response</span></code>
 object, which is documented below.</p>
 <p>The key-value pairs in the <code class="docutils literal"><span class="pre">data</span></code> dictionary are used to create a GET
@@ -1094,8 +576,8 @@ request.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.post">
-<code class="descname">post</code><span class="sig-paren">(</span><em>path</em>, <em>data=None</em>, <em>content_type=MULTIPART_CONTENT</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.post" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.post">
+<code class="descname">post</code><span class="sig-paren">(</span><em>path</em>, <em>data=None</em>, <em>content_type=MULTIPART_CONTENT</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.post" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes a POST request on the provided <code class="docutils literal"><span class="pre">path</span></code> and returns a
 <code class="docutils literal"><span class="pre">Response</span></code> object, which is documented below.</p>
 <p>The key-value pairs in the <code class="docutils literal"><span class="pre">data</span></code> dictionary are used to submit POST
@@ -1148,7 +630,7 @@ manually close the file after it has been provided to
 allows the data to be read. If your file contains binary data
 such as an image, this means you will need to open the file in
 <code class="docutils literal"><span class="pre">rb</span></code> (read binary) mode.</p>
-<p>The <code class="docutils literal"><span class="pre">extra</span></code> argument acts the same as for <a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
+<p>The <code class="docutils literal"><span class="pre">extra</span></code> argument acts the same as for <a class="reference internal" href="#Client.get" title="Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
 <p>If the URL you request with a POST contains encoded parameters, these
 parameters will be made available in the request.GET data. For example,
 if you were to make the request:</p>
@@ -1166,71 +648,71 @@ request.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.head">
-<code class="descname">head</code><span class="sig-paren">(</span><em>path</em>, <em>data=None</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.head" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.head">
+<code class="descname">head</code><span class="sig-paren">(</span><em>path</em>, <em>data=None</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.head" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes a HEAD request on the provided <code class="docutils literal"><span class="pre">path</span></code> and returns a
-<code class="docutils literal"><span class="pre">Response</span></code> object. This method works just like <a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>,
+<code class="docutils literal"><span class="pre">Response</span></code> object. This method works just like <a class="reference internal" href="#Client.get" title="Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>,
 including the <code class="docutils literal"><span class="pre">follow</span></code>, <code class="docutils literal"><span class="pre">secure</span></code> and <code class="docutils literal"><span class="pre">extra</span></code> arguments, except
 it does not return a message body.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.options">
-<code class="descname">options</code><span class="sig-paren">(</span><em>path</em>, <em>data=''</em>, <em>content_type='application/octet-stream'</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.options" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.options">
+<code class="descname">options</code><span class="sig-paren">(</span><em>path</em>, <em>data=''</em>, <em>content_type='application/octet-stream'</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.options" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes an OPTIONS request on the provided <code class="docutils literal"><span class="pre">path</span></code> and returns a
 <code class="docutils literal"><span class="pre">Response</span></code> object. Useful for testing RESTful interfaces.</p>
 <p>When <code class="docutils literal"><span class="pre">data</span></code> is provided, it is used as the request body, and
 a <code class="docutils literal"><span class="pre">Content-Type</span></code> header is set to <code class="docutils literal"><span class="pre">content_type</span></code>.</p>
 <p>The <code class="docutils literal"><span class="pre">follow</span></code>, <code class="docutils literal"><span class="pre">secure</span></code> and <code class="docutils literal"><span class="pre">extra</span></code> arguments act the same as for
-<a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
+<a class="reference internal" href="#Client.get" title="Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.put">
-<code class="descname">put</code><span class="sig-paren">(</span><em>path</em>, <em>data=''</em>, <em>content_type='application/octet-stream'</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.put" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.put">
+<code class="descname">put</code><span class="sig-paren">(</span><em>path</em>, <em>data=''</em>, <em>content_type='application/octet-stream'</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.put" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes a PUT request on the provided <code class="docutils literal"><span class="pre">path</span></code> and returns a
 <code class="docutils literal"><span class="pre">Response</span></code> object. Useful for testing RESTful interfaces.</p>
 <p>When <code class="docutils literal"><span class="pre">data</span></code> is provided, it is used as the request body, and
 a <code class="docutils literal"><span class="pre">Content-Type</span></code> header is set to <code class="docutils literal"><span class="pre">content_type</span></code>.</p>
 <p>The <code class="docutils literal"><span class="pre">follow</span></code>, <code class="docutils literal"><span class="pre">secure</span></code> and <code class="docutils literal"><span class="pre">extra</span></code> arguments act the same as for
-<a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
+<a class="reference internal" href="#Client.get" title="Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.patch">
-<code class="descname">patch</code><span class="sig-paren">(</span><em>path</em>, <em>data=''</em>, <em>content_type='application/octet-stream'</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.patch" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.patch">
+<code class="descname">patch</code><span class="sig-paren">(</span><em>path</em>, <em>data=''</em>, <em>content_type='application/octet-stream'</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.patch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes a PATCH request on the provided <code class="docutils literal"><span class="pre">path</span></code> and returns a
 <code class="docutils literal"><span class="pre">Response</span></code> object. Useful for testing RESTful interfaces.</p>
 <p>The <code class="docutils literal"><span class="pre">follow</span></code>, <code class="docutils literal"><span class="pre">secure</span></code> and <code class="docutils literal"><span class="pre">extra</span></code> arguments act the same as for
-<a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
+<a class="reference internal" href="#Client.get" title="Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.delete">
-<code class="descname">delete</code><span class="sig-paren">(</span><em>path</em>, <em>data=''</em>, <em>content_type='application/octet-stream'</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.delete" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>path</em>, <em>data=''</em>, <em>content_type='application/octet-stream'</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes an DELETE request on the provided <code class="docutils literal"><span class="pre">path</span></code> and returns a
 <code class="docutils literal"><span class="pre">Response</span></code> object. Useful for testing RESTful interfaces.</p>
 <p>When <code class="docutils literal"><span class="pre">data</span></code> is provided, it is used as the request body, and
 a <code class="docutils literal"><span class="pre">Content-Type</span></code> header is set to <code class="docutils literal"><span class="pre">content_type</span></code>.</p>
 <p>The <code class="docutils literal"><span class="pre">follow</span></code>, <code class="docutils literal"><span class="pre">secure</span></code> and <code class="docutils literal"><span class="pre">extra</span></code> arguments act the same as for
-<a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
+<a class="reference internal" href="#Client.get" title="Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.trace">
-<code class="descname">trace</code><span class="sig-paren">(</span><em>path</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.trace" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>path</em>, <em>follow=False</em>, <em>secure=False</em>, <em>**extra</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.trace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes a TRACE request on the provided <code class="docutils literal"><span class="pre">path</span></code> and returns a
 <code class="docutils literal"><span class="pre">Response</span></code> object. Useful for simulating diagnostic probes.</p>
 <p>Unlike the other request methods, <code class="docutils literal"><span class="pre">data</span></code> is not provided as a keyword
 parameter in order to comply with <span class="target" id="index-0"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2616.html"><strong>RFC 2616</strong></a>, which mandates that
 TRACE requests should not have an entity-body.</p>
 <p>The <code class="docutils literal"><span class="pre">follow</span></code>, <code class="docutils literal"><span class="pre">secure</span></code>, and <code class="docutils literal"><span class="pre">extra</span></code> arguments act the same as for
-<a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
+<a class="reference internal" href="#Client.get" title="Client.get"><code class="xref py py-meth docutils literal"><span class="pre">Client.get()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.login">
-<code class="descname">login</code><span class="sig-paren">(</span><em>**credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.login" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.login">
+<code class="descname">login</code><span class="sig-paren">(</span><em>**credentials</em><span class="sig-paren">)</span><a class="headerlink" href="#Client.login" title="Permalink to this definition">¶</a></dt>
 <dd><p>If your site uses Django&#8217;s authentication system
 and you deal with logging in users, you can use the test client&#8217;s
 <code class="docutils literal"><span class="pre">login()</span></code> method to simulate the effect of a user logging into the
@@ -1271,8 +753,8 @@ method to create a new user with a correctly hashed password.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.Client.logout">
-<code class="descname">logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.test.Client.logout" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.logout">
+<code class="descname">logout</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Client.logout" title="Permalink to this definition">¶</a></dt>
 <dd><p>If your site uses Django&#8217;s authentication system,
 the <code class="docutils literal"><span class="pre">logout()</span></code> method can be used to simulate the effect of a user
 logging out of your site.</p>
@@ -1292,25 +774,25 @@ by Django views; the test response object has some additional data useful for
 test code to verify.</p>
 <p>Specifically, a <code class="docutils literal"><span class="pre">Response</span></code> object has the following attributes:</p>
 <dl class="class">
-<dt id="django.test.Response">
-<em class="property">class </em><code class="descclassname">django.test.</code><code class="descname">Response</code><a class="headerlink" href="#django.test.Response" title="Permalink to this definition">¶</a></dt>
+<dt id="Response">
+<em class="property">class </em><code class="descname">Response</code><a class="headerlink" href="#Response" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
-<dt id="django.test.Response.client">
-<code class="descname">client</code><a class="headerlink" href="#django.test.Response.client" title="Permalink to this definition">¶</a></dt>
+<dt id="Response.client">
+<code class="descname">client</code><a class="headerlink" href="#Response.client" title="Permalink to this definition">¶</a></dt>
 <dd><p>The test client that was used to make the request that resulted in the
 response.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="django.test.Response.content">
-<code class="descname">content</code><a class="headerlink" href="#django.test.Response.content" title="Permalink to this definition">¶</a></dt>
+<dt id="Response.content">
+<code class="descname">content</code><a class="headerlink" href="#Response.content" title="Permalink to this definition">¶</a></dt>
 <dd><p>The body of the response, as a string. This is the final page content as
 rendered by the view, or any error message.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="django.test.Response.context">
-<code class="descname">context</code><a class="headerlink" href="#django.test.Response.context" title="Permalink to this definition">¶</a></dt>
+<dt id="Response.context">
+<code class="descname">context</code><a class="headerlink" href="#Response.context" title="Permalink to this definition">¶</a></dt>
 <dd><p>The template <code class="docutils literal"><span class="pre">Context</span></code> instance that was used to render the template that
 produced the response content.</p>
 <p>If the rendered page used multiple templates, then <code class="docutils literal"><span class="pre">context</span></code> will be a
@@ -1326,28 +808,28 @@ context variable <code class="docutils literal"><span class="pre">name</span></c
 </dd></dl>
 
 <dl class="attribute">
-<dt id="django.test.Response.request">
-<code class="descname">request</code><a class="headerlink" href="#django.test.Response.request" title="Permalink to this definition">¶</a></dt>
+<dt id="Response.request">
+<code class="descname">request</code><a class="headerlink" href="#Response.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>The request data that stimulated the response.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="django.test.Response.wsgi_request">
-<code class="descname">wsgi_request</code><a class="headerlink" href="#django.test.Response.wsgi_request" title="Permalink to this definition">¶</a></dt>
+<dt id="Response.wsgi_request">
+<code class="descname">wsgi_request</code><a class="headerlink" href="#Response.wsgi_request" title="Permalink to this definition">¶</a></dt>
 <dd><p>The <code class="docutils literal"><span class="pre">WSGIRequest</span></code> instance generated by the test handler that
 generated the response.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="django.test.Response.status_code">
-<code class="descname">status_code</code><a class="headerlink" href="#django.test.Response.status_code" title="Permalink to this definition">¶</a></dt>
+<dt id="Response.status_code">
+<code class="descname">status_code</code><a class="headerlink" href="#Response.status_code" title="Permalink to this definition">¶</a></dt>
 <dd><p>The HTTP status of the response, as an integer. See
 <span class="target" id="index-1"></span><a class="rfc reference external" href="https://tools.ietf.org/html/rfc2616.html#section-10"><strong>RFC 2616#section-10</strong></a> for a full list of HTTP status codes.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="django.test.Response.templates">
-<code class="descname">templates</code><a class="headerlink" href="#django.test.Response.templates" title="Permalink to this definition">¶</a></dt>
+<dt id="Response.templates">
+<code class="descname">templates</code><a class="headerlink" href="#Response.templates" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of <code class="docutils literal"><span class="pre">Template</span></code> instances used to render the final content, in
 the order they were rendered. For each template in the list, use
 <code class="docutils literal"><span class="pre">template.name</span></code> to get the template&#8217;s file name, if the template was
@@ -1356,8 +838,8 @@ loaded from a file. (The name is a string such as
 </dd></dl>
 
 <dl class="attribute">
-<dt id="django.test.Response.resolver_match">
-<code class="descname">resolver_match</code><a class="headerlink" href="#django.test.Response.resolver_match" title="Permalink to this definition">¶</a></dt>
+<dt id="Response.resolver_match">
+<code class="descname">resolver_match</code><a class="headerlink" href="#Response.resolver_match" title="Permalink to this definition">¶</a></dt>
 <dd><p>An instance of <code class="xref py py-class docutils literal"><span class="pre">ResolverMatch</span></code> for the
 response. You can use the
 <code class="xref py py-attr docutils literal"><span class="pre">func</span></code> attribute, for
@@ -1403,16 +885,16 @@ will effectively delete all cookies).</p>
 <p>A test client has two attributes that store persistent state information. You
 can access these properties as part of a test condition.</p>
 <dl class="attribute">
-<dt id="django.test.Client.cookies">
-<code class="descclassname">Client.</code><code class="descname">cookies</code><a class="headerlink" href="#django.test.Client.cookies" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.cookies">
+<code class="descclassname">Client.</code><code class="descname">cookies</code><a class="headerlink" href="#Client.cookies" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Python <code class="xref py py-class docutils literal"><span class="pre">SimpleCookie</span></code> object, containing the current
 values of all the client cookies. See the documentation of the
 <code class="xref py py-mod docutils literal"><span class="pre">http.cookies</span></code> module for more.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="django.test.Client.session">
-<code class="descclassname">Client.</code><code class="descname">session</code><a class="headerlink" href="#django.test.Client.session" title="Permalink to this definition">¶</a></dt>
+<dt id="Client.session">
+<code class="descclassname">Client.</code><code class="descname">session</code><a class="headerlink" href="#Client.session" title="Permalink to this definition">¶</a></dt>
 <dd><p>A dictionary-like object containing session information. See the
 session documentation for full details.</p>
 <p>To modify the session and then save it, it must be stored in a variable
@@ -1455,12 +937,11 @@ is accessed):</p>
 <span id="django-testcase-subclasses"></span><h3>Provided test case classes<a class="headerlink" href="#provided-test-case-classes" title="Permalink to this headline">¶</a></h3>
 <p>Normal Python unit test classes extend a base class of
 <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code>. Django provides a few extensions of this base class:</p>
-<p>[TODO diagram   Hierarchy of Django unit testing classes]</p>
 <div class="section" id="simpletestcase">
 <h4>SimpleTestCase<a class="headerlink" href="#simpletestcase" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
-<dt id="django.test.SimpleTestCase">
-<em class="property">class </em><code class="descclassname">django.test.</code><code class="descname">SimpleTestCase</code><a class="headerlink" href="#django.test.SimpleTestCase" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase">
+<em class="property">class </em><code class="descname">SimpleTestCase</code><a class="headerlink" href="#SimpleTestCase" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>A thin subclass of <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code>, it extends it with some basic
@@ -1468,35 +949,35 @@ functionality like:</p>
 <ul class="simple">
 <li>Saving and restoring the Python warning machinery state.</li>
 <li>Some useful assertions like:<ul>
-<li>Checking that a callable <a class="reference internal" href="#django.test.SimpleTestCase.assertRaisesMessage" title="django.test.SimpleTestCase.assertRaisesMessage"><code class="xref py py-meth docutils literal"><span class="pre">raises</span> <span class="pre">a</span> <span class="pre">certain</span> <span class="pre">exception</span></code></a>.</li>
-<li>Testing form field <a class="reference internal" href="#django.test.SimpleTestCase.assertFieldOutput" title="django.test.SimpleTestCase.assertFieldOutput"><code class="xref py py-meth docutils literal"><span class="pre">rendering</span> <span class="pre">and</span> <span class="pre">error</span> <span class="pre">treatment</span></code></a>.</li>
-<li>Testing <a class="reference internal" href="#django.test.SimpleTestCase.assertContains" title="django.test.SimpleTestCase.assertContains"><code class="xref py py-meth docutils literal"><span class="pre">HTML</span> <span class="pre">responses</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">presence/lack</span> <span class="pre">of</span> <span class="pre">a</span> <span class="pre">given</span> <span class="pre">fragment</span></code></a>.</li>
-<li>Verifying that a template <a class="reference internal" href="#django.test.SimpleTestCase.assertTemplateUsed" title="django.test.SimpleTestCase.assertTemplateUsed"><code class="xref py py-meth docutils literal"><span class="pre">has/hasn't</span> <span class="pre">been</span> <span class="pre">used</span> <span class="pre">to</span> <span class="pre">generate</span> <span class="pre">a</span> <span class="pre">given</span>
+<li>Checking that a callable <a class="reference internal" href="#SimpleTestCase.assertRaisesMessage" title="SimpleTestCase.assertRaisesMessage"><code class="xref py py-meth docutils literal"><span class="pre">raises</span> <span class="pre">a</span> <span class="pre">certain</span> <span class="pre">exception</span></code></a>.</li>
+<li>Testing form field <a class="reference internal" href="#SimpleTestCase.assertFieldOutput" title="SimpleTestCase.assertFieldOutput"><code class="xref py py-meth docutils literal"><span class="pre">rendering</span> <span class="pre">and</span> <span class="pre">error</span> <span class="pre">treatment</span></code></a>.</li>
+<li>Testing <a class="reference internal" href="#SimpleTestCase.assertContains" title="SimpleTestCase.assertContains"><code class="xref py py-meth docutils literal"><span class="pre">HTML</span> <span class="pre">responses</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">presence/lack</span> <span class="pre">of</span> <span class="pre">a</span> <span class="pre">given</span> <span class="pre">fragment</span></code></a>.</li>
+<li>Verifying that a template <a class="reference internal" href="#SimpleTestCase.assertTemplateUsed" title="SimpleTestCase.assertTemplateUsed"><code class="xref py py-meth docutils literal"><span class="pre">has/hasn't</span> <span class="pre">been</span> <span class="pre">used</span> <span class="pre">to</span> <span class="pre">generate</span> <span class="pre">a</span> <span class="pre">given</span>
 <span class="pre">response</span> <span class="pre">content</span></code></a>.</li>
-<li>Verifying a HTTP <a class="reference internal" href="#django.test.SimpleTestCase.assertRedirects" title="django.test.SimpleTestCase.assertRedirects"><code class="xref py py-meth docutils literal"><span class="pre">redirect</span></code></a> is
+<li>Verifying a HTTP <a class="reference internal" href="#SimpleTestCase.assertRedirects" title="SimpleTestCase.assertRedirects"><code class="xref py py-meth docutils literal"><span class="pre">redirect</span></code></a> is
 performed by the app.</li>
-<li>Robustly testing two <a class="reference internal" href="#django.test.SimpleTestCase.assertHTMLEqual" title="django.test.SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">HTML</span> <span class="pre">fragments</span></code></a>
-for equality/inequality or <a class="reference internal" href="#django.test.SimpleTestCase.assertInHTML" title="django.test.SimpleTestCase.assertInHTML"><code class="xref py py-meth docutils literal"><span class="pre">containment</span></code></a>.</li>
-<li>Robustly testing two <a class="reference internal" href="#django.test.SimpleTestCase.assertXMLEqual" title="django.test.SimpleTestCase.assertXMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">XML</span> <span class="pre">fragments</span></code></a>
+<li>Robustly testing two <a class="reference internal" href="#SimpleTestCase.assertHTMLEqual" title="SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">HTML</span> <span class="pre">fragments</span></code></a>
+for equality/inequality or <a class="reference internal" href="#SimpleTestCase.assertInHTML" title="SimpleTestCase.assertInHTML"><code class="xref py py-meth docutils literal"><span class="pre">containment</span></code></a>.</li>
+<li>Robustly testing two <a class="reference internal" href="#SimpleTestCase.assertXMLEqual" title="SimpleTestCase.assertXMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">XML</span> <span class="pre">fragments</span></code></a>
 for equality/inequality.</li>
-<li>Robustly testing two <a class="reference internal" href="#django.test.SimpleTestCase.assertJSONEqual" title="django.test.SimpleTestCase.assertJSONEqual"><code class="xref py py-meth docutils literal"><span class="pre">JSON</span> <span class="pre">fragments</span></code></a>
+<li>Robustly testing two <a class="reference internal" href="#SimpleTestCase.assertJSONEqual" title="SimpleTestCase.assertJSONEqual"><code class="xref py py-meth docutils literal"><span class="pre">JSON</span> <span class="pre">fragments</span></code></a>
 for equality.</li>
 </ul>
 </li>
 <li>The ability to run tests with modified settings.</li>
-<li>Using the <a class="reference internal" href="#django.test.SimpleTestCase.client" title="django.test.SimpleTestCase.client"><code class="xref py py-attr docutils literal"><span class="pre">client</span></code></a> <a class="reference internal" href="#django.test.Client" title="django.test.Client"><code class="xref py py-class docutils literal"><span class="pre">Client</span></code></a>.</li>
-<li>Custom test-time <a class="reference internal" href="#django.test.SimpleTestCase.urls" title="django.test.SimpleTestCase.urls"><code class="xref py py-attr docutils literal"><span class="pre">URL</span> <span class="pre">maps</span></code></a>.</li>
+<li>Using the <a class="reference internal" href="#SimpleTestCase.client" title="SimpleTestCase.client"><code class="xref py py-attr docutils literal"><span class="pre">client</span></code></a> <code class="xref py py-class docutils literal"><span class="pre">Client</span></code>.</li>
+<li>Custom test-time <code class="xref py py-attr docutils literal"><span class="pre">URL</span> <span class="pre">maps</span></code>.</li>
 </ul>
 <p>If you need any of the other more complex and heavyweight Django-specific
 features like:</p>
 <ul class="simple">
 <li>Testing or using the ORM.</li>
-<li>Database <a class="reference internal" href="#django.test.TransactionTestCase.fixtures" title="django.test.TransactionTestCase.fixtures"><code class="xref py py-attr docutils literal"><span class="pre">fixtures</span></code></a>.</li>
+<li>Database <a class="reference internal" href="#TransactionTestCase.fixtures" title="TransactionTestCase.fixtures"><code class="xref py py-attr docutils literal"><span class="pre">fixtures</span></code></a>.</li>
 <li>Test skipping based on database backend features.</li>
-<li>The remaining specialized <a class="reference internal" href="#django.test.TransactionTestCase.assertQuerysetEqual" title="django.test.TransactionTestCase.assertQuerysetEqual"><code class="xref py py-meth docutils literal"><span class="pre">assert*</span></code></a> methods.</li>
+<li>The remaining specialized <a class="reference internal" href="#TransactionTestCase.assertQuerysetEqual" title="TransactionTestCase.assertQuerysetEqual"><code class="xref py py-meth docutils literal"><span class="pre">assert*</span></code></a> methods.</li>
 </ul>
-<p>then you should use <a class="reference internal" href="#django.test.TransactionTestCase" title="django.test.TransactionTestCase"><code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code></a> or
-<a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code></a> instead.</p>
+<p>then you should use <code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code> or
+<code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code> instead.</p>
 <p><code class="docutils literal"><span class="pre">SimpleTestCase</span></code> inherits from <code class="docutils literal"><span class="pre">unittest.TestCase</span></code>.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -1522,8 +1003,8 @@ methods, don&#8217;t forget to call the <code class="docutils literal"><span cla
 <div class="section" id="transactiontestcase">
 <h4>TransactionTestCase<a class="headerlink" href="#transactiontestcase" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
-<dt id="django.test.TransactionTestCase">
-<em class="property">class </em><code class="descclassname">django.test.</code><code class="descname">TransactionTestCase</code><a class="headerlink" href="#django.test.TransactionTestCase" title="Permalink to this definition">¶</a></dt>
+<dt id="TransactionTestCase">
+<em class="property">class </em><code class="descname">TransactionTestCase</code><a class="headerlink" href="#TransactionTestCase" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Django&#8217;s <code class="docutils literal"><span class="pre">TestCase</span></code> class (described below) makes use of database transaction
@@ -1562,18 +1043,18 @@ if you need this functionality (for example, third-party apps should enable
 this) you can set <code class="docutils literal"><span class="pre">serialized_rollback</span> <span class="pre">=</span> <span class="pre">True</span></code> inside the
 <code class="docutils literal"><span class="pre">TestCase</span></code> body.</p>
 </div>
-<p><code class="docutils literal"><span class="pre">TransactionTestCase</span></code> inherits from <a class="reference internal" href="#django.test.SimpleTestCase" title="django.test.SimpleTestCase"><code class="xref py py-class docutils literal"><span class="pre">SimpleTestCase</span></code></a>.</p>
+<p><code class="docutils literal"><span class="pre">TransactionTestCase</span></code> inherits from <code class="xref py py-class docutils literal"><span class="pre">SimpleTestCase</span></code>.</p>
 </div>
 <div class="section" id="testcase">
 <h4>TestCase<a class="headerlink" href="#testcase" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
-<dt id="django.test.TestCase">
-<em class="property">class </em><code class="descclassname">django.test.</code><code class="descname">TestCase</code><a class="headerlink" href="#django.test.TestCase" title="Permalink to this definition">¶</a></dt>
+<dt id="TestCase">
+<em class="property">class </em><code class="descname">TestCase</code><a class="headerlink" href="#TestCase" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>This class provides some additional capabilities that can be useful for testing
 Web sites.</p>
-<p>Converting a normal <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code> to a Django <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code></a> is
+<p>Converting a normal <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code> to a Django <a class="reference internal" href="#TestCase" title="TestCase"><code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code></a> is
 easy: Just change the base class of your test from <code class="docutils literal"><span class="pre">'unittest.TestCase'</span></code> to
 <code class="docutils literal"><span class="pre">'django.test.TestCase'</span></code>. All of the standard Python unit test functionality
 will continue to be available, but it will be augmented with some useful
@@ -1587,8 +1068,8 @@ and one for each test.</li>
 errors.</li>
 </ul>
 <dl class="classmethod">
-<dt id="django.test.TestCase.setUpTestData">
-<em class="property">classmethod </em><code class="descclassname">TestCase.</code><code class="descname">setUpTestData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.test.TestCase.setUpTestData" title="Permalink to this definition">¶</a></dt>
+<dt id="TestCase.setUpTestData">
+<em class="property">classmethod </em><code class="descclassname">TestCase.</code><code class="descname">setUpTestData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#TestCase.setUpTestData" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>The class-level <code class="docutils literal"><span class="pre">atomic</span></code> block described above allows the creation of
@@ -1622,17 +1103,17 @@ called before each test, negating the speed benefits.</p>
 use <code class="docutils literal"><span class="pre">TransactionTestCase</span></code>, as <code class="docutils literal"><span class="pre">TestCase</span></code> wraps test execution within an
 <code class="xref py py-func docutils literal"><span class="pre">atomic()</span></code> block.</p>
 </div>
-<p><code class="docutils literal"><span class="pre">TestCase</span></code> inherits from <a class="reference internal" href="#django.test.TransactionTestCase" title="django.test.TransactionTestCase"><code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code></a>.</p>
+<p><code class="docutils literal"><span class="pre">TestCase</span></code> inherits from <code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code>.</p>
 </div>
 <div class="section" id="liveservertestcase">
 <span id="live-test-server"></span><h4>LiveServerTestCase<a class="headerlink" href="#liveservertestcase" title="Permalink to this headline">¶</a></h4>
 <dl class="class">
-<dt id="django.test.LiveServerTestCase">
-<em class="property">class </em><code class="descclassname">django.test.</code><code class="descname">LiveServerTestCase</code><a class="headerlink" href="#django.test.LiveServerTestCase" title="Permalink to this definition">¶</a></dt>
+<dt id="LiveServerTestCase">
+<em class="property">class </em><code class="descname">LiveServerTestCase</code><a class="headerlink" href="#LiveServerTestCase" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p><code class="docutils literal"><span class="pre">LiveServerTestCase</span></code> does basically the same as
-<a class="reference internal" href="#django.test.TransactionTestCase" title="django.test.TransactionTestCase"><code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code></a> with one extra feature: it launches a
+<code class="xref py py-class docutils literal"><span class="pre">TransactionTestCase</span></code> with one extra feature: it launches a
 live Django server in the background on setup, and shuts it down on teardown.
 This allows the use of automated test clients other than the
 Django dummy client such as, for example, the <a class="reference external" href="http://seleniumhq.org/">Selenium</a>
@@ -1754,8 +1235,8 @@ use cases. Please refer to the <a class="reference external" href="http://code.g
 <div class="section" id="default-test-client">
 <h4>Default test client<a class="headerlink" href="#default-test-client" title="Permalink to this headline">¶</a></h4>
 <dl class="attribute">
-<dt id="django.test.SimpleTestCase.client">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">client</code><a class="headerlink" href="#django.test.SimpleTestCase.client" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.client">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">client</code><a class="headerlink" href="#SimpleTestCase.client" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Every test case in a <code class="docutils literal"><span class="pre">django.test.*TestCase</span></code> instance has access to an
@@ -1795,12 +1276,12 @@ worry about state (such as cookies) carrying over from one test to another.</p>
 <div class="section" id="customizing-the-test-client">
 <h4>Customizing the test client<a class="headerlink" href="#customizing-the-test-client" title="Permalink to this headline">¶</a></h4>
 <dl class="attribute">
-<dt id="django.test.SimpleTestCase.client_class">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">client_class</code><a class="headerlink" href="#django.test.SimpleTestCase.client_class" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.client_class">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">client_class</code><a class="headerlink" href="#SimpleTestCase.client_class" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>If you want to use a different <code class="docutils literal"><span class="pre">Client</span></code> class (for example, a subclass
-with customized behavior), use the <a class="reference internal" href="#django.test.SimpleTestCase.client_class" title="django.test.SimpleTestCase.client_class"><code class="xref py py-attr docutils literal"><span class="pre">client_class</span></code></a> class
+with customized behavior), use the <a class="reference internal" href="#SimpleTestCase.client_class" title="SimpleTestCase.client_class"><code class="xref py py-attr docutils literal"><span class="pre">client_class</span></code></a> class
 attribute:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span><span class="p">,</span> <span class="n">Client</span>
 
@@ -1820,8 +1301,8 @@ attribute:</p>
 <div class="section" id="fixture-loading">
 <span id="topics-testing-fixtures"></span><h4>Fixture loading<a class="headerlink" href="#fixture-loading" title="Permalink to this headline">¶</a></h4>
 <dl class="attribute">
-<dt id="django.test.TransactionTestCase.fixtures">
-<code class="descclassname">TransactionTestCase.</code><code class="descname">fixtures</code><a class="headerlink" href="#django.test.TransactionTestCase.fixtures" title="Permalink to this definition">¶</a></dt>
+<dt id="TransactionTestCase.fixtures">
+<code class="descclassname">TransactionTestCase.</code><code class="descname">fixtures</code><a class="headerlink" href="#TransactionTestCase.fixtures" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>A test case for a database-backed Web site isn&#8217;t much use if there isn&#8217;t any
@@ -1837,7 +1318,7 @@ already have some data in your database. See the dumpdata
 documentation for more details.</p>
 <p>Once you&#8217;ve created a fixture and placed it in a <code class="docutils literal"><span class="pre">fixtures</span></code> directory in one
 of your <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>, you can use it in your unit tests by
-specifying a <code class="docutils literal"><span class="pre">fixtures</span></code> class attribute on your <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code></a>
+specifying a <code class="docutils literal"><span class="pre">fixtures</span></code> class attribute on your <code class="xref py py-class docutils literal"><span class="pre">django.test.TestCase</span></code>
 subclass:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
 <span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">Animal</span>
@@ -1868,49 +1349,13 @@ details on defining and installing fixtures.</li>
 can be certain that the outcome of a test will not be affected by another test,
 or by the order of test execution.</p>
 <p>By default, fixtures are only loaded into the <code class="docutils literal"><span class="pre">default</span></code> database. If you are
-using multiple databases and set <a class="reference internal" href="#django.test.TransactionTestCase.multi_db" title="django.test.TransactionTestCase.multi_db"><code class="xref py py-attr docutils literal"><span class="pre">multi_db=True</span></code></a>, fixtures will be loaded into all databases.</p>
-</div>
-<div class="section" id="urlconf-configuration">
-<h4>URLconf configuration<a class="headerlink" href="#urlconf-configuration" title="Permalink to this headline">¶</a></h4>
-<dl class="attribute">
-<dt id="django.test.SimpleTestCase.urls">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">urls</code><a class="headerlink" href="#django.test.SimpleTestCase.urls" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 1.8: </span>Use <code class="docutils literal"><span class="pre">&#64;override_settings(ROOT_URLCONF=...)</span></code> instead for URLconf
-configuration.</p>
-</div>
-<p>If your application provides views, you may want to include tests that use the
-test client to exercise those views. However, an end user is free to deploy the
-views in your application at any URL of their choosing. This means that your
-tests can&#8217;t rely upon the fact that your views will be available at a
-particular URL.</p>
-<p>In order to provide a reliable URL space for your test,
-<code class="docutils literal"><span class="pre">django.test.*TestCase</span></code> classes provide the ability to customize the URLconf
-configuration for the duration of the execution of a test suite. If your
-<code class="docutils literal"><span class="pre">*TestCase</span></code> instance defines an <code class="docutils literal"><span class="pre">urls</span></code> attribute, the <code class="docutils literal"><span class="pre">*TestCase</span></code> will use
-the value of that attribute as the <code class="docutils literal"><span class="pre">ROOT_URLCONF</span></code> for the duration
-of that test.</p>
-<p>For example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
-
-<span class="k">class</span> <span class="nc">TestMyViews</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
-    <span class="n">urls</span> <span class="o">=</span> <span class="s">&#39;myapp.test_urls&#39;</span>
-
-    <span class="k">def</span> <span class="nf">testIndexPageView</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c"># Here you&#39;d test your view using ``Client``.</span>
-        <span class="n">call_some_test_code</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>This test case will use the contents of <code class="docutils literal"><span class="pre">myapp.test_urls</span></code> as the
-URLconf for the duration of the test case.</p>
+using multiple databases and set <a class="reference internal" href="#TransactionTestCase.multi_db" title="TransactionTestCase.multi_db"><code class="xref py py-attr docutils literal"><span class="pre">multi_db=True</span></code></a>, fixtures will be loaded into all databases.</p>
 </div>
 <div class="section" id="multi-database-support">
 <span id="emptying-test-outbox"></span><h4>Multi-database support<a class="headerlink" href="#multi-database-support" title="Permalink to this headline">¶</a></h4>
 <dl class="attribute">
-<dt id="django.test.TransactionTestCase.multi_db">
-<code class="descclassname">TransactionTestCase.</code><code class="descname">multi_db</code><a class="headerlink" href="#django.test.TransactionTestCase.multi_db" title="Permalink to this definition">¶</a></dt>
+<dt id="TransactionTestCase.multi_db">
+<code class="descclassname">TransactionTestCase.</code><code class="descname">multi_db</code><a class="headerlink" href="#TransactionTestCase.multi_db" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Django sets up a test database corresponding to every database that is
@@ -1942,7 +1387,7 @@ attr:<cite>TransactionTestCase.fixtures</cite> are loaded. By default (when
 If <code class="docutils literal"><span class="pre">multi_db=True</span></code>, fixtures are loaded into all databases.</p>
 </div>
 <div class="section" id="overriding-settings">
-<span id="id6"></span><h4>Overriding settings<a class="headerlink" href="#overriding-settings" title="Permalink to this headline">¶</a></h4>
+<span id="id3"></span><h4>Overriding settings<a class="headerlink" href="#overriding-settings" title="Permalink to this headline">¶</a></h4>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Use the functions below to temporarily alter the value of settings in tests.
@@ -1950,14 +1395,14 @@ Don&#8217;t manipulate <code class="docutils literal"><span class="pre">django.c
 the original values after such manipulations.</p>
 </div>
 <dl class="method">
-<dt id="django.test.SimpleTestCase.settings">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.settings" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.settings">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.settings" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>For testing purposes it&#8217;s often useful to change a setting temporarily and
 revert to the original value after running the testing code. For this use case
 Django provides a standard Python context manager (see <span class="target" id="index-2"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0343"><strong>PEP 343</strong></a>) called
-<a class="reference internal" href="#django.test.SimpleTestCase.settings" title="django.test.SimpleTestCase.settings"><code class="xref py py-meth docutils literal"><span class="pre">settings()</span></code></a>, which can be used like this:</p>
+<code class="xref py py-meth docutils literal"><span class="pre">settings()</span></code>, which can be used like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
 
 <span class="k">class</span> <span class="nc">LoginTestCase</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
@@ -1977,13 +1422,13 @@ Django provides a standard Python context manager (see <span class="target" id="
 <p>This example will override the <code class="docutils literal"><span class="pre">LOGIN_URL</span></code> setting for the code
 in the <code class="docutils literal"><span class="pre">with</span></code> block and reset its value to the previous state afterwards.</p>
 <dl class="method">
-<dt id="django.test.SimpleTestCase.modify_settings">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">modify_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.modify_settings" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.modify_settings">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">modify_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.modify_settings" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>It can prove unwieldy to redefine settings that contain a list of values. In
 practice, adding or removing values is often sufficient. The
-<a class="reference internal" href="#django.test.SimpleTestCase.modify_settings" title="django.test.SimpleTestCase.modify_settings"><code class="xref py py-meth docutils literal"><span class="pre">modify_settings()</span></code></a> context manager makes it
+<code class="xref py py-meth docutils literal"><span class="pre">modify_settings()</span></code> context manager makes it
 easy:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
 
@@ -2007,12 +1452,12 @@ easy:</p>
 value already exists in the list, <code class="docutils literal"><span class="pre">append</span></code> and <code class="docutils literal"><span class="pre">prepend</span></code> have no effect;
 neither does <code class="docutils literal"><span class="pre">remove</span></code> when the value doesn&#8217;t exist.</p>
 <dl class="function">
-<dt id="django.test.override_settings">
-<code class="descclassname">django.test.</code><code class="descname">override_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.test.override_settings" title="Permalink to this definition">¶</a></dt>
+<dt id="override_settings">
+<code class="descname">override_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#override_settings" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>In case you want to override a setting for a test method, Django provides the
-<a class="reference internal" href="#django.test.override_settings" title="django.test.override_settings"><code class="xref py py-func docutils literal"><span class="pre">override_settings()</span></code></a> decorator (see <span class="target" id="index-3"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0318"><strong>PEP 318</strong></a>). It&#8217;s used
+<code class="xref py py-func docutils literal"><span class="pre">override_settings()</span></code> decorator (see <span class="target" id="index-3"></span><a class="pep reference external" href="https://www.python.org/dev/peps/pep-0318"><strong>PEP 318</strong></a>). It&#8217;s used
 like this:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span><span class="p">,</span> <span class="n">override_settings</span>
 
@@ -2024,7 +1469,7 @@ like this:</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertRedirects</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="s">&#39;/other/login/?next=/sekrit/&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The decorator can also be applied to <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code></a> classes:</p>
+<p>The decorator can also be applied to <code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code> classes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span><span class="p">,</span> <span class="n">override_settings</span>
 
 <span class="nd">@override_settings</span><span class="p">(</span><span class="n">LOGIN_URL</span><span class="o">=</span><span class="s">&#39;/other/login/&#39;</span><span class="p">)</span>
@@ -2036,11 +1481,11 @@ like this:</p>
 </pre></div>
 </div>
 <dl class="function">
-<dt id="django.test.modify_settings">
-<code class="descclassname">django.test.</code><code class="descname">modify_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#django.test.modify_settings" title="Permalink to this definition">¶</a></dt>
+<dt id="modify_settings">
+<code class="descname">modify_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#modify_settings" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Likewise, Django provides the <a class="reference internal" href="#django.test.modify_settings" title="django.test.modify_settings"><code class="xref py py-func docutils literal"><span class="pre">modify_settings()</span></code></a>
+<p>Likewise, Django provides the <code class="xref py py-func docutils literal"><span class="pre">modify_settings()</span></code>
 decorator:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span><span class="p">,</span> <span class="n">modify_settings</span>
 
@@ -2076,8 +1521,8 @@ it; they don&#8217;t create and return a modified copy of it. So if you try to
 tweak the above examples to assign the return value to a different name
 than <code class="docutils literal"><span class="pre">LoginTestCase</span></code> or <code class="docutils literal"><span class="pre">MiddlewareTestCase</span></code>, you may be surprised to
 find that the original test case classes are still equally affected by the
-decorator. For a given class, <a class="reference internal" href="#django.test.modify_settings" title="django.test.modify_settings"><code class="xref py py-func docutils literal"><span class="pre">modify_settings()</span></code></a> is
-always applied after <a class="reference internal" href="#django.test.override_settings" title="django.test.override_settings"><code class="xref py py-func docutils literal"><span class="pre">override_settings()</span></code></a>.</p>
+decorator. For a given class, <code class="xref py py-func docutils literal"><span class="pre">modify_settings()</span></code> is
+always applied after <code class="xref py py-func docutils literal"><span class="pre">override_settings()</span></code>.</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -2085,8 +1530,8 @@ always applied after <a class="reference internal" href="#django.test.override_s
 initialization of Django internals. If you change them with
 <code class="docutils literal"><span class="pre">override_settings</span></code>, the setting is changed if you access it via the
 <code class="docutils literal"><span class="pre">django.conf.settings</span></code> module, however, Django&#8217;s internals access it
-differently. Effectively, using <a class="reference internal" href="#django.test.override_settings" title="django.test.override_settings"><code class="xref py py-func docutils literal"><span class="pre">override_settings()</span></code></a> or
-<a class="reference internal" href="#django.test.modify_settings" title="django.test.modify_settings"><code class="xref py py-func docutils literal"><span class="pre">modify_settings()</span></code></a> with these settings is probably not
+differently. Effectively, using <code class="xref py py-func docutils literal"><span class="pre">override_settings()</span></code> or
+<code class="xref py py-func docutils literal"><span class="pre">modify_settings()</span></code> with these settings is probably not
 going to do what you expect it to do.</p>
 <p>We do not recommend altering the <code class="docutils literal"><span class="pre">DATABASES</span></code> setting. Altering
 the <code class="docutils literal"><span class="pre">CACHES</span></code> setting is possible, but a bit tricky if you are
@@ -2148,10 +1593,10 @@ clear the contents of the test email outbox at the start of each test case.</p>
 <p>For more detail on email services during tests, see <a class="reference internal" href="#email-services">Email services</a> below.</p>
 </div>
 <div class="section" id="assertions">
-<span id="id7"></span><h4>Assertions<a class="headerlink" href="#assertions" title="Permalink to this headline">¶</a></h4>
+<span id="id4"></span><h4>Assertions<a class="headerlink" href="#assertions" title="Permalink to this headline">¶</a></h4>
 <p>As Python&#8217;s normal <code class="xref py py-class docutils literal"><span class="pre">unittest.TestCase</span></code> class implements assertion methods
 such as <code class="xref py py-meth docutils literal"><span class="pre">assertTrue()</span></code> and
-<code class="xref py py-meth docutils literal"><span class="pre">assertEqual()</span></code>, Django&#8217;s custom <a class="reference internal" href="#django.test.TestCase" title="django.test.TestCase"><code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code></a> class
+<code class="xref py py-meth docutils literal"><span class="pre">assertEqual()</span></code>, Django&#8217;s custom <a class="reference internal" href="#TestCase" title="TestCase"><code class="xref py py-class docutils literal"><span class="pre">TestCase</span></code></a> class
 provides a number of custom assertion methods that are useful for testing Web
 applications:</p>
 <p>The failure messages given by most of these assertion methods can be customized
@@ -2160,8 +1605,8 @@ message generated by the assertion. This allows you to provide additional
 details that may help you to identify the location and cause of an failure in
 your test suite.</p>
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertRaisesMessage">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertRaisesMessage</code><span class="sig-paren">(</span><em>expected_exception</em>, <em>expected_message</em>, <em>callable_obj=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertRaisesMessage" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertRaisesMessage">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertRaisesMessage</code><span class="sig-paren">(</span><em>expected_exception</em>, <em>expected_message</em>, <em>callable_obj=None</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertRaisesMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that execution of callable <code class="docutils literal"><span class="pre">callable_obj</span></code> raised the
 <code class="docutils literal"><span class="pre">expected_exception</span></code> exception and that such exception has an
 <code class="docutils literal"><span class="pre">expected_message</span></code> representation. Any other outcome is reported as a
@@ -2170,8 +1615,8 @@ with the difference that <code class="docutils literal"><span class="pre">expect
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertFieldOutput">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertFieldOutput</code><span class="sig-paren">(</span><em>fieldclass</em>, <em>valid</em>, <em>invalid</em>, <em>field_args=None</em>, <em>field_kwargs=None</em>, <em>empty_value=''</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertFieldOutput" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertFieldOutput">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertFieldOutput</code><span class="sig-paren">(</span><em>fieldclass</em>, <em>valid</em>, <em>invalid</em>, <em>field_args=None</em>, <em>field_kwargs=None</em>, <em>empty_value=''</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertFieldOutput" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that a form field behaves correctly with various inputs.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2200,8 +1645,8 @@ error message:</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertFormError">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertFormError</code><span class="sig-paren">(</span><em>response</em>, <em>form</em>, <em>field</em>, <em>errors</em>, <em>msg_prefix=''</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertFormError" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertFormError">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertFormError</code><span class="sig-paren">(</span><em>response</em>, <em>form</em>, <em>field</em>, <em>errors</em>, <em>msg_prefix=''</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertFormError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that a field on a form raises the provided list of errors when
 rendered on the form.</p>
 <p><code class="docutils literal"><span class="pre">form</span></code> is the name the <code class="docutils literal"><span class="pre">Form</span></code> instance was given in the template
@@ -2215,8 +1660,8 @@ expected as a result of form validation.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertFormsetError">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertFormsetError</code><span class="sig-paren">(</span><em>response</em>, <em>formset</em>, <em>form_index</em>, <em>field</em>, <em>errors</em>, <em>msg_prefix=''</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertFormsetError" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertFormsetError">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertFormsetError</code><span class="sig-paren">(</span><em>response</em>, <em>formset</em>, <em>form_index</em>, <em>field</em>, <em>errors</em>, <em>msg_prefix=''</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertFormsetError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the <code class="docutils literal"><span class="pre">formset</span></code> raises the provided list of errors when
 rendered.</p>
 <p><code class="docutils literal"><span class="pre">formset</span></code> is the name the <code class="docutils literal"><span class="pre">Formset</span></code> instance was given in the template
@@ -2233,8 +1678,8 @@ expected as a result of form validation.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertContains">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertContains</code><span class="sig-paren">(</span><em>response</em>, <em>text</em>, <em>count=None</em>, <em>status_code=200</em>, <em>msg_prefix=''</em>, <em>html=False</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertContains" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertContains">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertContains</code><span class="sig-paren">(</span><em>response</em>, <em>text</em>, <em>count=None</em>, <em>status_code=200</em>, <em>msg_prefix=''</em>, <em>html=False</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertContains" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that a <code class="docutils literal"><span class="pre">Response</span></code> instance produced the given <code class="docutils literal"><span class="pre">status_code</span></code> and
 that <code class="docutils literal"><span class="pre">text</span></code> appears in the content of the response. If <code class="docutils literal"><span class="pre">count</span></code> is
 provided, <code class="docutils literal"><span class="pre">text</span></code> must occur exactly <code class="docutils literal"><span class="pre">count</span></code> times in the response.</p>
@@ -2242,24 +1687,24 @@ provided, <code class="docutils literal"><span class="pre">text</span></code> mu
 the response content will be based on HTML semantics instead of
 character-by-character equality. Whitespace is ignored in most cases,
 attribute ordering is not significant. See
-<a class="reference internal" href="#django.test.SimpleTestCase.assertHTMLEqual" title="django.test.SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertHTMLEqual()</span></code></a> for more details.</p>
+<a class="reference internal" href="#SimpleTestCase.assertHTMLEqual" title="SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertHTMLEqual()</span></code></a> for more details.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertNotContains">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertNotContains</code><span class="sig-paren">(</span><em>response</em>, <em>text</em>, <em>status_code=200</em>, <em>msg_prefix=''</em>, <em>html=False</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertNotContains" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertNotContains">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertNotContains</code><span class="sig-paren">(</span><em>response</em>, <em>text</em>, <em>status_code=200</em>, <em>msg_prefix=''</em>, <em>html=False</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertNotContains" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that a <code class="docutils literal"><span class="pre">Response</span></code> instance produced the given <code class="docutils literal"><span class="pre">status_code</span></code> and
 that <code class="docutils literal"><span class="pre">text</span></code> does not appears in the content of the response.</p>
 <p>Set <code class="docutils literal"><span class="pre">html</span></code> to <code class="docutils literal"><span class="pre">True</span></code> to handle <code class="docutils literal"><span class="pre">text</span></code> as HTML. The comparison with
 the response content will be based on HTML semantics instead of
 character-by-character equality. Whitespace is ignored in most cases,
 attribute ordering is not significant. See
-<a class="reference internal" href="#django.test.SimpleTestCase.assertHTMLEqual" title="django.test.SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertHTMLEqual()</span></code></a> for more details.</p>
+<a class="reference internal" href="#SimpleTestCase.assertHTMLEqual" title="SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertHTMLEqual()</span></code></a> for more details.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertTemplateUsed">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertTemplateUsed</code><span class="sig-paren">(</span><em>response</em>, <em>template_name</em>, <em>msg_prefix=''</em>, <em>count=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertTemplateUsed" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertTemplateUsed">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertTemplateUsed</code><span class="sig-paren">(</span><em>response</em>, <em>template_name</em>, <em>msg_prefix=''</em>, <em>count=None</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertTemplateUsed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the template with the given name was used in rendering the
 response.</p>
 <p>The name is a string such as <code class="docutils literal"><span class="pre">'admin/index.html'</span></code>.</p>
@@ -2276,17 +1721,17 @@ template should be rendered one or more times.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertTemplateNotUsed">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertTemplateNotUsed</code><span class="sig-paren">(</span><em>response</em>, <em>template_name</em>, <em>msg_prefix=''</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertTemplateNotUsed" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertTemplateNotUsed">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertTemplateNotUsed</code><span class="sig-paren">(</span><em>response</em>, <em>template_name</em>, <em>msg_prefix=''</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertTemplateNotUsed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the template with the given name was <em>not</em> used in rendering
 the response.</p>
 <p>You can use this as a context manager in the same way as
-<a class="reference internal" href="#django.test.SimpleTestCase.assertTemplateUsed" title="django.test.SimpleTestCase.assertTemplateUsed"><code class="xref py py-meth docutils literal"><span class="pre">assertTemplateUsed()</span></code></a>.</p>
+<a class="reference internal" href="#SimpleTestCase.assertTemplateUsed" title="SimpleTestCase.assertTemplateUsed"><code class="xref py py-meth docutils literal"><span class="pre">assertTemplateUsed()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertRedirects">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertRedirects</code><span class="sig-paren">(</span><em>response</em>, <em>expected_url</em>, <em>status_code=302</em>, <em>target_status_code=200</em>, <em>host=None</em>, <em>msg_prefix=''</em>, <em>fetch_redirect_response=True</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertRedirects" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertRedirects">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertRedirects</code><span class="sig-paren">(</span><em>response</em>, <em>expected_url</em>, <em>status_code=302</em>, <em>target_status_code=200</em>, <em>host=None</em>, <em>msg_prefix=''</em>, <em>fetch_redirect_response=True</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertRedirects" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the response returned a <code class="docutils literal"><span class="pre">status_code</span></code> redirect status,
 redirected to <code class="docutils literal"><span class="pre">expected_url</span></code> (including any <code class="docutils literal"><span class="pre">GET</span></code> data), and that the
 final page was received with <code class="docutils literal"><span class="pre">target_status_code</span></code>.</p>
@@ -2310,8 +1755,8 @@ the original request&#8217;s scheme is used. If present, the scheme in
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertHTMLEqual">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertHTMLEqual</code><span class="sig-paren">(</span><em>html1</em>, <em>html2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertHTMLEqual" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertHTMLEqual">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertHTMLEqual</code><span class="sig-paren">(</span><em>html1</em>, <em>html2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertHTMLEqual" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the strings <code class="docutils literal"><span class="pre">html1</span></code> and <code class="docutils literal"><span class="pre">html2</span></code> are equal. The comparison
 is based on HTML semantics. The comparison takes following things into
 account:</p>
@@ -2342,22 +1787,22 @@ raised if one of them cannot be parsed.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertHTMLNotEqual">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertHTMLNotEqual</code><span class="sig-paren">(</span><em>html1</em>, <em>html2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertHTMLNotEqual" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertHTMLNotEqual">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertHTMLNotEqual</code><span class="sig-paren">(</span><em>html1</em>, <em>html2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertHTMLNotEqual" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the strings <code class="docutils literal"><span class="pre">html1</span></code> and <code class="docutils literal"><span class="pre">html2</span></code> are <em>not</em> equal. The
 comparison is based on HTML semantics. See
-<a class="reference internal" href="#django.test.SimpleTestCase.assertHTMLEqual" title="django.test.SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertHTMLEqual()</span></code></a> for details.</p>
+<a class="reference internal" href="#SimpleTestCase.assertHTMLEqual" title="SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertHTMLEqual()</span></code></a> for details.</p>
 <p><code class="docutils literal"><span class="pre">html1</span></code> and <code class="docutils literal"><span class="pre">html2</span></code> must be valid HTML. An <code class="docutils literal"><span class="pre">AssertionError</span></code> will be
 raised if one of them cannot be parsed.</p>
 <p>Output in case of error can be customized with the <code class="docutils literal"><span class="pre">msg</span></code> argument.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertXMLEqual">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertXMLEqual</code><span class="sig-paren">(</span><em>xml1</em>, <em>xml2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertXMLEqual" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertXMLEqual">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertXMLEqual</code><span class="sig-paren">(</span><em>xml1</em>, <em>xml2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertXMLEqual" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the strings <code class="docutils literal"><span class="pre">xml1</span></code> and <code class="docutils literal"><span class="pre">xml2</span></code> are equal. The
 comparison is based on XML semantics. Similarly to
-<a class="reference internal" href="#django.test.SimpleTestCase.assertHTMLEqual" title="django.test.SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertHTMLEqual()</span></code></a>, the comparison is
+<a class="reference internal" href="#SimpleTestCase.assertHTMLEqual" title="SimpleTestCase.assertHTMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertHTMLEqual()</span></code></a>, the comparison is
 made on parsed content, hence only semantic differences are considered, not
 syntax differences. When invalid XML is passed in any parameter, an
 <code class="docutils literal"><span class="pre">AssertionError</span></code> is always raised, even if both string are identical.</p>
@@ -2365,17 +1810,17 @@ syntax differences. When invalid XML is passed in any parameter, an
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertXMLNotEqual">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertXMLNotEqual</code><span class="sig-paren">(</span><em>xml1</em>, <em>xml2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertXMLNotEqual" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertXMLNotEqual">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertXMLNotEqual</code><span class="sig-paren">(</span><em>xml1</em>, <em>xml2</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertXMLNotEqual" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the strings <code class="docutils literal"><span class="pre">xml1</span></code> and <code class="docutils literal"><span class="pre">xml2</span></code> are <em>not</em> equal. The
 comparison is based on XML semantics. See
-<a class="reference internal" href="#django.test.SimpleTestCase.assertXMLEqual" title="django.test.SimpleTestCase.assertXMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertXMLEqual()</span></code></a> for details.</p>
+<a class="reference internal" href="#SimpleTestCase.assertXMLEqual" title="SimpleTestCase.assertXMLEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertXMLEqual()</span></code></a> for details.</p>
 <p>Output in case of error can be customized with the <code class="docutils literal"><span class="pre">msg</span></code> argument.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertInHTML">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertInHTML</code><span class="sig-paren">(</span><em>needle</em>, <em>haystack</em>, <em>count=None</em>, <em>msg_prefix=''</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertInHTML" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertInHTML">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertInHTML</code><span class="sig-paren">(</span><em>needle</em>, <em>haystack</em>, <em>count=None</em>, <em>msg_prefix=''</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertInHTML" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the HTML fragment <code class="docutils literal"><span class="pre">needle</span></code> is contained in the <code class="docutils literal"><span class="pre">haystack</span></code> one.</p>
 <p>If the <code class="docutils literal"><span class="pre">count</span></code> integer argument is specified, then additionally the number
 of <code class="docutils literal"><span class="pre">needle</span></code> occurrences will be strictly verified.</p>
@@ -2384,8 +1829,8 @@ significant. The passed-in arguments must be valid HTML.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertJSONEqual">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertJSONEqual</code><span class="sig-paren">(</span><em>raw</em>, <em>expected_data</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertJSONEqual" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertJSONEqual">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertJSONEqual</code><span class="sig-paren">(</span><em>raw</em>, <em>expected_data</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertJSONEqual" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the JSON fragments <code class="docutils literal"><span class="pre">raw</span></code> and <code class="docutils literal"><span class="pre">expected_data</span></code> are equal.
 Usual JSON non-significant whitespace rules apply as the heavyweight is
 delegated to the <code class="xref py py-mod docutils literal"><span class="pre">json</span></code> library.</p>
@@ -2393,16 +1838,16 @@ delegated to the <code class="xref py py-mod docutils literal"><span class="pre"
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.SimpleTestCase.assertJSONNotEqual">
-<code class="descclassname">SimpleTestCase.</code><code class="descname">assertJSONNotEqual</code><span class="sig-paren">(</span><em>raw</em>, <em>expected_data</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.SimpleTestCase.assertJSONNotEqual" title="Permalink to this definition">¶</a></dt>
+<dt id="SimpleTestCase.assertJSONNotEqual">
+<code class="descclassname">SimpleTestCase.</code><code class="descname">assertJSONNotEqual</code><span class="sig-paren">(</span><em>raw</em>, <em>expected_data</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#SimpleTestCase.assertJSONNotEqual" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that the JSON fragments <code class="docutils literal"><span class="pre">raw</span></code> and <code class="docutils literal"><span class="pre">expected_data</span></code> are <em>not</em> equal.
-See <a class="reference internal" href="#django.test.SimpleTestCase.assertJSONEqual" title="django.test.SimpleTestCase.assertJSONEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertJSONEqual()</span></code></a> for further details.</p>
+See <a class="reference internal" href="#SimpleTestCase.assertJSONEqual" title="SimpleTestCase.assertJSONEqual"><code class="xref py py-meth docutils literal"><span class="pre">assertJSONEqual()</span></code></a> for further details.</p>
 <p>Output in case of error can be customized with the <code class="docutils literal"><span class="pre">msg</span></code> argument.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.TransactionTestCase.assertQuerysetEqual">
-<code class="descclassname">TransactionTestCase.</code><code class="descname">assertQuerysetEqual</code><span class="sig-paren">(</span><em>qs</em>, <em>values</em>, <em>transform=repr</em>, <em>ordered=True</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.TransactionTestCase.assertQuerysetEqual" title="Permalink to this definition">¶</a></dt>
+<dt id="TransactionTestCase.assertQuerysetEqual">
+<code class="descclassname">TransactionTestCase.</code><code class="descname">assertQuerysetEqual</code><span class="sig-paren">(</span><em>qs</em>, <em>values</em>, <em>transform=repr</em>, <em>ordered=True</em>, <em>msg=None</em><span class="sig-paren">)</span><a class="headerlink" href="#TransactionTestCase.assertQuerysetEqual" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that a queryset <code class="docutils literal"><span class="pre">qs</span></code> returns a particular list of values <code class="docutils literal"><span class="pre">values</span></code>.</p>
 <p>The comparison of the contents of <code class="docutils literal"><span class="pre">qs</span></code> and <code class="docutils literal"><span class="pre">values</span></code> is performed using
 the function <code class="docutils literal"><span class="pre">transform</span></code>; by default, this means that the <code class="docutils literal"><span class="pre">repr()</span></code> of
@@ -2418,8 +1863,8 @@ raised.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="django.test.TransactionTestCase.assertNumQueries">
-<code class="descclassname">TransactionTestCase.</code><code class="descname">assertNumQueries</code><span class="sig-paren">(</span><em>num</em>, <em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#django.test.TransactionTestCase.assertNumQueries" title="Permalink to this definition">¶</a></dt>
+<dt id="TransactionTestCase.assertNumQueries">
+<code class="descclassname">TransactionTestCase.</code><code class="descname">assertNumQueries</code><span class="sig-paren">(</span><em>num</em>, <em>func</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#TransactionTestCase.assertNumQueries" title="Permalink to this definition">¶</a></dt>
 <dd><p>Asserts that when <code class="docutils literal"><span class="pre">func</span></code> is called with <code class="docutils literal"><span class="pre">*args</span></code> and <code class="docutils literal"><span class="pre">**kwargs</span></code> that
 <code class="docutils literal"><span class="pre">num</span></code> database queries are executed.</p>
 <p>If a <code class="docutils literal"><span class="pre">&quot;using&quot;</span></code> key is present in <code class="docutils literal"><span class="pre">kwargs</span></code> it is used as the database
@@ -2510,7 +1955,7 @@ redirected into a <code class="docutils literal"><span class="pre">StringIO</spa
 </div>
 </div>
 <div class="section" id="skipping-tests">
-<span id="id8"></span><h3>Skipping tests<a class="headerlink" href="#skipping-tests" title="Permalink to this headline">¶</a></h3>
+<span id="id5"></span><h3>Skipping tests<a class="headerlink" href="#skipping-tests" title="Permalink to this headline">¶</a></h3>
 <p>The unittest library provides the <code class="xref py py-func docutils literal"><span class="pre">&#64;skipIf</span></code> and
 <code class="xref py py-func docutils literal"><span class="pre">&#64;skipUnless</span></code> decorators to allow you to skip tests
 if you know ahead of time that those tests are going to fail under certain
@@ -2564,225 +2009,6 @@ under MySQL with MyISAM tables):</p>
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="advanced-testing-topics">
-<h2>Advanced testing topics<a class="headerlink" href="#advanced-testing-topics" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="the-request-factory">
-<h2>The request factory<a class="headerlink" href="#the-request-factory" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="django.test.RequestFactory">
-<em class="property">class </em><code class="descclassname">django.test.</code><code class="descname">RequestFactory</code><a class="headerlink" href="#django.test.RequestFactory" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>The <a class="reference internal" href="#django.test.RequestFactory" title="django.test.RequestFactory"><code class="xref py py-class docutils literal"><span class="pre">RequestFactory</span></code></a> shares the same API as
-the test client. However, instead of behaving like a browser, the
-RequestFactory provides a way to generate a request instance that can
-be used as the first argument to any view. This means you can test a
-view function the same way as you would test any other function &#8211; as
-a black box, with exactly known inputs, testing for specific outputs.</p>
-<p>The API for the <a class="reference internal" href="#django.test.RequestFactory" title="django.test.RequestFactory"><code class="xref py py-class docutils literal"><span class="pre">RequestFactory</span></code></a> is a slightly
-restricted subset of the test client API:</p>
-<ul class="simple">
-<li>It only has access to the HTTP methods <a class="reference internal" href="#django.test.Client.get" title="django.test.Client.get"><code class="xref py py-meth docutils literal"><span class="pre">get()</span></code></a>,
-<a class="reference internal" href="#django.test.Client.post" title="django.test.Client.post"><code class="xref py py-meth docutils literal"><span class="pre">post()</span></code></a>, <a class="reference internal" href="#django.test.Client.put" title="django.test.Client.put"><code class="xref py py-meth docutils literal"><span class="pre">put()</span></code></a>,
-<a class="reference internal" href="#django.test.Client.delete" title="django.test.Client.delete"><code class="xref py py-meth docutils literal"><span class="pre">delete()</span></code></a>, <a class="reference internal" href="#django.test.Client.head" title="django.test.Client.head"><code class="xref py py-meth docutils literal"><span class="pre">head()</span></code></a>,
-<a class="reference internal" href="#django.test.Client.options" title="django.test.Client.options"><code class="xref py py-meth docutils literal"><span class="pre">options()</span></code></a>, and <a class="reference internal" href="#django.test.Client.trace" title="django.test.Client.trace"><code class="xref py py-meth docutils literal"><span class="pre">trace()</span></code></a>.</li>
-<li>These methods accept all the same arguments <em>except</em> for
-<code class="docutils literal"><span class="pre">follows</span></code>. Since this is just a factory for producing
-requests, it&#8217;s up to you to handle the response.</li>
-<li>It does not support middleware. Session and authentication
-attributes must be supplied by the test itself if required
-for the view to function properly.</li>
-</ul>
-<div class="section" id="id9">
-<h3>Example<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
-<p>The following is a simple unit test using the request factory:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">AnonymousUser</span><span class="p">,</span> <span class="n">User</span>
-<span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span><span class="p">,</span> <span class="n">RequestFactory</span>
-
-<span class="k">class</span> <span class="nc">SimpleTest</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c"># Every test needs access to the request factory.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">factory</span> <span class="o">=</span> <span class="n">RequestFactory</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
-            <span class="n">username</span><span class="o">=</span><span class="s">&#39;jacob&#39;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s">&#39;jacob@…&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s">&#39;top_secret&#39;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">test_details</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c"># Create an instance of a GET request.</span>
-        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">factory</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;/customer/details&#39;</span><span class="p">)</span>
-
-        <span class="c"># Recall that middleware are not supported. You can simulate a</span>
-        <span class="c"># logged-in user by setting request.user manually.</span>
-        <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span>
-
-        <span class="c"># Or you can simulate an anonymous user by setting request.user to</span>
-        <span class="c"># an AnonymousUser instance.</span>
-        <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">AnonymousUser</span><span class="p">()</span>
-
-        <span class="c"># Test my_view() as if it were deployed at /customer/details</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">my_view</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="tests-and-multiple-databases">
-<span id="topics-testing-advanced-multidb"></span><h2>Tests and multiple databases<a class="headerlink" href="#tests-and-multiple-databases" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="testing-primary-replica-configurations">
-<span id="topics-testing-primaryreplica"></span><h3>Testing primary/replica configurations<a class="headerlink" href="#testing-primary-replica-configurations" title="Permalink to this headline">¶</a></h3>
-<p>If you&#8217;re testing a multiple database configuration with primary/replica
-(referred to as master/slave by some databases) replication, this strategy of
-creating test databases poses a problem.
-When the test databases are created, there won&#8217;t be any replication,
-and as a result, data created on the primary won&#8217;t be seen on the
-replica.</p>
-<p>To compensate for this, Django allows you to define that a database is
-a <em>test mirror</em>. Consider the following (simplified) example database
-configuration:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
-        <span class="s">&#39;NAME&#39;</span><span class="p">:</span> <span class="s">&#39;myproject&#39;</span><span class="p">,</span>
-        <span class="s">&#39;HOST&#39;</span><span class="p">:</span> <span class="s">&#39;dbprimary&#39;</span><span class="p">,</span>
-         <span class="c"># ... plus some other settings</span>
-    <span class="p">},</span>
-    <span class="s">&#39;replica&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
-        <span class="s">&#39;NAME&#39;</span><span class="p">:</span> <span class="s">&#39;myproject&#39;</span><span class="p">,</span>
-        <span class="s">&#39;HOST&#39;</span><span class="p">:</span> <span class="s">&#39;dbreplica&#39;</span><span class="p">,</span>
-        <span class="s">&#39;TEST_MIRROR&#39;</span><span class="p">:</span> <span class="s">&#39;default&#39;</span>
-        <span class="c"># ... plus some other settings</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>In this setup, we have two database servers: <code class="docutils literal"><span class="pre">dbprimary</span></code>, described
-by the database alias <code class="docutils literal"><span class="pre">default</span></code>, and <code class="docutils literal"><span class="pre">dbreplica</span></code> described by the
-alias <code class="docutils literal"><span class="pre">replica</span></code>. As you might expect, <code class="docutils literal"><span class="pre">dbreplica</span></code> has been configured
-by the database administrator as a read replica of <code class="docutils literal"><span class="pre">dbprimary</span></code>, so in
-normal activity, any write to <code class="docutils literal"><span class="pre">default</span></code> will appear on <code class="docutils literal"><span class="pre">replica</span></code>.</p>
-<p>If Django created two independent test databases, this would break any
-tests that expected replication to occur. However, the <code class="docutils literal"><span class="pre">replica</span></code>
-database has been configured as a test mirror (using the
-<code class="docutils literal"><span class="pre">TEST_MIRROR</span></code> setting), indicating that under testing,
-<code class="docutils literal"><span class="pre">replica</span></code> should be treated as a mirror of <code class="docutils literal"><span class="pre">default</span></code>.</p>
-<p>When the test environment is configured, a test version of <code class="docutils literal"><span class="pre">replica</span></code>
-will <em>not</em> be created. Instead the connection to <code class="docutils literal"><span class="pre">replica</span></code>
-will be redirected to point at <code class="docutils literal"><span class="pre">default</span></code>. As a result, writes to
-<code class="docutils literal"><span class="pre">default</span></code> will appear on <code class="docutils literal"><span class="pre">replica</span></code> &#8211; but because they are actually
-the same database, not because there is data replication between the
-two databases.</p>
-</div>
-<div class="section" id="controlling-creation-order-for-test-databases">
-<span id="topics-testing-creation-dependencies"></span><h3>Controlling creation order for test databases<a class="headerlink" href="#controlling-creation-order-for-test-databases" title="Permalink to this headline">¶</a></h3>
-<p>By default, Django will assume all databases depend on the <code class="docutils literal"><span class="pre">default</span></code>
-database and therefore always create the <code class="docutils literal"><span class="pre">default</span></code> database first.
-However, no guarantees are made on the creation order of any other
-databases in your test setup.</p>
-<p>If your database configuration requires a specific creation order, you
-can specify the dependencies that exist using the
-<code class="docutils literal"><span class="pre">TEST_DEPENDENCIES</span></code> setting. Consider the following
-(simplified) example database configuration:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
-         <span class="c"># ... db settings</span>
-         <span class="s">&#39;TEST_DEPENDENCIES&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;diamonds&#39;</span><span class="p">]</span>
-    <span class="p">},</span>
-    <span class="s">&#39;diamonds&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="c"># ... db settings</span>
-         <span class="s">&#39;TEST_DEPENDENCIES&#39;</span><span class="p">:</span> <span class="p">[]</span>
-    <span class="p">},</span>
-    <span class="s">&#39;clubs&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="c"># ... db settings</span>
-        <span class="s">&#39;TEST_DEPENDENCIES&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;diamonds&#39;</span><span class="p">]</span>
-    <span class="p">},</span>
-    <span class="s">&#39;spades&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="c"># ... db settings</span>
-        <span class="s">&#39;TEST_DEPENDENCIES&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;diamonds&#39;</span><span class="p">,</span><span class="s">&#39;hearts&#39;</span><span class="p">]</span>
-    <span class="p">},</span>
-    <span class="s">&#39;hearts&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="c"># ... db settings</span>
-        <span class="s">&#39;TEST_DEPENDENCIES&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;diamonds&#39;</span><span class="p">,</span><span class="s">&#39;clubs&#39;</span><span class="p">]</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Under this configuration, the <code class="docutils literal"><span class="pre">diamonds</span></code> database will be created first,
-as it is the only database alias without dependencies. The <code class="docutils literal"><span class="pre">default</span></code> and
-<code class="docutils literal"><span class="pre">clubs</span></code> alias will be created next (although the order of creation of this
-pair is not guaranteed); then <code class="docutils literal"><span class="pre">hearts</span></code>; and finally <code class="docutils literal"><span class="pre">spades</span></code>.</p>
-<p>If there are any circular dependencies in the
-<code class="docutils literal"><span class="pre">TEST_DEPENDENCIES</span></code> definition, an <code class="docutils literal"><span class="pre">ImproperlyConfigured</span></code>
-exception will be raised.</p>
-</div>
-</div>
-<div class="section" id="advanced-features-of-transactiontestcase">
-<h2>Advanced features of <code class="docutils literal"><span class="pre">TransactionTestCase</span></code><a class="headerlink" href="#advanced-features-of-transactiontestcase" title="Permalink to this headline">¶</a></h2>
-<dl class="attribute">
-<dt id="django.test.TransactionTestCase.available_apps">
-<code class="descclassname">TransactionTestCase.</code><code class="descname">available_apps</code><a class="headerlink" href="#django.test.TransactionTestCase.available_apps" title="Permalink to this definition">¶</a></dt>
-<dd><div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p>This attribute is a private API. It may be changed or removed without
-a deprecation period in the future, for instance to accommodate changes
-in application loading.</p>
-<p class="last">It&#8217;s used to optimize Django&#8217;s own test suite, which contains hundreds
-of models but no relations between models in different applications.</p>
-</div>
-<p>By default, <code class="docutils literal"><span class="pre">available_apps</span></code> is set to <code class="docutils literal"><span class="pre">None</span></code>. After each test, Django
-calls <code class="docutils literal"><span class="pre">flush</span></code> to reset the database state. This empties all tables
-and emits the <code class="xref py py-data docutils literal"><span class="pre">post_migrate</span></code> signal, which
-re-creates one content type and three permissions for each model. This
-operation gets expensive proportionally to the number of models.</p>
-<p>Setting <code class="docutils literal"><span class="pre">available_apps</span></code> to a list of applications instructs Django to
-behave as if only the models from these applications were available. The
-behavior of <code class="docutils literal"><span class="pre">TransactionTestCase</span></code> changes as follows:</p>
-<ul class="simple">
-<li><code class="xref py py-data docutils literal"><span class="pre">post_migrate</span></code> is fired before each
-test to create the content types and permissions for each model in
-available apps, in case they&#8217;re missing.</li>
-<li>After each test, Django empties only tables corresponding to models in
-available apps. However, at the database level, truncation may cascade to
-related models in unavailable apps. Furthermore
-<code class="xref py py-data docutils literal"><span class="pre">post_migrate</span></code> isn&#8217;t fired; it will be
-fired by the next <code class="docutils literal"><span class="pre">TransactionTestCase</span></code>, after the correct set of
-applications is selected.</li>
-</ul>
-<p>Since the database isn&#8217;t fully flushed, if a test creates instances of
-models not included in <code class="docutils literal"><span class="pre">available_apps</span></code>, they will leak and they may
-cause unrelated tests to fail. Be careful with tests that use sessions;
-the default session engine stores them in the database.</p>
-<p>Since <code class="xref py py-data docutils literal"><span class="pre">post_migrate</span></code> isn&#8217;t emitted after
-flushing the database, its state after a <code class="docutils literal"><span class="pre">TransactionTestCase</span></code> isn&#8217;t the
-same as after a <code class="docutils literal"><span class="pre">TestCase</span></code>: it&#8217;s missing the rows created by listeners
-to <code class="xref py py-data docutils literal"><span class="pre">post_migrate</span></code>. Considering the
-order in which tests are executed, this isn&#8217;t an
-issue, provided either all <code class="docutils literal"><span class="pre">TransactionTestCase</span></code> in a given test suite
-declare <code class="docutils literal"><span class="pre">available_apps</span></code>, or none of them.</p>
-<p><code class="docutils literal"><span class="pre">available_apps</span></code> is mandatory in Django&#8217;s own test suite.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="django.test.TransactionTestCase.reset_sequences">
-<code class="descclassname">TransactionTestCase.</code><code class="descname">reset_sequences</code><a class="headerlink" href="#django.test.TransactionTestCase.reset_sequences" title="Permalink to this definition">¶</a></dt>
-<dd><p>Setting <code class="docutils literal"><span class="pre">reset_sequences</span> <span class="pre">=</span> <span class="pre">True</span></code> on a <code class="docutils literal"><span class="pre">TransactionTestCase</span></code> will make
-sure sequences are always reset before the test run:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TestsThatDependsOnPrimaryKeySequences</span><span class="p">(</span><span class="n">TransactionTestCase</span><span class="p">):</span>
-    <span class="n">reset_sequences</span> <span class="o">=</span> <span class="bp">True</span>
-
-    <span class="k">def</span> <span class="nf">test_animal_pk</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">lion</span> <span class="o">=</span> <span class="n">Animal</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;lion&quot;</span><span class="p">,</span> <span class="n">sound</span><span class="o">=</span><span class="s">&quot;roar&quot;</span><span class="p">)</span>
-        <span class="c"># lion.pk is guaranteed to always be 1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">lion</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Unless you are explicitly testing primary keys sequence numbers, it is
-recommended that you do not hard code primary key values in tests.</p>
-<p>Using <code class="docutils literal"><span class="pre">reset_sequences</span> <span class="pre">=</span> <span class="pre">True</span></code> will slow down the test, since the primary
-key reset is an relatively expensive database operation.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="using-the-django-test-runner-to-test-reusable-applications">
 <h2>Using the Django test runner to test reusable applications<a class="headerlink" href="#using-the-django-test-runner-to-test-reusable-applications" title="Permalink to this headline">¶</a></h2>
@@ -2945,19 +2171,6 @@ can override this attribute to modify the way tests are run and reported.</p>
 otherwise and bundles them into test suites for the runner to execute.
 By default it is set to <code class="docutils literal"><span class="pre">unittest.defaultTestLoader</span></code>. You can override
 this attribute if your tests are going to be loaded in unusual ways.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="django.test.runner.DiscoverRunner.option_list">
-<code class="descclassname">DiscoverRunner.</code><code class="descname">option_list</code><a class="headerlink" href="#django.test.runner.DiscoverRunner.option_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is the tuple of <code class="docutils literal"><span class="pre">optparse</span></code> options which will be fed into the
-management command&#8217;s <code class="docutils literal"><span class="pre">OptionParser</span></code> for parsing arguments. See the
-documentation for Python&#8217;s <code class="docutils literal"><span class="pre">optparse</span></code> module for more details.</p>
-<div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 1.8: </span>You should now override the <a class="reference internal" href="#django.test.runner.DiscoverRunner.add_arguments" title="django.test.runner.DiscoverRunner.add_arguments"><code class="xref py py-meth docutils literal"><span class="pre">add_arguments()</span></code></a> class
-method to add custom arguments accepted by the <code class="docutils literal"><span class="pre">test</span></code>
-management command.</p>
-</div>
 </dd></dl>
 
 </div>
@@ -3132,28 +2345,6 @@ database will be closed, but the database will not be destroyed.</p>
 </div>
 </div>
 </div>
-<div class="section" id="integration-with-coverage-py">
-<span id="topics-testing-code-coverage"></span><h2>Integration with coverage.py<a class="headerlink" href="#integration-with-coverage-py" title="Permalink to this headline">¶</a></h2>
-<p>Code coverage describes how much source code has been tested. It shows which
-parts of your code are being exercised by tests and which are not. It&#8217;s an
-important part of testing applications, so it&#8217;s strongly recommended to check
-the coverage of your tests.</p>
-<p>Django can be easily integrated with <a class="reference external" href="http://nedbatchelder.com/code/coverage/">coverage.py</a>, a tool for measuring code
-coverage of Python programs. First, <a class="reference external" href="https://pypi.python.org/pypi/coverage">install coverage.py</a>. Next, run the
-following from your project folder containing <code class="docutils literal"><span class="pre">manage.py</span></code>:</p>
-<div class="highlight-python"><div class="highlight"><pre>coverage run --source=&#39;.&#39; manage.py test myapp
-</pre></div>
-</div>
-<p>This runs your tests and collects coverage data of the executed files in your
-project. You can see a report of this data by typing following command:</p>
-<div class="highlight-python"><div class="highlight"><pre>coverage report
-</pre></div>
-</div>
-<p>Note that some Django code was executed while running tests, but it is not
-listed here because of the <code class="docutils literal"><span class="pre">source</span></code> flag passed to the previous command.</p>
-<p>For more options like annotated HTML listings detailing missed lines, see the
-<a class="reference external" href="http://nedbatchelder.com/code/coverage/">coverage.py</a> docs.</p>
-</div>
 </div>
 
 
@@ -3164,9 +2355,9 @@ listed here because of the <code class="docutils literal"><span class="pre">sour
         <div class="sidebar">
           <h3>Table Of Contents</h3>
           <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">Frontmatter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction_django.html">Introduction to Django</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_01.html">Chapter 1: Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_02.html">Chapter 2: Views and URLconfs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_03.html">Chapter 3: Templates</a></li>
@@ -3178,7 +2369,14 @@ listed here because of the <code class="docutils literal"><span class="pre">sour
 <li class="toctree-l1"><a class="reference internal" href="chapter_09.html">Chapter 9: Advanced Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_10.html">Chapter 10: Generic Views</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_11.html">Chapter 11: User authentication in Django</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 12 - testing in Django</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 12 - testing in Django</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introducing-automated-testing">Introducing automated testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-testing-strategies">Basic testing strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-tests">Writing tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-tools">Testing tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-django-test-runner-to-test-reusable-applications">Using the Django test runner to test reusable applications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-different-testing-frameworks">Using different testing frameworks</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_13.html">Chapter 13: Deploying Django</a></li>
@@ -3188,17 +2386,14 @@ listed here because of the <code class="docutils literal"><span class="pre">sour
 <li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_D.html">Appendix D: Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_F.html">Appendix F: The django-admin Utility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="appendix_F.html#running-management-commands-from-your-code">Running management commands from your code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
 </ul>

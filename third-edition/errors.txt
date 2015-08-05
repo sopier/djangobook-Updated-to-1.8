@@ -4,22 +4,17 @@ loading pickled environment... done
 building [mo]: targets for 0 po files that are out of date
 building [html]: targets for 1 source files that are out of date
 updating environment: 0 added, 1 changed, 0 removed
-reading sources... [100%] chapter_11
+reading sources... [100%] chapter_12
 
 looking for now-outdated files... none found
 pickling environment... done
 checking consistency... done
 preparing documents... done
-writing output... [ 50%] chapter_11
+writing output... [ 50%] chapter_12
 writing output... [100%] index
 
 generating indices... genindex py-modindex
 writing additional pages... search
-copying images... [ 25%] graphics/chapter_11/admin_adduser.png
-copying images... [ 50%] graphics/chapter_11/admin_users.png
-copying images... [ 75%] graphics/chapter_11/admin_changepassword.png
-copying images... [100%] graphics/chapter_11/admin_changeuser.png
-
 copying static files... done
 copying extra files... done
 dumping search index in English (code: en) ... done
