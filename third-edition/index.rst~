@@ -12,6 +12,7 @@ cover Django version 1.8LTS.
 Contents:
 
 .. toctree::
+   :titlesonly:
    :maxdepth: 2
 
    front_matter	    

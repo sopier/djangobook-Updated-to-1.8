@@ -1509,7 +1509,6 @@ distribution. It enables tab-completion of ``django-admin`` and
 * Type ``sql``, then [TAB], to see all available options whose names start
   with ``sql``.
 
-==========================================
 Running management commands from your code
 ==========================================
 

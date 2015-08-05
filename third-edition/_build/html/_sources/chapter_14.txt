@@ -2,7 +2,14 @@
 Chapter 14 - How to write reusable apps
 =======================================
 
-[TODO This is from the Django docs. Need to update to follow code examples in the book.]
+.. admonition:: Chapter Still in Draft!!
+	
+    This chapter is still a work in progress. You are welcome to browse and
+    offer suggestions, but it is likely full of errors, jumbled and not
+    recommended for use yet. You have been warned...
+
+    [TODO This is from the Django docs. Need to update to follow code examples
+    in the book.]
 
 This advanced tutorial begins where Tutorial 6 </intro/tutorial06>
 left off. We'll be turning our Web-poll into a standalone Python package
@@ -325,3 +332,9 @@ projects. When they do, the best solution is to use `virtualenv
 <http://www.virtualenv.org/>`_. This tool allows you to maintain multiple
 isolated Python environments, each with its own copy of the libraries and
 package namespace.
+
+What's Next
+===========
+
+Next we will be digging deeper into a subject common to many modern websites --
+generating non-HTML data.

@@ -41,12 +41,12 @@ More formally, a Django view function *must*
 The key to returning non-HTML content from a view lies in the ``HttpResponse``
 class, specifically the ``content_type`` argument. By default, Django sets
 ``content_type`` to **'text/html'**. You can however, set ``content_type`` to
-any of the official Internet media types (MIME types) managed by `IANA`_.
+any of the official Internet media types (MIME types) managed by IANA_.
 
 By tweaking the MIME type, we can indicate to the browser that we've returned
 a response of a different format.
 
-.. _IANA: 'http://www.iana.org/assignments/media-types/media-types.xhtml'
+.. _IANA: http://www.iana.org/assignments/media-types/media-types.xhtml
 
 For example, let's look at a view that returns a PNG image. To
 keep things simple, we'll just read the file off the disk::
@@ -115,26 +115,6 @@ mention:
 * The CSV module takes care of quoting for you, so you don't have to worry
   about escaping strings with quotes or commas in them. Just pass
   ``writerow()`` your raw strings, and it'll do the right thing.
-
-.. admonition:: Handling Unicode on Python 2
-
-    Python 2's :mod:`csv` module does not support Unicode input. Since Django
-    uses Unicode internally this means strings read from sources such as
-    :class:`~django.http.HttpRequest` are potentially problematic. There are a
-    few options for handling this:
-
-    * Manually encode all Unicode objects to a compatible encoding.
-
-    * Use the ``UnicodeWriter`` class provided in the `csv module's examples
-      section`_.
-
-    * Use the `python-unicodecsv module`_, which aims to be a drop-in
-      replacement for :mod:`csv` that gracefully handles Unicode.
-
-    For more information, see the Python documentation of the :mod:`csv` module.
-
-    .. _`csv module's examples section`: https://docs.python.org/library/csv.html#examples
-    .. _`python-unicodecsv module`: https://github.com/jdunck/python-unicodecsv
 
 .. _streaming-csv-files:
 
@@ -218,7 +198,12 @@ Then, create the template ``my_template_name.txt``, with this template code:
 
 .. code-block:: html+django
 
-    {% for row in data %}"{{ row.0|addslashes }}", "{{ row.1|addslashes }}", "{{ row.2|addslashes }}", "{{ row.3|addslashes }}", "{{ row.4|addslashes }}"
+    {% for row in data %}
+		"{{ row.0|addslashes }}", 
+		"{{ row.1|addslashes }}", 
+		"{{ row.2|addslashes }}", 
+		"{{ row.3|addslashes }}", 
+		"{{ row.4|addslashes }}"
     {% endfor %}
 
 This template is quite basic. It just iterates over the given data and displays
@@ -1982,8 +1967,5 @@ ping Google using the ``ping_google`` management command::
 What's Next?
 ============
 
-Next, we'll continue to dig deeper into the built-in tools Django gives you.
-`Chapter 14`_ looks at all the tools you need to provide user-customized
-sites: sessions, users, and authentication.
-
-.. _Chapter 14: chapter14.html
+Next, we'll continue to dig deeper into the built-in tools Django gives you by
+taking a closer look at the Django session framework.

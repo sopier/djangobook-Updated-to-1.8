@@ -13,8 +13,8 @@ associates users with requests using sessions.
 
 This document explains how middleware works, how you activate middleware, and
 how to write your own middleware. Django ships with some built-in middleware
-you can use right out of the box. They're documented in the built-in
-middleware reference.
+you can use right out of the box. See "Available Middleware" later in this
+chapter.
 
 Activating middleware
 =====================
@@ -281,17 +281,6 @@ Guidelines
 * If you write a middleware component that you think would be useful to
   other people, contribute to the community! Let us know
   and we'll consider adding it to Django.
-
-==========
-Middleware
-==========
-
-.. module:: django.middleware
-   :synopsis: Django's built-in middleware classes.
-
-This document explains all middleware components that come with Django. For
-information on how to use them and how to write your own middleware, see
-the middleware usage guide .
 
 Available middleware
 ====================

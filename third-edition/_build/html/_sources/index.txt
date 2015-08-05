@@ -12,12 +12,11 @@ cover Django version 1.8LTS.
 Contents:
 
 .. toctree::
-   :titlesonly:
    :maxdepth: 2
 
    front_matter	    
    introduction	    
-   introduction_3e	
+   introduction_django	
    chapter_01		
    chapter_02		
    chapter_03		

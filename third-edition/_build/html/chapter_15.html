@@ -85,7 +85,7 @@ or an image...or anything, really.</p>
 <p>The key to returning non-HTML content from a view lies in the <code class="docutils literal"><span class="pre">HttpResponse</span></code>
 class, specifically the <code class="docutils literal"><span class="pre">content_type</span></code> argument. By default, Django sets
 <code class="docutils literal"><span class="pre">content_type</span></code> to <strong>&#8216;text/html&#8217;</strong>. You can however, set <code class="docutils literal"><span class="pre">content_type</span></code> to
-any of the official Internet media types (MIME types) managed by <a class="reference external" href="'http://www.iana.org/assignments/media-types/media-types.xhtml'">IANA</a>.</p>
+any of the official Internet media types (MIME types) managed by <a class="reference external" href="http://www.iana.org/assignments/media-types/media-types.xhtml">IANA</a>.</p>
 <p>By tweaking the MIME type, we can indicate to the browser that we&#8217;ve returned
 a response of a different format.</p>
 <p>For example, let&#8217;s look at a view that returns a PNG image. To
@@ -149,21 +149,6 @@ iterable object such as a list or tuple.</li>
 about escaping strings with quotes or commas in them. Just pass
 <code class="docutils literal"><span class="pre">writerow()</span></code> your raw strings, and it&#8217;ll do the right thing.</li>
 </ul>
-<div class="admonition-handling-unicode-on-python-2 admonition">
-<p class="first admonition-title">Handling Unicode on Python 2</p>
-<p>Python 2&#8217;s <code class="xref py py-mod docutils literal"><span class="pre">csv</span></code> module does not support Unicode input. Since Django
-uses Unicode internally this means strings read from sources such as
-<code class="xref py py-class docutils literal"><span class="pre">HttpRequest</span></code> are potentially problematic. There are a
-few options for handling this:</p>
-<ul class="simple">
-<li>Manually encode all Unicode objects to a compatible encoding.</li>
-<li>Use the <code class="docutils literal"><span class="pre">UnicodeWriter</span></code> class provided in the <a class="reference external" href="https://docs.python.org/library/csv.html#examples">csv module&#8217;s examples
-section</a>.</li>
-<li>Use the <a class="reference external" href="https://github.com/jdunck/python-unicodecsv">python-unicodecsv module</a>, which aims to be a drop-in
-replacement for <code class="xref py py-mod docutils literal"><span class="pre">csv</span></code> that gracefully handles Unicode.</li>
-</ul>
-<p class="last">For more information, see the Python documentation of the <code class="xref py py-mod docutils literal"><span class="pre">csv</span></code> module.</p>
-</div>
 <div class="section" id="streaming-large-csv-files">
 <span id="streaming-csv-files"></span><h3>Streaming large CSV files<a class="headerlink" href="#streaming-large-csv-files" title="Permalink to this headline">¶</a></h3>
 <p>When dealing with views that generate very large responses, you might want to
@@ -237,7 +222,12 @@ template output the commas in a <code class="docutils literal"><span class="pre"
 one uses template loading instead of the CSV module. The rest of the code &#8211;
 such as the <code class="docutils literal"><span class="pre">content_type='text/csv'</span></code> &#8211; is the same.</p>
 <p>Then, create the template <code class="docutils literal"><span class="pre">my_template_name.txt</span></code>, with this template code:</p>
-<div class="highlight-html+django"><div class="highlight"><pre><span class="cp">{%</span> <span class="k">for</span> <span class="nv">row</span> <span class="k">in</span> <span class="nv">data</span> <span class="cp">%}</span>&quot;<span class="cp">{{</span> <span class="nv">row.0</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;, &quot;<span class="cp">{{</span> <span class="nv">row.1</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;, &quot;<span class="cp">{{</span> <span class="nv">row.2</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;, &quot;<span class="cp">{{</span> <span class="nv">row.3</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;, &quot;<span class="cp">{{</span> <span class="nv">row.4</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;
+<div class="highlight-html+django"><div class="highlight"><pre><span class="cp">{%</span> <span class="k">for</span> <span class="nv">row</span> <span class="k">in</span> <span class="nv">data</span> <span class="cp">%}</span>
+            &quot;<span class="cp">{{</span> <span class="nv">row.0</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;,
+            &quot;<span class="cp">{{</span> <span class="nv">row.1</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;,
+            &quot;<span class="cp">{{</span> <span class="nv">row.2</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;,
+            &quot;<span class="cp">{{</span> <span class="nv">row.3</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;,
+            &quot;<span class="cp">{{</span> <span class="nv">row.4</span><span class="o">|</span><span class="nf">addslashes</span> <span class="cp">}}</span>&quot;
 <span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span>
 </pre></div>
 </div>
@@ -1906,9 +1896,8 @@ ping Google using the <code class="docutils literal"><span class="pre">ping_goog
 </div>
 <div class="section" id="what-s-next">
 <h2>What&#8217;s Next?<a class="headerlink" href="#what-s-next" title="Permalink to this headline">¶</a></h2>
-<p>Next, we&#8217;ll continue to dig deeper into the built-in tools Django gives you.
-<a class="reference external" href="chapter14.html">Chapter 14</a> looks at all the tools you need to provide user-customized
-sites: sessions, users, and authentication.</p>
+<p>Next, we&#8217;ll continue to dig deeper into the built-in tools Django gives you by
+taking a closer look at the Django session framework.</p>
 </div>
 </div>
 
@@ -1920,9 +1909,9 @@ sites: sessions, users, and authentication.</p>
         <div class="sidebar">
           <h3>Table Of Contents</h3>
           <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">Frontmatter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction_django.html">Introduction to Django</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_01.html">Chapter 1: Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_02.html">Chapter 2: Views and URLconfs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_03.html">Chapter 3: Templates</a></li>
@@ -1937,24 +1926,36 @@ sites: sessions, users, and authentication.</p>
 <li class="toctree-l1"><a class="reference internal" href="chapter_12.html">Chapter 12 - testing in Django</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_13.html">Chapter 13: Deploying Django</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_14.html">Chapter 14 - How to write reusable apps</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 15: Generating Non-HTML Content</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 15: Generating Non-HTML Content</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-basics-views-and-mime-types">The basics: views and MIME types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#producing-csv">Producing CSV</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-template-system">Using the template system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-text-based-formats">Other text-based formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-pdfs">Generating PDFs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-reportlab">Install ReportLab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#write-your-view">Write your view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#complex-pdfs">Complex PDFs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#further-resources">Further resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-possibilities">Other Possibilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-syndication-feed-framework">The Syndication Feed Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-high-level-framework">The high-level framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-low-level-framework">The low-level framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-sitemap-framework">The Sitemap Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-s-next">What&#8217;s Next?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_16.html">Chapter 16 - Django sessions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_D.html">Appendix D: Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_F.html">Appendix F: The django-admin Utility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="appendix_F.html#running-management-commands-from-your-code">Running management commands from your code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
 </ul>

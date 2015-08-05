@@ -2,6 +2,14 @@
 Chapter 21: Security in Django
 ==============================
 
+.. admonition:: Chapter Still in Draft!!
+	
+    This chapter is still a work in progress. You are welcome to browse and
+    offer suggestions, but it is likely full of errors, jumbled and not
+    recommended for use yet. You have been warned...
+
+    [TODO This is from the Django docs. Need to tidy up the flow and simplify] 
+
 This document is an overview of Django's security features. It includes advice
 on securing a Django-powered site.
 

@@ -2,8 +2,9 @@
 License & Copyright
 ===================
 
-New content for this Third Edition Copyright Nigel George, the Django Software
-Foundation and individual contributors.
+*Mastering Django: Core* is a Modified Version of "The Django Book" by Adrian
+Holovaty and Jacob Kaplan-Moss. New content for this Modified Version copyright
+Nigel George, the Django Software Foundation and individual contributors.
 
 Original content Copyright Adrian Holovaty, Jacob Kaplan-Moss, and contributors.
 

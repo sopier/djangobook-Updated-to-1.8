@@ -2,13 +2,37 @@
 Chapter 16 - Django sessions
 ============================
 
-[TODO Need a preamble into to sessions like in original book]
+Imagine you had to log back in to a website every time you navigated to another
+page, or your favourite websites forgot all of your settings and you had to
+enter them again each time you visited?
+
+Modern websites could not provide the useability and convenience
+we are used to without some way of remembering who you are and your previous
+activities on the website.
+
+HTTP is, by design, *stateless* -- there is no persistence between on request
+and the next, and there is no way the server can tell whether successive requests
+come from the same person.
+
+This lack of state is managed using *sessions*, which are a semi-permanent,
+two-way communication between your browser and the webserver. When you visit a
+modern website, in the majority of cases, the webserver will use an *anonymous
+session* to keep track of data relevant to your visit. The session is called anonymous
+because the webserver can only record what you did, not who you are. We have all
+experienced this when we have returned to an eCommerce site at a later date and
+found the items we put in the cart are still there, despite not having provided
+any personal details.
+
+Sessions are most often persisted using the often maligned, but rarely
+understood *cookie*. Like all other web frameworks, Django also uses cookies,
+but does so in a more clever and secure manner, as you will see.
 
 Django provides full support for anonymous sessions. The session framework
 lets you store and retrieve arbitrary data on a per-site-visitor basis. It
 stores data on the server side and abstracts the sending and receiving of
 cookies. Cookies contain a session ID -- not the data itself (unless you're
-using the cookie based backend).
+using the cookie based backend); a more secure way of implementing cookies than
+some other frameworks.
 
 Enabling sessions
 =================
@@ -617,63 +641,8 @@ Note that the cache backend isn't vulnerable to this problem, because caches
 automatically delete stale data. Neither is the cookie backend, because the
 session data is stored by the users' browsers.
 
-Settings
-========
+What's Next
+===========
 
-A few Django settings  give you control over session
-behavior:
-
-* ``SESSION_CACHE_ALIAS``
-* ``SESSION_COOKIE_AGE``
-* ``SESSION_COOKIE_DOMAIN``
-* ``SESSION_COOKIE_HTTPONLY``
-* ``SESSION_COOKIE_NAME``
-* ``SESSION_COOKIE_PATH``
-* ``SESSION_COOKIE_SECURE``
-* ``SESSION_ENGINE``
-* ``SESSION_EXPIRE_AT_BROWSER_CLOSE``
-* ``SESSION_FILE_PATH``
-* ``SESSION_SAVE_EVERY_REQUEST``
-
-.. _topics-session-security:
-
-Session security
-================
-
-Subdomains within a site are able to set cookies on the client for the whole
-domain. This makes session fixation possible if cookies are permitted from
-subdomains not controlled by trusted users.
-
-For example, an attacker could log into ``good.example.com`` and get a valid
-session for their account. If the attacker has control over ``bad.example.com``,
-they can use it to send their session key to you since a subdomain is permitted
-to set cookies on ``*.example.com``. When you visit ``good.example.com``,
-you'll be logged in as the attacker and might inadvertently enter your
-sensitive personal data (e.g. credit card info) into the attackers account.
-
-Another possible attack would be if ``good.example.com`` sets its
-``SESSION_COOKIE_DOMAIN`` to ``".example.com"`` which would cause
-session cookies from that site to be sent to ``bad.example.com``.
-
-Technical details
-=================
-
-* The session dictionary accepts any :mod:`json` serializable value when using
-  :class:`~django.contrib.sessions.serializers.JSONSerializer` or any
-  pickleable Python object when using
-  :class:`~django.contrib.sessions.serializers.PickleSerializer`. See the
-  :mod:`pickle` module for more information.
-
-* Session data is stored in a database table named ``django_session`` .
-
-* Django only sends a cookie if it needs to. If you don't set any session
-  data, it won't send a session cookie.
-
-Session IDs in URLs
-===================
-
-The Django sessions framework is entirely, and solely, cookie-based. It does
-not fall back to putting session IDs in URLs as a last resort, as PHP does.
-This is an intentional design decision. Not only does that behavior make URLs
-ugly, it makes your site vulnerable to session-ID theft via the "Referer"
-header.
+Next we will be continuing our look into more advanced Django topics by
+examining Django's caching backend.

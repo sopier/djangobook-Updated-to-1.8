@@ -1114,7 +1114,6 @@ works for AJAX requests as well as 'normal' form POSTs::
         model = Author
         fields = ['name']
 
-===================================
 Using mixins with class-based views
 ===================================
 

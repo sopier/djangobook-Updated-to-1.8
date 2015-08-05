@@ -38,7 +38,6 @@ class-based views Django provides, see Appendix C.
 Generic views of objects
 ========================
 
-:class:`~django.views.generic.base.TemplateView` certainly is useful, but
 Django's generic views really shine when it comes to presenting views of your
 database content. Because it's such a common task, Django comes with a handful
 of built-in generic views that make generating list and detail views of objects
