@@ -25,7 +25,7 @@ database apps for small business, to developing the backend and UI for a distrib
 network at the University of Newcastle, Australia.
 
 Nigel also has over 15 years experience in technical writing for business. He
-has written several training manuals and hundreds oftechnical procedures for
+has written several training manuals and hundreds of technical procedures for
 corporations and Australian government departments. He has been using Django
 since version 0.96.
 

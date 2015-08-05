@@ -2,7 +2,7 @@
 Introduction
 ============
 
-This year, it will be 30 years since I plugged the 5.25" DOS 3.3 disk
+This year it will be 30 years since I plugged the 5.25" DOS 3.3 disk
 into my school's very first Apple IIe computer and discovered BASIC. 
 
 In the intervening years I have written more lines of code than I could
@@ -16,7 +16,7 @@ Interestingly, not once in my entire career have I been employed as a
 programmer. I had my own IT business for five years, and have been in
 businesses large and small - mostly in R&D, technical and operations
 management - but never working solely as a programmer. What I have been
-is the tech-head that gets called up to **Get Stuff Done**.
+is the guy that gets called up to **Get Stuff Done**.
 
 Emphasized for good reason - business is all about Getting Stuff Done.
 
@@ -80,9 +80,9 @@ This book is about Django, a Web development framework that saves you time
 and makes Web development a joy. Using Django, you can build and maintain
 high-quality Web applications with minimal fuss.
 
-*Mastering Django: Core* is completely revised and updated version of the Django
-Book - first published by Apress in 2007 as *'The Definitive Guide to Django: Web
-Development Done Right'* and then republished as *'The Django Book'* by the
+*Mastering Django: Core* is a completely revised and updated version of the Django
+Book - first published by Apress in 2007 as *"The Definitive Guide to Django: Web
+Development Done Right"* and then republished as *'The Django Book'* by the
 original authors in 2009. The latter publication was released as an Open
 Source project under the Gnu Free Documentation License (GFDL).
 

@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Mastering Django" href="index.html" />
     <link rel="next" title="Chapter 2: Views and URLconfs" href="chapter_02.html" />
-    <link rel="prev" title="Introduction to the third edition" href="introduction_3e.html" /> 
+    <link rel="prev" title="Introduction to Django" href="introduction_django.html" /> 
   </head>
   <body role="document">
     <div class="header-wrapper" role="banner">
@@ -33,7 +33,7 @@
         <div class="headertitle"><a
           href="index.html">Mastering Django</a></div>
         <div class="rel" role="navigation" aria-label="related navigation">
-          <a href="introduction_3e.html" title="Introduction to the third edition"
+          <a href="introduction_django.html" title="Introduction to Django"
              accesskey="P">previous</a> |
           <a href="chapter_02.html" title="Chapter 2: Views and URLconfs"
              accesskey="N">next</a> |
@@ -79,7 +79,7 @@ run all the example code in this book.</p>
 <p>This is by far the easiest, and best way to setup Django when you are first
 starting out. If you do want to go to a more advanced installation of Django,
 your options are covered in Chapter 13 - Deploying Django, Chapter 22 - Complete
-Installation Guide and Chapter 22 - Advanced Database Management.</p>
+Installation Guide and Chapter 23 - Advanced Database Management.</p>
 <div class="section" id="installing-python">
 <h3>Installing Python<a class="headerlink" href="#installing-python" title="Permalink to this headline">¶</a></h3>
 <p>Django itself is written purely in Python, so the first step in installing the
@@ -457,10 +457,13 @@ you&#8217;re ready to move on to Django views and learning the basics of serving
         <div class="sidebar">
           <h3>Table Of Contents</h3>
           <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="front_matter.html">About this book</a></li>
+<li class="toctree-l1"><a class="reference internal" href="front_matter.html">Frontmatter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="introduction_3e.html">Introduction to the third edition</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 1: Getting Started</a><ul class="simple">
+<li class="toctree-l1"><a class="reference internal" href="introduction_django.html">Introduction to Django</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Chapter 1: Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-django">Installing Django</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-model-view-controller-mvc-design-pattern">The Model-View-Controller (MVC) design pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-s-next">What&#8217;s Next?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_02.html">Chapter 2: Views and URLconfs</a></li>
@@ -481,17 +484,14 @@ you&#8217;re ready to move on to Django views and learning the basics of serving
 <li class="toctree-l1"><a class="reference internal" href="chapter_17.html">Chapter 17 - Django&#8217;s cache framework</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_18.html">Chapter 18 - Other core Django functionalities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chapter_19.html#module-django.middleware">Middleware</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="appendix_C.html#using-mixins-with-class-based-views">Using mixins with class-based views</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_D.html">Appendix D: Settings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_E.html">Appendix E: Built-in Template Tags and Filters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_F.html">Appendix F: The django-admin Utility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="appendix_F.html#running-management-commands-from-your-code">Running management commands from your code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_G.html">Appendix G: Request and Response Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License &amp; Copyright</a></li>
 </ul>
@@ -517,7 +517,7 @@ you&#8217;re ready to move on to Django views and learning the basics of serving
       <div class="footer">
         <div class="left">
           <div role="navigation" aria-label="related navigaton">
-            <a href="introduction_3e.html" title="Introduction to the third edition"
+            <a href="introduction_django.html" title="Introduction to Django"
               >previous</a> |
             <a href="chapter_02.html" title="Chapter 2: Views and URLconfs"
               >next</a> |
