@@ -36,11 +36,11 @@ Error reporting needs are also widely different.
 
 The following checklist includes settings that:
 
-- must be set properly for Django to provide the expected level of security;
-- are expected to be different in each environment;
-- enable optional security features;
-- enable performance optimizations;
-- provide error reporting.
+* must be set properly for Django to provide the expected level of security;
+* are expected to be different in each environment;
+* enable optional security features;
+* enable performance optimizations; and
+* provide error reporting.
 
 Many of these settings are sensitive and should be treated as confidential. If
 you're releasing the source code for your project, a common practice is to
@@ -112,7 +112,7 @@ Environment-specific settings
 ALLOWED_HOSTS
 -------------
 
-When ``DEBUG = False <DEBUG>``, Django doesn't work at all without a
+When ``DEBUG = False``, Django doesn't work at all without a
 suitable value for ``ALLOWED_HOSTS``.
 
 This setting is required to protect your site against some CSRF attacks. If
@@ -184,13 +184,13 @@ requests to Django.
 Once you've set up HTTPS, enable the following settings.
 
 ``CSRF_COOKIE_SECURE``
------------------------------
+----------------------
 
 Set this to ``True`` to avoid transmitting the CSRF cookie over HTTP
 accidentally.
 
 ``SESSION_COOKIE_SECURE``
---------------------------------
+-------------------------
 
 Set this to ``True`` to avoid transmitting the session cookie over HTTP
 accidentally.
@@ -198,11 +198,11 @@ accidentally.
 Performance optimizations
 =========================
 
-Setting ``DEBUG = False <DEBUG>`` disables several features that are
+Setting ``DEBUG = False`` disables several features that are
 only useful in development. In addition, you can tune the following settings.
 
 ``CONN_MAX_AGE``
------------------------
+----------------
 
 Enabling persistent database connections
 can result in a nice speed-up when
@@ -212,7 +212,7 @@ processing time.
 This helps a lot on virtualized hosts with limited network performance.
 
 ``TEMPLATES``
---------------------
+-------------
 
 Enabling the cached template loader often improves performance drastically, as
 it avoids compiling each template every time it needs to be rendered. See the
@@ -226,13 +226,13 @@ can't rule out unexpected errors. Thankfully, Django can capture errors and
 notify you accordingly.
 
 ``LOGGING``
-------------------
+-----------
 
 Review your logging configuration before putting your website in production,
 and check that it works as expected as soon as you have received some traffic.
 
 ``ADMINS`` and ``MANAGERS``
------------------------------------------
+---------------------------
 
 ``ADMINS`` will be notified of 500 errors by email.
 
@@ -261,20 +261,23 @@ details about the default templates:
 * ``http_forbidden_view``
 * ``http_bad_request_view``
 
-Python Options
-==============
+Using a virtualenv
+==================
 
-It's strongly recommended that you invoke the Python process running your
-Django application using the `-R`_ option or with the
-:envvar:`PYTHONHASHSEED` environment variable set to ``random``.
+If you install your project's Python dependencies inside a `virtualenv`_,
+you'll need to add the path to this virtualenv's ``site-packages`` directory to
+your Python path as well. To do this, add an additional path to your
+``WSGIPythonPath`` directive, with multiple paths separated by a colon (``:``)
+if using a UNIX-like system, or a semicolon (``;``) if using Windows. If any
+part of a directory path contains a space character, the complete argument
+string to ``WSGIPythonPath`` must be quoted::
 
-These options help protect your site from denial-of-service (DoS)
-attacks triggered by carefully crafted inputs. Such an attack can
-drastically increase CPU usage by causing worst-case performance when
-creating ``dict`` instances. See `oCERT advisory #2011-003
-<http://www.ocert.org/advisories/ocert-2011-003.html>`_ for more information.
+    WSGIPythonPath /path/to/mysite.com:/path/to/your/venv/lib/python3.X/site-packages
 
-.. _-r: https://docs.python.org/using/cmdline.html#cmdoption-R
+Make sure you give the correct path to your virtualenv, and replace
+``python3.X`` with the correct Python version (e.g. ``python3.4``).
+
+.. _virtualenv: http://www.virtualenv.org
 
 Using Different Settings for Production
 =======================================
@@ -377,6 +380,19 @@ bulletproof. If it raises any exceptions, Django will likely crash badly.
     you'll need to set the ``DJANGO_SETTINGS_MODULE`` environment variable to
     the Python path to your settings file (e.g., ``'mysite.settings'``).
 
+Deploying Django to a production server
+=======================================
+
+.. admonition:: Headache free deployment
+
+	If you are serious about deploying a live website, there is really only one
+	sensible option - find a host that explicitly supports Django. Not only will you
+	get a separate media server out of the box (usually Nginx), but they will also
+	take care of the little things like setting up Apache correctly and setting a
+	cron job that restarts the Python process periodically (to prevent your site
+	hanging up). With the better hosts, you are also likely to get some form of
+	'one-click' deployment. Save yourself the headache and pay the few bucks a month
+	for a host who knows Django.
 
 Deploying Django with Apache and mod_wsgi
 ==========================================
@@ -401,7 +417,7 @@ the details about how to use mod_wsgi. You'll probably want to start with the
 .. _installation and configuration documentation: http://code.google.com/p/modwsgi/wiki/InstallationInstructions
 
 Basic configuration
-===================
+-------------------
 
 Once you've got mod_wsgi installed and activated, edit your Apache server's
 ``httpd.conf`` file and add the following. If you are using a version of Apache
@@ -430,9 +446,9 @@ The ``WSGIPythonPath`` line ensures that your project package is available for
 import on the Python path; in other words, that ``import mysite`` works.
 
 The ``<Directory>`` piece just ensures that Apache can access your
-:file:`wsgi.py` file.
+``wsgi.py`` file.
 
-Next we'll need to ensure this :file:`wsgi.py` with a WSGI application object
+Next we'll need to ensure this ``wsgi.py`` with a WSGI application object
 exists. As of Django version 1.4, ``startproject`` will have created one
 for you; otherwise, you'll need to create it. See the WSGI overview
 for the default contents you
@@ -453,28 +469,11 @@ should put in this file, and what else you can add to it.
     or by using mod_wsgi daemon mode and ensuring that each
     site runs in its own daemon process.
 
-Using a virtualenv
-==================
-
-If you install your project's Python dependencies inside a `virtualenv`_,
-you'll need to add the path to this virtualenv's ``site-packages`` directory to
-your Python path as well. To do this, add an additional path to your
-``WSGIPythonPath`` directive, with multiple paths separated by a colon (``:``)
-if using a UNIX-like system, or a semicolon (``;``) if using Windows. If any
-part of a directory path contains a space character, the complete argument
-string to ``WSGIPythonPath`` must be quoted::
-
-    WSGIPythonPath /path/to/mysite.com:/path/to/your/venv/lib/python3.X/site-packages
-
-Make sure you give the correct path to your virtualenv, and replace
-``python3.X`` with the correct Python version (e.g. ``python3.4``).
-
-.. _virtualenv: http://www.virtualenv.org
 
 .. _daemon-mode:
 
 Using mod_wsgi daemon mode
-==========================
+--------------------------
 
 "Daemon mode" is the recommended mode for running mod_wsgi (on non-Windows
 platforms). To create the required daemon process group and delegate the
@@ -495,7 +494,7 @@ mode`_.
 .. _serving-files:
 
 Serving files
-=============
+-------------
 
 Django doesn't serve files itself; it leaves that job to whichever Web
 server you choose.
@@ -552,7 +551,7 @@ If you are using a version of Apache older than 2.4, replace
 .. _serving-the-admin-files:
 
 Serving the admin files
-=======================
+-----------------------
 
 When :mod:`django.contrib.staticfiles` is in ``INSTALLED_APPS``, the
 Django development server automatically serves the static files of the
@@ -560,7 +559,7 @@ admin app (and any other installed apps). This is however not the case when you
 use any other server arrangement. You're responsible for setting up Apache, or
 whichever Web server you're using, to serve the admin files.
 
-The admin files live in (:file:`django/contrib/admin/static/admin`) of the
+The admin files live in (``django/contrib/admin/static/admin``) of the
 Django distribution.
 
 We **strongly** recommend using :mod:`django.contrib.staticfiles` to handle the
@@ -581,15 +580,8 @@ other approaches:
 3. Copy the admin static files so that they live within your Apache
    document root.
 
-Authenticating against Django's user database from Apache
-=========================================================
-
-Django provides a handler to allow Apache to authenticate users directly
-against Django's authentication backends. See the mod_wsgi authentication
-documentation.
-
 If you get a UnicodeEncodeError
-===============================
+-------------------------------
 
 If you're taking advantage of the internationalization features of Django and you intend to allow users to upload files, you must
 ensure that the environment used to start Apache is configured to accept
@@ -773,9 +765,6 @@ looks something like Figure 13-1.
 
    Figure 13-1: a single server Django setup.
 
-This works just fine for small- to medium-sized sites, and it's relatively cheap -- you
-can put together a single-server site designed for Django for well under $3,000.
-
 However, as traffic increases you'll quickly run into *resource contention*
 between the different pieces of software. Database servers and Web servers
 *love* to have the entire server to themselves, so when run on the same server
@@ -827,9 +816,8 @@ generated by a Django view -- onto a dedicated server (see Figure 13-3).
    Figure 13-3: Separating out the media server.
 
 Ideally, this media server should run a stripped-down Web server optimized for
-static media delivery. lighttpd and tux (http://www.djangoproject.com/r/tux/)
-are both excellent choices here, but a heavily stripped down Apache could work,
-too.
+static media delivery. Nginx_ is the preferred option here, although lighttpd is
+another option, or a heavily stripped down Apache could work too.
 
 For sites heavy in static content (photos, videos, etc.), moving to a
 separate media server is doubly important and should likely be the *first*
@@ -866,7 +854,7 @@ load balancers out there.
 Apache's ``mod_proxy`` is one option, but we've found Perlbal
 (http://www.djangoproject.com/r/perlbal/) to be fantastic. It's a load
 balancer and reverse proxy written by the same folks who wrote ``memcached``
-(see `Chapter 15`_).
+(see Chapter 17).
 
 With the Web servers now clustered, our evolving architecture starts to look
 more complex, as shown in Figure 13-4.
@@ -977,11 +965,9 @@ Use memcached Often
 -------------------
 
 Of course, selecting memcached does you no good if you don't actually use it.
-`Chapter 15`_ is your best friend here: learn how to use Django's cache
+Chapter 17 is your best friend here: learn how to use Django's cache
 framework, and use it everywhere possible. Aggressive, preemptive caching is
 usually the only thing that will keep a site up under major traffic.
-
-.. _Chapter 15: chapter15.html
 
 Join the Conversation
 ---------------------

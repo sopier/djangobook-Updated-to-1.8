@@ -85,7 +85,7 @@ Error reporting needs are also widely different.</p>
 <li>must be set properly for Django to provide the expected level of security;</li>
 <li>are expected to be different in each environment;</li>
 <li>enable optional security features;</li>
-<li>enable performance optimizations;</li>
+<li>enable performance optimizations; and</li>
 <li>provide error reporting.</li>
 </ul>
 <p>Many of these settings are sensitive and should be treated as confidential. If
@@ -150,7 +150,7 @@ application for deployment is set <code class="docutils literal"><span class="pr
 <h2>Environment-specific settings<a class="headerlink" href="#environment-specific-settings" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="allowed-hosts">
 <h3>ALLOWED_HOSTS<a class="headerlink" href="#allowed-hosts" title="Permalink to this headline">¶</a></h3>
-<p>When <code class="docutils literal"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">False</span> <span class="pre">&lt;DEBUG&gt;</span></code>, Django doesn&#8217;t work at all without a
+<p>When <code class="docutils literal"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">False</span></code>, Django doesn&#8217;t work at all without a
 suitable value for <code class="docutils literal"><span class="pre">ALLOWED_HOSTS</span></code>.</p>
 <p>This setting is required to protect your site against some CSRF attacks. If
 you use a wildcard, you must perform your own validation of the <code class="docutils literal"><span class="pre">Host</span></code> HTTP
@@ -218,7 +218,7 @@ accidentally.</p>
 </div>
 <div class="section" id="performance-optimizations">
 <h2>Performance optimizations<a class="headerlink" href="#performance-optimizations" title="Permalink to this headline">¶</a></h2>
-<p>Setting <code class="docutils literal"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">False</span> <span class="pre">&lt;DEBUG&gt;</span></code> disables several features that are
+<p>Setting <code class="docutils literal"><span class="pre">DEBUG</span> <span class="pre">=</span> <span class="pre">False</span></code> disables several features that are
 only useful in development. In addition, you can tune the following settings.</p>
 <div class="section" id="conn-max-age">
 <h3><code class="docutils literal"><span class="pre">CONN_MAX_AGE</span></code><a class="headerlink" href="#conn-max-age" title="Permalink to this headline">¶</a></h3>
@@ -272,15 +272,20 @@ details about the default templates:</p>
 </ul>
 </div>
 </div>
-<div class="section" id="python-options">
-<h2>Python Options<a class="headerlink" href="#python-options" title="Permalink to this headline">¶</a></h2>
-<p>It&#8217;s strongly recommended that you invoke the Python process running your
-Django application using the <a class="reference external" href="https://docs.python.org/using/cmdline.html#cmdoption-R">-R</a> option or with the
-<span class="target" id="index-0"></span><code class="xref std std-envvar docutils literal"><span class="pre">PYTHONHASHSEED</span></code> environment variable set to <code class="docutils literal"><span class="pre">random</span></code>.</p>
-<p>These options help protect your site from denial-of-service (DoS)
-attacks triggered by carefully crafted inputs. Such an attack can
-drastically increase CPU usage by causing worst-case performance when
-creating <code class="docutils literal"><span class="pre">dict</span></code> instances. See <a class="reference external" href="http://www.ocert.org/advisories/ocert-2011-003.html">oCERT advisory #2011-003</a> for more information.</p>
+<div class="section" id="using-a-virtualenv">
+<h2>Using a virtualenv<a class="headerlink" href="#using-a-virtualenv" title="Permalink to this headline">¶</a></h2>
+<p>If you install your project&#8217;s Python dependencies inside a <a class="reference external" href="http://www.virtualenv.org">virtualenv</a>,
+you&#8217;ll need to add the path to this virtualenv&#8217;s <code class="docutils literal"><span class="pre">site-packages</span></code> directory to
+your Python path as well. To do this, add an additional path to your
+<code class="docutils literal"><span class="pre">WSGIPythonPath</span></code> directive, with multiple paths separated by a colon (<code class="docutils literal"><span class="pre">:</span></code>)
+if using a UNIX-like system, or a semicolon (<code class="docutils literal"><span class="pre">;</span></code>) if using Windows. If any
+part of a directory path contains a space character, the complete argument
+string to <code class="docutils literal"><span class="pre">WSGIPythonPath</span></code> must be quoted:</p>
+<div class="highlight-python"><div class="highlight"><pre>WSGIPythonPath /path/to/mysite.com:/path/to/your/venv/lib/python3.X/site-packages
+</pre></div>
+</div>
+<p>Make sure you give the correct path to your virtualenv, and replace
+<code class="docutils literal"><span class="pre">python3.X</span></code> with the correct Python version (e.g. <code class="docutils literal"><span class="pre">python3.4</span></code>).</p>
 </div>
 <div class="section" id="using-different-settings-for-production">
 <h2>Using Different Settings for Production<a class="headerlink" href="#using-different-settings-for-production" title="Permalink to this headline">¶</a></h2>
@@ -374,6 +379,20 @@ you&#8217;ll need to set the <code class="docutils literal"><span class="pre">DJ
 the Python path to your settings file (e.g., <code class="docutils literal"><span class="pre">'mysite.settings'</span></code>).</p>
 </div>
 </div>
+<div class="section" id="deploying-django-to-a-production-server">
+<h2>Deploying Django to a production server<a class="headerlink" href="#deploying-django-to-a-production-server" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-headache-free-deployment admonition">
+<p class="first admonition-title">Headache free deployment</p>
+<p class="last">If you are serious about deploying a live website, there is really only one
+sensible option - find a host that explicitly supports Django. Not only will you
+get a separate media server out of the box (usually Nginx), but they will also
+take care of the little things like setting up Apache correctly and setting a
+cron job that restarts the Python process periodically (to prevent your site
+hanging up). With the better hosts, you are also likely to get some form of
+&#8216;one-click&#8217; deployment. Save yourself the headache and pay the few bucks a month
+for a host who knows Django.</p>
+</div>
+</div>
 <div class="section" id="deploying-django-with-apache-and-mod-wsgi">
 <h2>Deploying Django with Apache and mod_wsgi<a class="headerlink" href="#deploying-django-with-apache-and-mod-wsgi" title="Permalink to this headline">¶</a></h2>
 <p>Deploying Django with <a class="reference external" href="http://httpd.apache.org/">Apache</a> and <a class="reference external" href="http://code.google.com/p/modwsgi/">mod_wsgi</a> is a tried and tested way to get
@@ -384,9 +403,8 @@ mod_wsgi.</p>
 <p>The <a class="reference external" href="http://code.google.com/p/modwsgi/">official mod_wsgi documentation</a> is fantastic; it&#8217;s your source for all
 the details about how to use mod_wsgi. You&#8217;ll probably want to start with the
 <a class="reference external" href="http://code.google.com/p/modwsgi/wiki/InstallationInstructions">installation and configuration documentation</a>.</p>
-</div>
 <div class="section" id="basic-configuration">
-<h2>Basic configuration<a class="headerlink" href="#basic-configuration" title="Permalink to this headline">¶</a></h2>
+<h3>Basic configuration<a class="headerlink" href="#basic-configuration" title="Permalink to this headline">¶</a></h3>
 <p>Once you&#8217;ve got mod_wsgi installed and activated, edit your Apache server&#8217;s
 <code class="docutils literal"><span class="pre">httpd.conf</span></code> file and add the following. If you are using a version of Apache
 older than 2.4, replace <code class="docutils literal"><span class="pre">Require</span> <span class="pre">all</span> <span class="pre">granted</span></code> with <code class="docutils literal"><span class="pre">Allow</span> <span class="pre">from</span> <span class="pre">all</span></code> and
@@ -410,8 +428,8 @@ file.</p>
 <p>The <code class="docutils literal"><span class="pre">WSGIPythonPath</span></code> line ensures that your project package is available for
 import on the Python path; in other words, that <code class="docutils literal"><span class="pre">import</span> <span class="pre">mysite</span></code> works.</p>
 <p>The <code class="docutils literal"><span class="pre">&lt;Directory&gt;</span></code> piece just ensures that Apache can access your
-<code class="file docutils literal"><span class="pre">wsgi.py</span></code> file.</p>
-<p>Next we&#8217;ll need to ensure this <code class="file docutils literal"><span class="pre">wsgi.py</span></code> with a WSGI application object
+<code class="docutils literal"><span class="pre">wsgi.py</span></code> file.</p>
+<p>Next we&#8217;ll need to ensure this <code class="docutils literal"><span class="pre">wsgi.py</span></code> with a WSGI application object
 exists. As of Django version 1.4, <code class="docutils literal"><span class="pre">startproject</span></code> will have created one
 for you; otherwise, you&#8217;ll need to create it. See the WSGI overview
 for the default contents you
@@ -432,23 +450,8 @@ solved by changing:</p>
 site runs in its own daemon process.</p>
 </div>
 </div>
-<div class="section" id="using-a-virtualenv">
-<h2>Using a virtualenv<a class="headerlink" href="#using-a-virtualenv" title="Permalink to this headline">¶</a></h2>
-<p>If you install your project&#8217;s Python dependencies inside a <a class="reference external" href="http://www.virtualenv.org">virtualenv</a>,
-you&#8217;ll need to add the path to this virtualenv&#8217;s <code class="docutils literal"><span class="pre">site-packages</span></code> directory to
-your Python path as well. To do this, add an additional path to your
-<code class="docutils literal"><span class="pre">WSGIPythonPath</span></code> directive, with multiple paths separated by a colon (<code class="docutils literal"><span class="pre">:</span></code>)
-if using a UNIX-like system, or a semicolon (<code class="docutils literal"><span class="pre">;</span></code>) if using Windows. If any
-part of a directory path contains a space character, the complete argument
-string to <code class="docutils literal"><span class="pre">WSGIPythonPath</span></code> must be quoted:</p>
-<div class="highlight-python"><div class="highlight"><pre>WSGIPythonPath /path/to/mysite.com:/path/to/your/venv/lib/python3.X/site-packages
-</pre></div>
-</div>
-<p>Make sure you give the correct path to your virtualenv, and replace
-<code class="docutils literal"><span class="pre">python3.X</span></code> with the correct Python version (e.g. <code class="docutils literal"><span class="pre">python3.4</span></code>).</p>
-</div>
 <div class="section" id="using-mod-wsgi-daemon-mode">
-<span id="daemon-mode"></span><h2>Using mod_wsgi daemon mode<a class="headerlink" href="#using-mod-wsgi-daemon-mode" title="Permalink to this headline">¶</a></h2>
+<span id="daemon-mode"></span><h3>Using mod_wsgi daemon mode<a class="headerlink" href="#using-mod-wsgi-daemon-mode" title="Permalink to this headline">¶</a></h3>
 <p>&#8220;Daemon mode&#8221; is the recommended mode for running mod_wsgi (on non-Windows
 platforms). To create the required daemon process group and delegate the
 Django instance to run in it, you will need to add appropriate
@@ -464,7 +467,7 @@ WSGIProcessGroup example.com
 mode</a>.</p>
 </div>
 <div class="section" id="serving-files">
-<span id="id1"></span><h2>Serving files<a class="headerlink" href="#serving-files" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h3>Serving files<a class="headerlink" href="#serving-files" title="Permalink to this headline">¶</a></h3>
 <p>Django doesn&#8217;t serve files itself; it leaves that job to whichever Web
 server you choose.</p>
 <p>We recommend using a separate Web server &#8211; i.e., one that&#8217;s not also running
@@ -508,13 +511,13 @@ Require all granted
 <code class="docutils literal"><span class="pre">Order</span> <span class="pre">deny,allow</span></code> above it.</p>
 </div>
 <div class="section" id="serving-the-admin-files">
-<span id="id3"></span><h2>Serving the admin files<a class="headerlink" href="#serving-the-admin-files" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h3>Serving the admin files<a class="headerlink" href="#serving-the-admin-files" title="Permalink to this headline">¶</a></h3>
 <p>When <code class="xref py py-mod docutils literal"><span class="pre">django.contrib.staticfiles</span></code> is in <code class="docutils literal"><span class="pre">INSTALLED_APPS</span></code>, the
 Django development server automatically serves the static files of the
 admin app (and any other installed apps). This is however not the case when you
 use any other server arrangement. You&#8217;re responsible for setting up Apache, or
 whichever Web server you&#8217;re using, to serve the admin files.</p>
-<p>The admin files live in (<code class="file docutils literal"><span class="pre">django/contrib/admin/static/admin</span></code>) of the
+<p>The admin files live in (<code class="docutils literal"><span class="pre">django/contrib/admin/static/admin</span></code>) of the
 Django distribution.</p>
 <p>We <strong>strongly</strong> recommend using <code class="xref py py-mod docutils literal"><span class="pre">django.contrib.staticfiles</span></code> to handle the
 admin files (along with a Web server as outlined in the previous section; this
@@ -533,14 +536,8 @@ the admin files.</li>
 document root.</li>
 </ol>
 </div>
-<div class="section" id="authenticating-against-django-s-user-database-from-apache">
-<h2>Authenticating against Django&#8217;s user database from Apache<a class="headerlink" href="#authenticating-against-django-s-user-database-from-apache" title="Permalink to this headline">¶</a></h2>
-<p>Django provides a handler to allow Apache to authenticate users directly
-against Django&#8217;s authentication backends. See the mod_wsgi authentication
-documentation.</p>
-</div>
 <div class="section" id="if-you-get-a-unicodeencodeerror">
-<h2>If you get a UnicodeEncodeError<a class="headerlink" href="#if-you-get-a-unicodeencodeerror" title="Permalink to this headline">¶</a></h2>
+<h3>If you get a UnicodeEncodeError<a class="headerlink" href="#if-you-get-a-unicodeencodeerror" title="Permalink to this headline">¶</a></h3>
 <p>If you&#8217;re taking advantage of the internationalization features of Django and you intend to allow users to upload files, you must
 ensure that the environment used to start Apache is configured to accept
 non-ASCII file names. If your environment is not correctly configured, you
@@ -556,6 +553,7 @@ export LC_ALL=&#39;en_US.UTF-8&#39;
 and location to put these configuration items; <code class="docutils literal"><span class="pre">/etc/apache2/envvars</span></code> is a
 common location on Unix platforms. Once you have added these statements
 to your environment, restart Apache.</p>
+</div>
 </div>
 <div class="section" id="serving-static-files-in-production">
 <span id="staticfiles-production"></span><h2>Serving static files in production<a class="headerlink" href="#serving-static-files-in-production" title="Permalink to this headline">¶</a></h2>
@@ -695,8 +693,6 @@ looks something like Figure 13-1.</p>
 <img alt="_images/scaling-1.png" src="_images/scaling-1.png" />
 <p class="caption"><span class="caption-text">Figure 13-1: a single server Django setup.</span></p>
 </div>
-<p>This works just fine for small- to medium-sized sites, and it&#8217;s relatively cheap &#8211; you
-can put together a single-server site designed for Django for well under $3,000.</p>
 <p>However, as traffic increases you&#8217;ll quickly run into <em>resource contention</em>
 between the different pieces of software. Database servers and Web servers
 <em>love</em> to have the entire server to themselves, so when run on the same server
@@ -740,9 +736,8 @@ generated by a Django view &#8211; onto a dedicated server (see Figure 13-3).</p
 <p class="caption"><span class="caption-text">Figure 13-3: Separating out the media server.</span></p>
 </div>
 <p>Ideally, this media server should run a stripped-down Web server optimized for
-static media delivery. lighttpd and tux (<a class="reference external" href="http://www.djangoproject.com/r/tux/">http://www.djangoproject.com/r/tux/</a>)
-are both excellent choices here, but a heavily stripped down Apache could work,
-too.</p>
+static media delivery. <a class="reference external" href="http://wiki.nginx.org/Main">Nginx</a> is the preferred option here, although lighttpd is
+another option, or a heavily stripped down Apache could work too.</p>
 <p>For sites heavy in static content (photos, videos, etc.), moving to a
 separate media server is doubly important and should likely be the <em>first</em>
 step in scaling up.</p>
@@ -772,7 +767,7 @@ load balancers out there.</p>
 <p>Apache&#8217;s <code class="docutils literal"><span class="pre">mod_proxy</span></code> is one option, but we&#8217;ve found Perlbal
 (<a class="reference external" href="http://www.djangoproject.com/r/perlbal/">http://www.djangoproject.com/r/perlbal/</a>) to be fantastic. It&#8217;s a load
 balancer and reverse proxy written by the same folks who wrote <code class="docutils literal"><span class="pre">memcached</span></code>
-(see <a class="reference external" href="chapter15.html">Chapter 15</a>).</p>
+(see Chapter 17).</p>
 <p>With the Web servers now clustered, our evolving architecture starts to look
 more complex, as shown in Figure 13-4.</p>
 <div class="figure" id="id9">
@@ -864,7 +859,7 @@ site, don&#8217;t even bother with the other backends &#8211; go straight to mem
 <div class="section" id="use-memcached-often">
 <h3>Use memcached Often<a class="headerlink" href="#use-memcached-often" title="Permalink to this headline">¶</a></h3>
 <p>Of course, selecting memcached does you no good if you don&#8217;t actually use it.
-<a class="reference external" href="chapter15.html">Chapter 15</a> is your best friend here: learn how to use Django&#8217;s cache
+Chapter 17 is your best friend here: learn how to use Django&#8217;s cache
 framework, and use it everywhere possible. Aggressive, preemptive caching is
 usually the only thing that will keep a site up under major traffic.</p>
 </div>
@@ -917,16 +912,10 @@ choose.</p>
 <li class="toctree-l2"><a class="reference internal" href="#https">HTTPS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-optimizations">Performance optimizations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#error-reporting">Error reporting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#python-options">Python Options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-different-settings-for-production">Using Different Settings for Production</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#deploying-django-with-apache-and-mod-wsgi">Deploying Django with Apache and mod_wsgi</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#basic-configuration">Basic configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-a-virtualenv">Using a virtualenv</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-mod-wsgi-daemon-mode">Using mod_wsgi daemon mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#serving-files">Serving files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#serving-the-admin-files">Serving the admin files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#authenticating-against-django-s-user-database-from-apache">Authenticating against Django&#8217;s user database from Apache</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#if-you-get-a-unicodeencodeerror">If you get a UnicodeEncodeError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-different-settings-for-production">Using Different Settings for Production</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-django-to-a-production-server">Deploying Django to a production server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-django-with-apache-and-mod-wsgi">Deploying Django with Apache and mod_wsgi</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#serving-static-files-in-production">Serving static files in production</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scaling">Scaling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-tuning">Performance Tuning</a></li>
@@ -941,6 +930,8 @@ choose.</p>
 <li class="toctree-l1"><a class="reference internal" href="chapter_19.html">Chapter 19 - Django Middleware</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_20.html">Chapter 20: Internationalization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chapter_21.html">Chapter 21: Security in Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_22.html">How to install Django</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter_23.html">Chapter 23: Advanced database management</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_A.html">Appendix A: Model Definition Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_B.html">Appendix B: Database API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appendix_C.html">Appendix C: Generic View Reference</a></li>
