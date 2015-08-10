@@ -1,5 +1,5 @@
 ==============================
-Chapter 12 - testing in Django
+Chapter 12 - Testing in Django
 ==============================
 
 Introducing automated testing
