@@ -31,7 +31,7 @@ run all the example code in this book.
 
 This is by far the easiest, and best way to setup Django when you are first
 starting out. If you do want to go to a more advanced installation of Django,
-your options are covered in Chapter 13 - Deploying Django, Chapter 22 - Complete
+your options are covered in :Chapter 13 - Deploying Django: `/chapter_13.rst`, Chapter 22 - Complete
 Installation Guide and Chapter 23 - Advanced Database Management.
 
 Installing Python
